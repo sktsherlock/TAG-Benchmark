@@ -9,7 +9,12 @@ from utils.data.datasets import *
 import torch as th
 
 METRICS = {  # metric -> metric_path
-    'accuracy': 'src/utils/function/hf_accuracy.py'
+    'accuracy': 'src/utils/function/hf_accuracy.py',
+    'f1': 'src/utils/function/hf_f1.py',
+    'precision': 'src/utils/function/hf_precision.py',
+    'recall': 'src/utils/function/hf_recall.py',
+    'spearmanr': 'src/utils/function/hf_spearmanr.py',
+    'pearsonr': 'src/utils/function/hf_pearsonr.py',
 }
 
 
