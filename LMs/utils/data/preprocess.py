@@ -1,11 +1,20 @@
+import gc
+import os
+import time
+
+import dgl
 import numpy as np
 import pandas as pd
+import torch as th
 from transformers import AutoTokenizer
 import time
-from LMs import utils as uf
-from LMs.utils.settings import *
+import utils.function as uf
+from utils.function.dgl_utils import sample_nodes
+from utils.settings import *
 from tqdm import tqdm
 from copy import deepcopy
+from torch_sparse import SparseTensor
+from torch_geometric.utils import to_undirected, dropout_adj
 
 
 def tokenize_text(cf):
@@ -164,7 +173,7 @@ def _tokenize_ogb_arxiv_datasets(d, labels, chunk_size=50000):
         data['text'] = data.apply(lambda x: ' '.join(x['text'].split(' ')[:d.cut_off]), axis=1)
         return data['text']
 
-    from ogb.utils.url import download_url
+    from ogb.utils.url import download_url, extract_zip
     # Get Raw text path
     assert d.ogb_name in ['ogbn-arxiv', 'ogbn-papers100M']
     print(f'Loading raw text for {d.ogb_name}')
