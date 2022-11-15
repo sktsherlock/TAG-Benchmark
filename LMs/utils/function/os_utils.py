@@ -159,7 +159,7 @@ import time
 import numpy as np
 import pytz
 
-from LMs.utils.function.os_utils import init_path
+from utils.function.os_utils import init_path
 
 cur_path = os.path.abspath(os.path.dirname(__file__))
 root_path = cur_path.split('src')[0]
