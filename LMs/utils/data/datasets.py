@@ -1,13 +1,13 @@
 import torch.nn.functional as F
 
-from LMs.utils.function import *
-from LMs.utils.function.dgl_utils import *
-from LMs.utils.settings import *
-from LMs.utils.data.preprocess import tokenize_graph, load_graph_info
+from utils.function import *
+from utils.function.dgl_utils import *
+from utils.settings import *
+from utils.data.preprocess import tokenize_graph, load_graph_info
 import numpy as np
 
 
-class SeqGraph():
+class Sequence():
     def __init__(self, cf):
         # Process split settings, e.g. -1/2 means first split
         self.cf = cf
@@ -15,7 +15,6 @@ class SeqGraph():
         self.device = None
         self.lm_emb_dim = self.cf.lm_md.hidden_dim if not self.cf.feat_shrink else int(self.cf.feat_shrink)
         self.name, process_mode = (_ := cf.dataset.split('_'))[0], _[1]  # e.g. name of "arxiv_TA" is "arxiv"
-        process_mode = process_mode.strip('ind').strip('IND').strip('ogbInd')
         self.process_mode = process_mode
         self.md = info_dict = DATA_INFO[self.name]
 
