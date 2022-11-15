@@ -53,8 +53,6 @@ class Sequence():
         self.__dict__.update(g_info.splits)
         self.n_nodes = g_info.n_nodes
         self.ndata.update({_: getattr(g_info, _) for _ in self.label_keys})
-
-        self.pl_nodes = np.arange(self.n_nodes)[pl_nodes]  # val test
         self.labeled_nodes = np.arange(self.n_nodes)[g_info.is_gold]
         # ! LM phase
         tokenize_graph(self.cf)
