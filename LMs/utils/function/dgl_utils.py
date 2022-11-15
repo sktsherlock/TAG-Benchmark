@@ -1,7 +1,7 @@
 import dgl
 import numpy as np
 import torch as th
-from LMs.utils.function import init_random_state
+from utils.function import init_random_state
 
 
 def sample_nodes(g, seed_nodes, fanout_list):
