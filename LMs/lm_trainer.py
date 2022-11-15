@@ -3,18 +3,18 @@ import math
 from datasets import load_metric
 from transformers import AutoModel, EvalPrediction, TrainingArguments, Trainer
 import utils.function as uf
-from models.LMs.model import *
-from models.GraphVF.gvf_utils import *
+from LMs.model import *
 from utils.data.datasets import *
 import torch as th
 
 METRICS = {  # metric -> metric_path
     'accuracy': 'src/utils/function/hf_accuracy.py',
-    'f1': 'src/utils/function/hf_f1.py',
+    'f1score': 'src/utils/function/hf_f1.py',
     'precision': 'src/utils/function/hf_precision.py',
     'recall': 'src/utils/function/hf_recall.py',
     'spearmanr': 'src/utils/function/hf_spearmanr.py',
     'pearsonr': 'src/utils/function/hf_pearsonr.py',
+
 }
 
 
@@ -40,23 +40,12 @@ class LMTrainer():
                          for _ in ['train', 'valid', 'test']}
         self.metrics = {m: load_metric(m_path) for m, m_path in METRICS.items()}
 
-        if cf.is_augmented:
-            # Augment Label if Cir-train
-            warmup_steps = 0  # No warmup (already warmed up at pre-training step)
-            # Sample visible data for current EM-Iter
-            init_random_state(cf.seed)
-            train_ids = d.get_inf_aug_train_ids(*cf.emi.inf_node_ranges)
-            _ = SeqGraphDataset(d, mode='train_augmented')
-            self.train_data = th.utils.data.Subset(_, train_ids)
-            max_pl_ratio = len(d.pl_nodes) / len(d.labeled_nodes)
-            pl_ratio = min(cf.pl_ratio, max_pl_ratio)
-            eval_steps = (1 + pl_ratio) * cf.eval_patience // cf.eq_batch_size
-        else:
-            # Pretrain on gold data
-            self.train_data = self.datasets['train']
-            train_steps = len(d.train_x) // cf.eq_batch_size + 1
-            warmup_steps = int(cf.warmup_epochs * train_steps)
-            eval_steps = cf.eval_patience // cf.eq_batch_size
+
+        # Pretrain on gold data
+        self.train_data = self.datasets['train']
+        train_steps = len(d.train_x) // cf.eq_batch_size + 1
+        warmup_steps = int(cf.warmup_epochs * train_steps)
+        eval_steps = cf.eval_patience // cf.eq_batch_size
 
         # ! Load bert and build classifier
         bert_model = AutoModel.from_pretrained(cf.hf_model)
@@ -73,33 +62,16 @@ class LMTrainer():
             trainable_params = sum(
             p.numel() for p in self.model.parameters() if p.requires_grad
         )
-            print(f"!!!!!!!!!!!!!!!!! LM Model parameters are {trainable_params}")
-        if cf.is_augmented:
-            if cf.init_ckpt == 'PrevEM':
-                # ! Load previous LM model
-                self.model.load_state_dict(temp := th.load(cf.prev_lm_ckpt, map_location='cpu'))
-                del temp
-            elif cf.init_ckpt == 'Prt':
-                self.model.load_state_dict(temp := th.load(cf.prt_lm_ckpt, map_location='cpu'))
-                del temp
-            elif cf.init_ckpt == 'None':
-                pass
-            elif cf.init_ckpt == 'EM':
-                # ! Don't Load previous Prt LM model
-                if cf.emi.iter > 0:
-                    print(f'-----------cf.emi.iter = {cf.emi.iter}, load from Prev')
-                    self.model.load_state_dict(temp := th.load(cf.prev_lm_ckpt, map_location='cpu'))
-                    del temp
-                else:
-                    print(f'-----------cf.emi.iter = {cf.emi.iter}, load from None')
-                    pass
-            else:
-                raise NotImplementedError(cf.init_ckpt)
-            load_best_model_at_end = cf.load_best_model_at_end == 'T'
+            print(f" LM Model parameters are {trainable_params}")
+
+        load_best_model_at_end = True
+        if cf.hf_model == 'distilbert-base-uncased':
+            self.model.config.dropout = cf.dropout
+            self.model.config.attention_dropout = cf.att_dropout
         else:
-            load_best_model_at_end = True
-        self.model.config.hidden_dropout_prob = cf.dropout
-        self.model.config.attention_dropout_prob = cf.att_dropout
+            print('default dropout and attention_dropout are:', self.model.config.hidden_dropout_prob, self.model.config.attention_probs_dropout_prob)
+            self.model.config.hidden_dropout_prob = cf.dropout
+            self.model.config.attention_probs_dropout_prob = cf.att_dropout
 
         training_args = TrainingArguments(
             output_dir=cf.out_dir,
@@ -119,14 +91,16 @@ class LMTrainer():
             num_train_epochs=cf.epochs,
             local_rank=cf.local_rank,
             dataloader_num_workers=1,
-            fp16=True,  # if cf.hf_model=='microsoft/deberta-large' else False
+            fp16=True,
         )
 
         # ! Get dataloader
 
         def compute_metrics(pred: EvalPrediction):
             predictions, references = pred.predictions.argmax(1), pred.label_ids.argmax(1)
-            return {m_name: metric.compute(predictions=predictions, references=references) for m_name, metric in self.metrics.items()}
+            return {m_name: metric.compute(predictions=predictions, references=references)
+            if m_name in {'accuracy', 'pearsonr', 'spearmanr'} else metric.compute(predictions=predictions, references=references, average='macro')
+            for m_name, metric in self.metrics.items()}
 
         self.trainer = Trainer(
             model=self.model,
@@ -142,7 +116,6 @@ class LMTrainer():
         # ! Save BertClassifer Save model parameters
         if cf.local_rank <= 0:
             th.save(self.model.state_dict(), uf.init_path(cf.lm.ckpt))
-        # uf.remove_file(f'{cf.out_dir}')
         self.log(f'LM saved to {cf.lm.ckpt}')
 
     def eval_and_save(self):
@@ -155,14 +128,7 @@ class LMTrainer():
         cf = self.cf
         res = {**get_metric('valid'), **get_metric('test')}
         res = {'val_acc': res['valid_accuracy'], 'test_acc': res['test_accuracy']}
-        if cf.is_augmented:
-            cf.wandb_log({**{f'GraphVF/LM_{k}': v for k, v in res.items()},
-                          'EM-Iter': cf.emi.end})
-            cf.em_info.lm_res_list.append(res)
-            uf.pickle_save(cf.em_info, cf.emi_file)
-        else:  # Pretrain
-            # Save results for pre-training to be reported at main ct-loop
-            uf.pickle_save(res, cf.lm.result)
-            cf.wandb_log({f'lm_prt_{k}': v for k, v in res.items()})
+        uf.pickle_save(res, cf.lm.result)
+        cf.wandb_log({f'lm_prt_{k}': v for k, v in res.items()})
 
         self.log(f'\nTrain seed{cf.seed} finished\nResults: {res}\n{cf}')

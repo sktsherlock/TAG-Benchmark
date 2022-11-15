@@ -4,9 +4,23 @@ from transformers import PreTrainedModel
 from transformers.modeling_outputs import TokenClassifierOutput
 
 from utils.function.os_utils import init_random_state
-from models.GraphVF.gvf_utils import compute_loss
 import numpy as np
 import torch.nn.functional as F
+
+def compute_loss(logits, labels, loss_func, is_gold=None, pl_weight=0.5, is_augmented=False):
+    """
+    Combine two types of losses: (1-α)*MLE (CE loss on gold) + α*Pl_loss (CE loss on pseudo labels)
+    """
+    import torch as th
+
+    if is_augmented and ((n_pseudo := sum(~is_gold)) > 0):
+        deal_nan = lambda x: 0 if th.isnan(x) else x
+        mle_loss = deal_nan(loss_func(logits[is_gold], labels[is_gold]))
+        pl_loss = deal_nan(loss_func(logits[~is_gold], labels[~is_gold]))
+        loss = pl_weight * pl_loss + (1 - pl_weight) * mle_loss
+    else:
+        loss = loss_func(logits, labels)
+    return loss
 
 
 class BertClassifier(PreTrainedModel):
@@ -34,55 +48,7 @@ class BertClassifier(PreTrainedModel):
         if self.feat_shrink:
             cls_token_emb = self.feat_shrink_layer(cls_token_emb)
         logits = self.classifier(cls_token_emb)
-
         if labels.shape[-1] == 1:
             labels = labels.squeeze()
-        # print(f'{sum(is_gold)} gold, {sum(~is_gold)} pseudo')
-        loss = compute_loss(logits, labels, self.loss_func, is_gold=is_gold, pl_weight=self.pl_weight, is_augmented=self.is_augmented)
+        loss = self.loss_func(logits, labels)
         return TokenClassifierOutput(loss=loss, logits=logits)
-
-    # def save_pretrained(self, output_dir, state_dict):
-    #     # Save bert-encoder only
-    #     return self.bert_encoder.save_pretrained(output_dir, state_dict=state_dict, save_config=True)
-
-
-class BertEmbInfModel(PreTrainedModel):
-    def __init__(self, model):
-        super().__init__(model.config)
-        self.bert_encoder = model
-
-    @th.no_grad()
-    def forward(self, **input):
-        # Extract outputs from the model
-        outputs = self.bert_encoder(**input, output_hidden_states=True)
-        emb = outputs['hidden_states'][-1]  # Last layer
-        # Use CLS Emb as sentence emb.
-        # Check LN
-        node_cls_emb = emb.permute(1, 0, 2)[0]
-        return TokenClassifierOutput(logits=node_cls_emb)
-
-
-class BertClaInfModel(PreTrainedModel):
-    def __init__(self, model, emb, pred, feat_shrink=''):
-        super().__init__(model.config)
-        self.bert_classifier = model
-        self.emb, self.pred = emb, pred
-        self.feat_shrink = feat_shrink
-
-    @th.no_grad()
-    def forward(self, **input):
-        # Extract outputs from the model
-        batch_nodes = input.pop('node_id').cpu().numpy()
-        bert_outputs = self.bert_classifier.bert_encoder(**input, output_hidden_states=True)
-        emb = bert_outputs['hidden_states'][-1]  # outputs[0]=last hidden state
-        # Use CLS Emb as sentence emb.
-        cls_token_emb = emb.permute(1, 0, 2)[0]
-        if self.feat_shrink:
-            cls_token_emb = self.bert_classifier.feat_shrink_layer(cls_token_emb)
-        logits = self.bert_classifier.classifier(cls_token_emb)
-        # Save prediction and embeddings to disk (memmap)
-        self.emb[batch_nodes] = cls_token_emb.cpu().numpy().astype(np.float16)
-        self.pred[batch_nodes] = logits.cpu().numpy().astype(np.float16)
-        # Output empty to fit the Huggingface trainer pipeline
-        empty = th.cuda.BoolTensor((len(batch_nodes), 1))
-        return TokenClassifierOutput(logits=empty)
