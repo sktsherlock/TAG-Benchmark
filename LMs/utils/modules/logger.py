@@ -3,7 +3,7 @@ import os
 
 import wandb
 
-from LMs import utils as uf
+import utils as uf
 from utils.function.os_utils import json_save
 
 
