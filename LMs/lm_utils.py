@@ -1,6 +1,8 @@
-from LMs import utils as uf
-from LMs.utils import Sequence
-from LMs.utils import ModelConfig
+import os
+import utils.function as uf
+from utils.data import Sequence
+from utils.modules import ModelConfig
+from utils.settings import *
 from importlib import import_module
 from argparse import ArgumentParser
 
