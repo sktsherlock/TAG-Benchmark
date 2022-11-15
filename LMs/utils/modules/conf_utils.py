@@ -1,9 +1,9 @@
 from abc import ABCMeta
 
-from LMs import utils as uf
-from LMs.utils.settings import *
+import utils as uf
+from utils.settings import *
 import os
-from LMs.utils.modules.logger import Logger
+from utils.modules.logger import Logger
 
 class ModelConfig(metaclass=ABCMeta):
     """
