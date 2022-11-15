@@ -2,7 +2,7 @@ import torch.nn as nn
 from transformers import PreTrainedModel
 from transformers.modeling_outputs import TokenClassifierOutput
 
-from LMs.utils.function import init_random_state
+from utils.function import init_random_state
 
 
 def compute_loss(logits, labels, loss_func, is_gold=None, pl_weight=0.5, is_augmented=False):
