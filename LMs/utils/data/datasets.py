@@ -103,7 +103,7 @@ class Sequence():
 
 
 class SeqGraphDataset(th.utils.data.Dataset):  # Map style
-    def __init__(self, data: SeqGraph, mode):
+    def __init__(self, data: Sequence, mode):
         super().__init__()
         self.d, self.mode = data, mode
 
