@@ -1,6 +1,6 @@
 from datasets import load_metric
 from transformers import AutoModel, EvalPrediction, TrainingArguments, Trainer, AutoModelForMaskedLM
-from LMs import utils as uf
+import utils as uf
 from model import *
 import torch as th
 
