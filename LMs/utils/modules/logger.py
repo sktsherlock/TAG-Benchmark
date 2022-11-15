@@ -4,7 +4,7 @@ import os
 import wandb
 
 from LMs import utils as uf
-from LMs.utils.function.os_utils import json_save
+from utils.function.os_utils import json_save
 
 
 class Logger():
