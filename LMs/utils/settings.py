@@ -26,7 +26,7 @@ class ServerInfo:
 
 SV_INFO = ServerInfo()
 
-PROJ_NAME = 'CirTraining'
+PROJ_NAME = 'TAG-Benchmark'
 # ! Project Path Settings
 
 GPU_CF = {
@@ -46,7 +46,7 @@ MNT_DIR = get_info_by_sv_type('mnt_dir', SV_INFO)
 
 import os.path as osp
 
-PROJ_DIR = osp.abspath(osp.dirname(__file__)).split('src')[0]
+PROJ_DIR = osp.abspath(osp.dirname(__file__)).split('utils')[0]
 
 # Temp paths: discarded when container is destroyed
 TEMP_DIR = PROJ_DIR
@@ -60,7 +60,7 @@ DB_PATH = f'{PROJ_DIR}exp_db/'
 
 # ! Data Settings
 DATA_PATH = f'{PROJ_DIR}data/'
-OGB_ROOT = f'{PROJ_DIR}/data/ogb/'
+OGB_ROOT = f'{PROJ_DIR}data/ogb/'
 
 DATA_INFO = {
     'arxiv': {
@@ -79,7 +79,7 @@ get_d_info = lambda x: DATA_INFO[x.split('_')[0]]
 
 TR_RATIO_DICT = {_d: _['train_ratio'] for _d, _ in DATA_INFO.items()}
 DATASETS = list(DATA_INFO.keys())
-DEFAULT_DATASET = 'arxiv_TA_0.002'
+DEFAULT_DATASET = 'arxiv_TA'
 DEFAULT_D_INFO = get_d_info(DEFAULT_DATASET)
 
 METRIC = 'acc'

@@ -1,16 +1,10 @@
-import os
-from random import randint
-
 import torch.nn.functional as F
-from transformers import AutoTokenizer
 
-from utils.function import *
-from utils.function.dgl_utils import *
-from utils.settings import *
-from utils.data.preprocess import tokenize_graph, load_graph_info
-from copy import deepcopy
+from LMs.utils.function import *
+from LMs.utils.function.dgl_utils import *
+from LMs.utils.settings import *
+from LMs.utils.data.preprocess import tokenize_graph, load_graph_info
 import numpy as np
-from utils.data.preprocess import *
 
 
 class SeqGraph():

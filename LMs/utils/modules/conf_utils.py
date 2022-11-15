@@ -1,10 +1,9 @@
 from abc import ABCMeta
-from argparse import ArgumentParser
 
-import utils.function as uf
-from utils.settings import *
+from LMs import utils as uf
+from LMs.utils.settings import *
 import os
-
+from LMs.utils.modules.logger import Logger
 
 class ModelConfig(metaclass=ABCMeta):
     """
@@ -146,19 +145,19 @@ class ModelConfig(metaclass=ABCMeta):
         # Print the model settings only.
         return {p: v for p, v in sorted(self.__dict__.items()) if judge_para(p, v)}
 
-    @property
-    def parser(self) -> ArgumentParser:
-        parser = ArgumentParser("Experimental settings")
-        parser.add_argument("-g", '--gpus', default=DEFAULT_GPU, type=str,
-                            help='a list of active gpu ids, separated by ",", "cpu" for cpu-only mode.')
-        parser.add_argument("-d", "--dataset", type=str, default=DEFAULT_DATASET)
-        parser.add_argument("-t", "--train_percentage", default=DEFAULT_D_INFO['train_ratio'], type=int)
-        parser.add_argument("-v", "--verbose", default=1, type=int, help='Verbose level, higher level generates more log, -1 to shut down')
-        parser.add_argument('--tqdm_on', action="store_true", help='show log by tqdm or not')
-        parser.add_argument("-w", "--wandb_name", default='OFF', type=str, help='Wandb logger or not.')
-        parser.add_argument("--epochs", default=MAX_EPOCHS, type=int)
-        parser.add_argument("--seed", default=0, type=int)
-        return parser
+    # @property
+    # def parser(self) -> ArgumentParser:
+    #     # parser = ArgumentParser("Experimental settings")
+    #     # parser.add_argument("-g", '--gpus', default=DEFAULT_GPU, type=str,
+    #     #                     help='a list of active gpu ids, separated by ",", "cpu" for cpu-only mode.')
+    #     # parser.add_argument("-d", "--dataset", type=str, default=DEFAULT_DATASET)
+    #     # parser.add_argument("-t", "--train_percentage", default=DEFAULT_D_INFO['train_ratio'], type=int)
+    #     # parser.add_argument("-v", "--verbose", default=1, type=int, help='Verbose level, higher level generates more log, -1 to shut down')
+    #     # parser.add_argument('--tqdm_on', action="store_true", help='show log by tqdm or not')
+    #     # parser.add_argument("-w", "--wandb_name", default='OFF', type=str, help='Wandb logger or not.')
+    #     # parser.add_argument("--epochs", default=MAX_EPOCHS, type=int)
+    #     # parser.add_argument("--seed", default=0, type=int)
+    #     return parser
 
     def __str__(self):
         return f'{self.model} config: \n{self.model_conf}'
@@ -167,14 +166,14 @@ class ModelConfig(metaclass=ABCMeta):
         # ! Parse defined args
         defined_args = (parser := self.parser).parse_known_args()[0]
 
-        # ! Reinitialize config by parsed experimental args
-        self.__init__(defined_args)
-        default_cf = self.model_conf.items()
+        # # ! Reinitialize config by parsed experimental args
+        # self.__init__(defined_args)
+        # default_cf = self.model_conf.items()
 
-        # ! Parse undefined args.
-        for arg, arg_val in default_cf:
-            if not hasattr(defined_args, arg):
-                parser.add_argument(f"--{arg}", type=type(arg_val), default=arg_val)
+        # # ! Parse undefined args.
+        # for arg, arg_val in default_cf:
+        #     if not hasattr(defined_args, arg):
+        #         parser.add_argument(f"--{arg}", type=type(arg_val), default=arg_val)
         return parser.parse_args()
 
     def _export_train_command(self):
@@ -184,10 +183,10 @@ class ModelConfig(metaclass=ABCMeta):
         return f'python {train_file} {settings}'
 
 
-    @property
-    def model_conf(self):
-        is_para = lambda para: para[0] != '_' and para not in self._ignored_paras
-        return SN(**{k: v for k, v in self.__dict__.items() if is_para(k)})
+    # @property
+    # def model_conf(self):
+    #     is_para = lambda para: para[0] != '_' and para not in self._ignored_paras
+    #     return SN(**{k: v for k, v in self.__dict__.items() if is_para(k)})
 
     def combine(self, new_conf):
         return SN(**{**new_conf.model_conf.__dict__, **self.model_conf.__dict__})

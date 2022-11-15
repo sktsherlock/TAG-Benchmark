@@ -1,23 +1,15 @@
-import gc
-import os
-import time
-
-import dgl
 import numpy as np
 import pandas as pd
-import torch as th
 from transformers import AutoTokenizer
 import time
-import utils.function as uf
-from utils.function.dgl_utils import sample_nodes
-from utils.settings import *
+from LMs import utils as uf
+from LMs.utils.settings import *
 from tqdm import tqdm
 from copy import deepcopy
-from torch_sparse import SparseTensor
-from torch_geometric.utils import to_undirected, dropout_adj
 
-def tokenize_graph(cf):
-    # = Tokenization on Full Graph
+
+def tokenize_text(cf):
+    # = Tokenization on FSequence
     full_dict = deepcopy(cf.model_conf)
     full_dict['dataset'] = '_'.join(full_dict['dataset'].split('_')[:2])
     full_cf = cf.__class__(SN(**full_dict)).init()
@@ -40,6 +32,32 @@ def tokenize_graph(cf):
     else:
         cf.log(f'Found processed {cf.dataset}.')
 
+
+
+def tokenize_graph(cf):
+    # = Tokenization on Full Graph
+    full_dict = deepcopy(cf.model_conf)
+    full_cf = cf.__class__(SN(**full_dict)).init()
+    d = full_cf.data
+    if not d.is_processed('token'):
+        if cf.local_rank <= 0:
+            # ! Load full-graph
+            print(f'Processing data on LOCAL_RANK #{cf.local_rank}...')
+            g_info = load_graph_info(full_cf)
+            print(f'Loaded graph structure, start tokenization...')
+            # if some datasets then tokenize datasets
+            _tokenize_ogb_arxiv_datasets(d, g_info.labels)
+            print(f'Tokenization finished on LOCAL_RANK #{cf.local_rank}')
+        else:
+            # If not main worker (i.e. Local_rank!=0), wait until data is processed and load
+            print(f'Waiting for tokenization on LOCAL_RANK #{cf.local_rank}')
+            while not d.is_processed('token'):
+                time.sleep(2)  # Check if processed every 2 seconds
+            print(f'Detected processed data, LOCAL_RANK #{cf.local_rank} start loading!')
+            time.sleep(5)  # Wait for file write for 5 seconds
+    else:
+        cf.log(f'Found processed {cf.dataset}.')
+
 def load_ogb_graph_structure_only(cf):
     from ogb.nodeproppred import DglNodePropPredDataset
     data = DglNodePropPredDataset(cf.data.ogb_name, root=uf.init_path(cf.data.raw_data_path))
@@ -47,6 +65,44 @@ def load_ogb_graph_structure_only(cf):
     split_idx = data.get_idx_split()
     labels = labels.squeeze().numpy()
     return g, labels, split_idx
+
+def process_split(cf):
+    #! Todo
+    labels = None
+    split_idx = None
+    num_nodes = None
+    return num_nodes, labels, split_idx
+
+
+
+def load_data_info(cf):
+    # import labels; split_idx; For node-classification purposes
+    d = cf.data
+    # ! Process Dataset
+    if not d.is_processed('d_info'):
+        # Load OGB
+        if cf.local_rank <= 0:
+            num_nodes, labels, split_idx = process_split(cf)
+            # Process and save labels
+            splits = {**{f'{_}_x': split_idx[_].numpy() for _ in ['train', 'valid', 'test']}, 'labels': labels}
+            d_info = SN(splits=splits, labels=labels, n_nodes=num_nodes)
+            d.save_d_info(d_info)
+        else:
+            # If not main worker (i.e. Local_rank!=0), wait until data is processed and load
+            print(f'Waiting for feature processing on LOCAL_RANK #{cf.local_rank}')
+            while not d.is_processed('g_info'):
+                time.sleep(2)  # Check if processed every 2 seconds
+            print(f'Detected processed feature, LOCAL_RANK #{cf.local_rank} start loading!')
+            time.sleep(5)  # Wait f
+    d_info = uf.pickle_load(d._d_info_file)
+    return d_info
+
+
+
+
+
+
+
 
 
 def load_graph_info(cf):
@@ -59,12 +115,8 @@ def load_graph_info(cf):
             # Process and save supervision
             splits = {**{f'{_}_x': split_idx[_].numpy() for _ in ['train', 'valid', 'test']}, 'labels': labels}
             is_gold = np.zeros((g.num_nodes()), dtype=bool)
-            val_test = np.zeros((g.num_nodes()), dtype=bool)
-            g, splits = _subset_graph(g, cf, splits)
-            is_gold[splits['train_x']] = True
-            val_test[splits['valid_x']] = True
-            val_test[splits['test_x']] = True
-            g_info = SN(splits=splits, labels=labels, is_gold=is_gold, n_nodes=g.num_nodes(), val_test=val_test)
+            # g, splits = _subset_graph(g, cf, splits)
+            g_info = SN(splits=splits, labels=labels, is_gold=is_gold, n_nodes=g.num_nodes())
             d.save_g_info(g_info)
             del g
         else:
@@ -112,7 +164,7 @@ def _tokenize_ogb_arxiv_datasets(d, labels, chunk_size=50000):
         data['text'] = data.apply(lambda x: ' '.join(x['text'].split(' ')[:d.cut_off]), axis=1)
         return data['text']
 
-    from ogb.utils.url import download_url, extract_zip
+    from ogb.utils.url import download_url
     # Get Raw text path
     assert d.ogb_name in ['ogbn-arxiv', 'ogbn-papers100M']
     print(f'Loading raw text for {d.ogb_name}')

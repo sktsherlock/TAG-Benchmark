@@ -1,10 +1,8 @@
-import os
-import utils.function as uf
-from utils.data import SeqGraph
-from utils.modules import ModelConfig
-from utils.settings import *
+from LMs import utils as uf
+from LMs.utils import Sequence
+from LMs.utils import ModelConfig
 from importlib import import_module
-
+from argparse import ArgumentParser
 
 class LMConfig(ModelConfig):
     def __init__(self, args=None):
@@ -27,7 +25,6 @@ class LMConfig(ModelConfig):
         self.load_best_model_at_end = 'T'
 
         self.save_folder = ''
-        self.emi_file = ''
         self.ce_reduction = 'mean'
 
         self.feat_shrink = '100'
@@ -40,7 +37,7 @@ class LMConfig(ModelConfig):
         Parse intermediate settings that shan't be saved or printed.
         """
         self.mode = 'pre_train'
-        self.lm_meta_data_init()
+        self.md = self.meta_data[self.model]
         self.hf_model = self.md.hf_model
         self.hidden_dim = int(self.feat_shrink) if self.feat_shrink else self.md.hidden_dim
 
@@ -54,9 +51,6 @@ class LMConfig(ModelConfig):
                   ckpt=f'{lm_folder}{model}.ckpt',
                   result=f'{lm_folder}{model}.result')
 
-    def lm_meta_data_init(self):
-        self.md = self.meta_data[self.model]
-
     def _exp_init(self):
         super()._exp_init()
         # ! Batch_size Setting
@@ -67,29 +61,56 @@ class LMConfig(ModelConfig):
     def _data_args_init(self):
         # Dataset
         self.lm_md = self.md
-        self.data = SeqGraph(self)
+        self.data = Sequence(self)
 
     # *  <<<<<<<<<<<<<<<<<<<< PATH RELATED >>>>>>>>>>>>>>>>>>>>
-    para_prefix = {
-        'model': '', 'lr': 'lr', 'eq_batch_size': 'bsz',
-        'weight_decay': 'wd', 'dropout': 'do', 'att_dropout': 'atdo', 'cla_dropout': 'cla_do', 'cla_bias': 'cla_bias',
-        'epochs': 'e', 'warmup_epochs': 'we', 'eval_patience': 'ef',
-        'load_best_model_at_end': 'load',
-        'label_smoothing_factor': 'lsf', 'pl_weight': 'alpha', 'pl_ratio': '', 'ce_reduction': 'red', 'feat_shrink': ''}
+    # para_prefix = {
+    #     'model': '', 'lr': 'lr', 'eq_batch_size': 'bsz',
+    #     'weight_decay': 'wd', 'dropout': 'do', 'att_dropout': 'atdo', 'cla_dropout': 'cla_do', 'cla_bias': 'cla_bias',
+    #     'epochs': 'e', 'warmup_epochs': 'we', 'eval_patience': 'ef',
+    #     'label_smoothing_factor': 'lsf', 'ce_reduction': 'red', 'feat_shrink': ''}
 
-    args_to_parse = list(para_prefix.keys())
+    # args_to_parse = list(para_prefix.keys())
     meta_data = None
 
     @property
     def parser(self):
-        parser = super().parser
+        parser = ArgumentParser("Experimental settings")
+        parser.add_argument("-g", '--gpus', default=DEFAULT_GPU, type=str,
+                            help='a list of active gpu ids, separated by ",", "cpu" for cpu-only mode.')
+        parser.add_argument("-d", "--dataset", type=str, default=DEFAULT_DATASET)
+        parser.add_argument("-t", "--train_percentage", default=DEFAULT_D_INFO['train_ratio'], type=int)
+        parser.add_argument("-v", "--verbose", default=1, type=int, help='Verbose level, higher level generates more log, -1 to shut down')
+        parser.add_argument('--tqdm_on', action="store_true", help='show log by tqdm or not')
+        parser.add_argument("-w", "--wandb_name", default='OFF', type=str, help='Wandb logger or not.')
+        parser.add_argument("--epochs", default=MAX_EPOCHS, type=int)
+        parser.add_argument("--seed", default=0, type=int)
         parser.add_argument("-m", "--model", default='TinyBert')
         parser.add_argument("-I", "--is_inf", action="store_true")
+        parser.add_argument("-lr", "--lr", default=0.00002, type=float, help='LM model learning rate')
+        parser.add_argument("-bsz", "--eq_batch_size", default=36, type=int)
+        parser.add_argument("-wd", "--weight_decay", default=0.01)
+        parser.add_argument("-do", "--dropout", default=0.1, type=float)
+        parser.add_argument("-atdo", "--att_dropout", default=0.1, type=float)
+        parser.add_argument("-cla", "--cla_dropout", default=0.1, type=float)
+        parser.add_argument("-cla_bias", "--cla_bias", default='T',help='Classification model bias')
+        parser.add_argument("-wmp", "--warmup_epochs", default=0.2, type=float)
+        parser.add_argument("-ef", "--eval_patience", default=100000, type=int)
+        parser.add_argument("-lsf", "--label_smoothing_factor", default= 0.1, type=float)
+        parser.add_argument("-ce", "--ce_reduction", default='mean')
+        parser.add_argument("-feat_shrink", "--feat_shrink", default=None, type=str)
+        parser.add_argument("-wid", "--wandb_id", default=None, type=str)
+        parser.add_argument("--device", default=None, type=str)
+        parser.add_argument("--wandb_on", default=False, type=bool)
+        parser.add_argument("-prt", "--pretrain", default=False, type=bool)
+        return parser
+
+
         return parser
 
     @property
     def out_dir(self):
-        return f'{TEMP_PATH}{self.model}/ckpts/{self.dataset}/{self.model_cf_str}/'
+        return f'{TEMP_PATH}{self.model}/ckpts/{self.dataset}/'
 
     @property
     def model_cf_str(self):
@@ -101,7 +122,13 @@ LM_SETTINGS = {}
 LM_MODEL_MAP = {
     'Deberta-large': 'Deberta',
     'TinyBert': 'Bert',
-    'RoBerta-large': 'RoBerta'
+    'Roberta-large': 'RoBerta',
+    'LinkBert-large': 'LinkBert',
+    'Bert-large': 'Bert',
+    'GPT2': 'GPT',
+    'GPT2-large': 'GPT',
+    'Electra-large': 'Electra',
+    'Electra-base': 'Electra',
 }
 
 #! Need
@@ -113,12 +140,12 @@ def get_lm_trainer(model):
     if model in ['GPT2','GPT2-large']:
         from LMs.GPT_trainer import GPTTrainer as LMTrainer
     else:
-        from LMs.lm_trainer import LMTrainer as LMTrainer
+        from lm_trainer import LMTrainer as LMTrainer
     return LMTrainer
 
 
 def get_lm_config(model):
     model = LM_MODEL_MAP[model] if model in LM_MODEL_MAP else model
-    return import_module(f'LMs.{model}').Config
+    return import_module(f'{model}').Config
 
 

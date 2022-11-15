@@ -50,7 +50,7 @@ def mkdir_list(p_list, use_relative_path=True, log=True):
 
     """
     # ! Note that the paths MUST END WITH '/' !!!
-    root_path = os.path.abspath(os.path.dirname(__file__)).split('src')[0]
+    root_path = os.path.abspath(os.path.dirname(__file__)).split('utils')[0]
     p_list = p_list if isinstance(p_list, list) else [p_list]
     for p in p_list:
         p = os.path.join(root_path, p) if use_relative_path else p
@@ -159,7 +159,7 @@ import time
 import numpy as np
 import pytz
 
-from utils.function.os_utils import init_path
+from LMs.utils.function.os_utils import init_path
 
 cur_path = os.path.abspath(os.path.dirname(__file__))
 root_path = cur_path.split('src')[0]
