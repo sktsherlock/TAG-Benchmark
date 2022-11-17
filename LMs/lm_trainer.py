@@ -141,62 +141,7 @@ class LMTrainer():
         eval_steps = cf.eval_patience // cf.eq_batch_size
 
         # ! Load bert and build classifier
-        self.prt_model = AutoModelForMaskedLM.from_pretrained(cf.hf_model)
 
-        if cf.local_rank <= 0:
-            trainable_params = sum(
-            p.numel() for p in self.prt_model.parameters() if p.requires_grad
-        )
-            print(f" LM Model parameters are {trainable_params}")
-
-        load_best_model_at_end = True
-        if cf.hf_model == 'distilbert-base-uncased':
-            self.prt_model.config.dropout = cf.dropout
-            self.prt_model.config.attention_dropout = cf.att_dropout
-        else:
-            print('default dropout and attention_dropout are:', self.prt_model.config.hidden_dropout_prob, self.prt_model.config.attention_probs_dropout_prob)
-            self.prt_model.config.hidden_dropout_prob = cf.dropout
-            self.prt_model.config.attention_probs_dropout_prob = cf.att_dropout
-
-
-        training_args = TrainingArguments(
-            output_dir=cf.out_dir,
-            evaluation_strategy='steps',
-            eval_steps=eval_steps,
-            save_strategy='steps',
-            save_steps=eval_steps,
-            learning_rate=cf.lr, weight_decay=cf.weight_decay,
-            load_best_model_at_end=load_best_model_at_end, gradient_accumulation_steps=cf.grad_acc_steps,
-            save_total_limit=1,
-            report_to='wandb' if cf.wandb_on else None,
-            per_device_train_batch_size=cf.batch_size,
-            per_device_eval_batch_size=cf.batch_size * 10,
-            warmup_steps=warmup_steps,
-            disable_tqdm=False,
-            dataloader_drop_last=True,
-            num_train_epochs=cf.epochs,
-            local_rank=cf.local_rank,
-            dataloader_num_workers=1,
-            fp16=True,
-        )
-
-        # ! Get dataloader
-
-        def compute_metrics(pred: EvalPrediction):
-            predictions, references = pred.predictions.argmax(1), pred.label_ids.argmax(1)
-            return {m_name: metric.compute(predictions=predictions, references=references)
-            if m_name in {'accuracy', 'pearsonr', 'spearmanr'} else metric.compute(predictions=predictions, references=references, average='macro')
-            for m_name, metric in self.metrics.items()}
-
-        self.trainer = Trainer(
-            model=self.prt_model,
-            args=training_args,
-            train_dataset=self.train_data,
-            eval_dataset=self.datasets['valid'],
-            compute_metrics=compute_metrics,
-        )
-        self.eval_phase = 'Eval'
-        self.trainer.train()
         # ! Save bert
         # self.model.save_pretrained(cf.out_ckpt, self.model.state_dict())
         # ! Save BertClassifer Save model parameters
