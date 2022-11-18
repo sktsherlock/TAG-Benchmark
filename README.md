@@ -1,16 +1,14 @@
-# Benchmark工作
+# TAG-Benchmark 
 
 ## LM-Prt 预训练LM模型Finetune
 ### 几步走：
 - 加载对应LM模型的CKPT
-- 下游任务微调
+- 下游分类任务微调
 - 输出accuracy等其他metrics
 
-主体函数脉络：
-- trainLM 主函数
-- model 定义分类model
-- lm_trainer 定义trainingArguments
-- lm_utils 
-## 考虑到图结构(边)的LM 预训练
-
-## 
+## LM-Prt 继续预训练 （在下游数据集上预训练 MLM）RoBERTa/BERT/DistilBERT
+### 几步走：
+- 加载对应LM模型的CKPT
+- 先在下游数据集上做MLM
+- 再在下游数据集上做分类任务微调
+- 输出accuracy等其他metrics

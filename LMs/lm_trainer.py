@@ -124,26 +124,3 @@ class LMTrainer():
 
         print(f'\nTrain seed{cf.seed} finished\nResults: {res}\n{cf}')
 
-    def pretrain(self):
-        # ! Prepare data
-        self.d = d =  Sequence(cf := self.cf).init()
-        gold_data = SeqGraphDataset(self.d, mode='train_gold')
-        subset_data = lambda sub_idx: th.utils.data.Subset(gold_data, sub_idx)
-        self.datasets = {_: subset_data(getattr(d, f'{_}_x'))
-                         for _ in ['train', 'valid', 'test']}
-        self.metrics = {m: load_metric(m_path) for m, m_path in METRICS.items()}
-
-
-        # Pretrain on gold data
-        self.train_data = self.datasets['train']
-        train_steps = len(d.train_x) // cf.eq_batch_size + 1
-        warmup_steps = int(cf.warmup_epochs * train_steps)
-        eval_steps = cf.eval_patience // cf.eq_batch_size
-
-        # ! Load bert and build classifier
-
-        # ! Save bert
-        # self.model.save_pretrained(cf.out_ckpt, self.model.state_dict())
-        # ! Save BertClassifer Save model parameters
-        if cf.local_rank <= 0:
-            th.save(self.model.state_dict(), uf.init_path(cf.lm.ckpt))
