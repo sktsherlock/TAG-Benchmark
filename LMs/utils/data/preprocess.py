@@ -149,7 +149,7 @@ def _tokenize_ogb_arxiv_datasets(d, labels, chunk_size=50000):
         data = merge_by_ids(meta_data.dropna(), node_ids, categories)
         data = data[~data['title'].isnull()]
         text_func = {
-            'TA': lambda x: f"Title: {x['title']}. Abstract: {x['abstract']}",
+            'TA': lambda x: f"Title: {x['title']}. Abstract: {x['abstract']}.",
             'T': lambda x: x['title'],
         }
         # Merge title and abstract
