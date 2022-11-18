@@ -86,6 +86,42 @@ def load_ogb_graph_structure_only(cf):
     labels = labels.squeeze().numpy()
     return g, labels, split_idx
 
+def process_split(cf):
+    #! Todo
+    labels = None
+    split_idx = None
+    num_nodes = None
+    return num_nodes, labels, split_idx
+
+
+
+def load_data_info(cf):
+    # import labels; split_idx; For node-classification purposes
+    d = cf.data
+    # ! Process Dataset
+    if not d.is_processed('d_info'):
+        # Load OGB
+        if cf.local_rank <= 0:
+            num_nodes, labels, split_idx = process_split(cf)
+            # Process and save labels
+            splits = {**{f'{_}_x': split_idx[_].numpy() for _ in ['train', 'valid', 'test']}, 'labels': labels}
+            d_info = SN(splits=splits, labels=labels, n_nodes=num_nodes)
+            d.save_d_info(d_info)
+        else:
+            # If not main worker (i.e. Local_rank!=0), wait until data is processed and load
+            print(f'Waiting for feature processing on LOCAL_RANK #{cf.local_rank}')
+            while not d.is_processed('g_info'):
+                time.sleep(2)  # Check if processed every 2 seconds
+            print(f'Detected processed feature, LOCAL_RANK #{cf.local_rank} start loading!')
+            time.sleep(5)  # Wait f
+    d_info = uf.pickle_load(d._d_info_file)
+    return d_info
+
+
+
+
+
+
 
 
 
@@ -99,17 +135,8 @@ def load_graph_info(cf):
             # Process and save supervision
             splits = {**{f'{_}_x': split_idx[_].numpy() for _ in ['train', 'valid', 'test']}, 'labels': labels}
             is_gold = np.zeros((g.num_nodes()), dtype=bool)
-            val_test = np.zeros((g.num_nodes()), dtype=bool)
-            g, splits = _subset_graph(g, cf, splits)
-            is_gold[splits['train_x']] = True
-            val_test[splits['valid_x']] = True
-            val_test[splits['test_x']] = True
-            g_info = SN(splits=splits, labels=labels, is_gold=is_gold, n_nodes=g.num_nodes(), val_test=val_test)
-            if d.subset_ratio < 1:
-                g_info.IDs = g.ndata['_ID'].numpy()
-                g_info.labels = g_info.labels[g_info.IDs]
-                g_info.is_gold = g_info.is_gold[g_info.IDs]
-                g_info.val_test = g_info.val_test[g_info.IDs]
+            # g, splits = _subset_graph(g, cf, splits)
+            g_info = SN(splits=splits, labels=labels, is_gold=is_gold, n_nodes=g.num_nodes())
             d.save_g_info(g_info)
             del g
         else:
