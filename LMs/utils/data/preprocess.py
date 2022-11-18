@@ -42,6 +42,15 @@ def tokenize_text(cf):
         cf.log(f'Found processed {cf.dataset}.')
 
 
+def plot_length_distribution(node_text, tokenizer, g):
+    sampled_ids = np.random.permutation(g.nodes())[:10000]
+    get_text = lambda n: node_text.iloc[n]['text'].tolist()
+    tokenized = tokenizer(get_text(sampled_ids), padding='do_not_pad').data['input_ids']
+    node_text['text_length'] = node_text.apply(lambda x: len(x['text'].split(' ')), axis=1)
+    pd.Series([len(_) for _ in tokenized]).hist(bins=20)
+    import matplotlib.pyplot as plt
+    plt.show()
+
 
 def tokenize_graph(cf):
     # = Tokenization on Full Graph
@@ -54,8 +63,10 @@ def tokenize_graph(cf):
             print(f'Processing data on LOCAL_RANK #{cf.local_rank}...')
             g_info = load_graph_info(full_cf)
             print(f'Loaded graph structure, start tokenization...')
-            # if some datasets then tokenize datasets
-            _tokenize_ogb_arxiv_datasets(d, g_info.labels)
+            if d.ogb_name == 'ogbn-arxiv':
+                _tokenize_ogb_arxiv_datasets(d, g_info.labels)
+            else:
+                raise NotImplementedError
             print(f'Tokenization finished on LOCAL_RANK #{cf.local_rank}')
         else:
             # If not main worker (i.e. Local_rank!=0), wait until data is processed and load
@@ -75,42 +86,6 @@ def load_ogb_graph_structure_only(cf):
     labels = labels.squeeze().numpy()
     return g, labels, split_idx
 
-def process_split(cf):
-    #! Todo
-    labels = None
-    split_idx = None
-    num_nodes = None
-    return num_nodes, labels, split_idx
-
-
-
-def load_data_info(cf):
-    # import labels; split_idx; For node-classification purposes
-    d = cf.data
-    # ! Process Dataset
-    if not d.is_processed('d_info'):
-        # Load OGB
-        if cf.local_rank <= 0:
-            num_nodes, labels, split_idx = process_split(cf)
-            # Process and save labels
-            splits = {**{f'{_}_x': split_idx[_].numpy() for _ in ['train', 'valid', 'test']}, 'labels': labels}
-            d_info = SN(splits=splits, labels=labels, n_nodes=num_nodes)
-            d.save_d_info(d_info)
-        else:
-            # If not main worker (i.e. Local_rank!=0), wait until data is processed and load
-            print(f'Waiting for feature processing on LOCAL_RANK #{cf.local_rank}')
-            while not d.is_processed('g_info'):
-                time.sleep(2)  # Check if processed every 2 seconds
-            print(f'Detected processed feature, LOCAL_RANK #{cf.local_rank} start loading!')
-            time.sleep(5)  # Wait f
-    d_info = uf.pickle_load(d._d_info_file)
-    return d_info
-
-
-
-
-
-
 
 
 
@@ -124,8 +99,17 @@ def load_graph_info(cf):
             # Process and save supervision
             splits = {**{f'{_}_x': split_idx[_].numpy() for _ in ['train', 'valid', 'test']}, 'labels': labels}
             is_gold = np.zeros((g.num_nodes()), dtype=bool)
-            # g, splits = _subset_graph(g, cf, splits)
-            g_info = SN(splits=splits, labels=labels, is_gold=is_gold, n_nodes=g.num_nodes())
+            val_test = np.zeros((g.num_nodes()), dtype=bool)
+            g, splits = _subset_graph(g, cf, splits)
+            is_gold[splits['train_x']] = True
+            val_test[splits['valid_x']] = True
+            val_test[splits['test_x']] = True
+            g_info = SN(splits=splits, labels=labels, is_gold=is_gold, n_nodes=g.num_nodes(), val_test=val_test)
+            if d.subset_ratio < 1:
+                g_info.IDs = g.ndata['_ID'].numpy()
+                g_info.labels = g_info.labels[g_info.IDs]
+                g_info.is_gold = g_info.is_gold[g_info.IDs]
+                g_info.val_test = g_info.val_test[g_info.IDs]
             d.save_g_info(g_info)
             del g
         else:
@@ -178,15 +162,21 @@ def _tokenize_ogb_arxiv_datasets(d, labels, chunk_size=50000):
     assert d.ogb_name in ['ogbn-arxiv', 'ogbn-papers100M']
     print(f'Loading raw text for {d.ogb_name}')
     raw_text_path = download_url(d.raw_text_url, d.data_root)
-
+    print('d.hf_model', d.hf_model)
     tokenizer = AutoTokenizer.from_pretrained(d.hf_model)
+
+    if d.hf_model in ['gpt2','gpt2-medium','gpt2-large','gpt2-xl']:
+        print('Adding pad token')
+        tokenizer.padding_side = 'left'
+        tokenizer.pad_token = tokenizer.eos_token
+        # tokenizer.add_special_tokens({'pad_token': '[PAD]'})
     token_info = {k: np.memmap(d.info[k].path, dtype=d.info[k].type, mode='w+', shape=d.info[k].shape)
                   for k in d.token_keys}
     categories, node_ids = read_ids_and_labels(d.data_root)
     for meta_data in tqdm(pd.read_table(raw_text_path, header=None, chunksize=chunk_size, skiprows=[0])):
         text = process_raw_text_df(meta_data, node_ids, categories)
         print(text.index, text)
-        tokenized = tokenizer(text.tolist(), padding='max_length', truncation=True, max_length=512).data
+        tokenized = tokenizer(text.tolist(), padding='max_length', truncation=True, max_length=512,  return_token_type_ids=True).data
         for k in d.token_keys:
             token_info[k][text.index] = np.array(tokenized[k], dtype=d.info[k].type)
     uf.pickle_save('processed', d._processed_flag['token'])
