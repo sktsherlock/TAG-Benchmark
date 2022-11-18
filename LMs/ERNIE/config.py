@@ -1,4 +1,4 @@
-from models.LMs.lm_utils import *
+from lm_utils import *
 
 
 class ERNIE(LMConfig):

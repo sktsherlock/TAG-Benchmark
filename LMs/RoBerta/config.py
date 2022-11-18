@@ -1,4 +1,4 @@
-from LMs.lm_utils import *
+from lm_utils import *
 
 
 class RoBERTaConfig(LMConfig):
