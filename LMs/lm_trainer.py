@@ -27,7 +27,7 @@ class LMTrainer():
     def train(self):
         # ! Prepare data
         self.d = d =  Sequence(cf := self.cf).init()
-        gold_data = SeqGraphDataset(self.d, mode='train_gold')
+        gold_data = SeqGraphDataset(self.d)
         subset_data = lambda sub_idx: th.utils.data.Subset(gold_data, sub_idx)
         self.datasets = {_: subset_data(getattr(d, f'{_}_x'))
                          for _ in ['train', 'valid', 'test']}

@@ -3,29 +3,10 @@ from abc import ABCMeta
 import utils as uf
 from utils.settings import *
 import os
-from utils.modules.logger import Logger
+
 
 class ModelConfig(metaclass=ABCMeta):
-    """
-    Model config
-    """
-
-    def __init__(self, model):
-        self.model = model
-        self.seed = 0
-        self.gpus = '0'  # Use GPU as default device
-        self.wandb_name = ''
-        self.wandb_id = ''
-        self.dataset = (d := DEFAULT_DATASET)
-        self.train_percentage = get_d_info(d)['train_ratio']
-        self.early_stop = EARLY_STOP
-        self.epochs = MAX_EPOCHS
-        self.verbose = 1
-        self.device = None
-        self.wandb_on = False
-        self.birth_time = uf.get_cur_time(t_format='%m_%d-%H_%M_%S')
-        self._wandb = None
-
+    def __init__(self):
         # Other attributes
         self._ignored_paras = ['verbose', 'important_paras', 'device']
 
@@ -40,28 +21,9 @@ class ModelConfig(metaclass=ABCMeta):
 
     def _exp_init(self):
         self._data_args_init()
-        # self.train_command = self._export_train_command()
-        # self.git_hash = uf.get_git_hash()
         uf.exp_init(self)
 
-    def init(self):
-        """Initialize path, logger, experiment environment
-        These environment variables should only be initialized in the actual training process. In other cases, where we only want the config parameters parser/res_file, the init function should not be called.
-        """
-
-        self._path_init()
-        self.wandb_init()
-        self.logger = Logger(self)
-        self.log = self.logger.log
-        self.wandb_log = self.logger.wandb_log
-        self.log(self)
-        self._exp_init()
-        return self
-
     # *  <<<<<<<<<<<<<<<<<<<< POST INIT FUNCS >>>>>>>>>>>>>>>>>>>>
-    def _intermediate_args_init(self):
-        pass
-
     def _post_process_args(self):
         prev_cf = list(self.__dict__.keys())
 
@@ -75,12 +37,6 @@ class ModelConfig(metaclass=ABCMeta):
         intermediate_paras = [_ for _ in self.__dict__ if _ not in prev_cf]
         self._ignored_paras += intermediate_paras
 
-
-
-    def _data_args_init(self):
-        pass
-
-    # *  <<<<<<<<<<<<<<<<<<<< POST INIT FUNCS >>>>>>>>>>>>>>>>>>>>
 
     def wandb_init(self):
         # Turn off Wandb gradients loggings
@@ -165,28 +121,4 @@ class ModelConfig(metaclass=ABCMeta):
     def parse_args(self):
         # ! Parse defined args
         defined_args = (parser := self.parser).parse_known_args()[0]
-
-        # # ! Reinitialize config by parsed experimental args
-        # self.__init__(defined_args)
-        # default_cf = self.model_conf.items()
-
-        # # ! Parse undefined args.
-        # for arg, arg_val in default_cf:
-        #     if not hasattr(defined_args, arg):
-        #         parser.add_argument(f"--{arg}", type=type(arg_val), default=arg_val)
         return parser.parse_args()
-
-    def _export_train_command(self):
-        """Export configs to command, booleans are currently not supported"""
-        train_file = f'src/models/{self.model}/train.py'
-        settings = ' '.join([f'--{k}={v}' for k, v in self.model_conf.items()])
-        return f'python {train_file} {settings}'
-
-
-    # @property
-    # def model_conf(self):
-    #     is_para = lambda para: para[0] != '_' and para not in self._ignored_paras
-    #     return SN(**{k: v for k, v in self.__dict__.items() if is_para(k)})
-
-    def combine(self, new_conf):
-        return SN(**{**new_conf.model_conf.__dict__, **self.model_conf.__dict__})

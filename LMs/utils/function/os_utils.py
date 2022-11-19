@@ -223,7 +223,7 @@ def calc_bsz_grad_acc(eq_batch_size, max_bsz_dict, sv_info, min_bsz=2):
                 raise ValueError(f'Cannot find grad_acc_step with integer batch_size greater than {min_bsz}, eq_bsz={eq_batch_size}, n_gpus={n_gpus}')
 
     batch_size, grad_acc_steps = find_grad_acc_steps(max_bsz_per_gpu)
-    print(f'Eq_batch_size = {eq_batch_size}, bsz={batch_size}, grad_acc_steps={grad_acc_steps}, ngpus={n_gpus}')
+    print(f'Eq_batch_size = {eq_batch_size}, per_device_bsz={batch_size}, grad_acc_steps={grad_acc_steps}, ngpus={n_gpus}')
     return batch_size, grad_acc_steps
 
 
@@ -267,9 +267,6 @@ def init_random_state(seed=0):
     # Libraries using GPU should be imported after specifying GPU-ID
     import torch
     import random
-    # import dgl
-    # dgl.seed(seed)
-    # dgl.random.seed(seed)
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)

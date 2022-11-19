@@ -5,15 +5,15 @@ from utils.modules import ModelConfig
 from utils.settings import *
 from importlib import import_module
 from argparse import ArgumentParser
+from utils.modules.logger import Logger
 
 class LMConfig(ModelConfig):
     def __init__(self, args=None):
         # ! INITIALIZE ARGS
-        super(LMConfig, self).__init__('LMs')
+        super(LMConfig, self).__init__()
 
         # ! LM Settings
         self.model = 'Bert'
-
         self.lr = 0.00002
         self.eq_batch_size = 36
         self.weight_decay = 0.01
@@ -34,6 +34,34 @@ class LMConfig(ModelConfig):
         self.eval_patience = 100000
         self.md = None  # Tobe initialized in sub module
 
+        # ! Experiments Settings
+        self.seed = 0
+        self.wandb_name = ''
+        self.wandb_id = ''
+        self.dataset = (d := DEFAULT_DATASET)
+        self.epochs = 4
+        self.verbose = 1
+        self.device = None
+        self.wandb_on = False
+        self.birth_time = uf.get_cur_time(t_format='%m_%d-%H_%M_%S')
+        self._wandb = None
+
+
+    def init(self):
+        """Initialize path, logger, experiment environment
+        These environment variables should only be initialized in the actual training process. In other cases, where we only want the config parameters parser/res_file, the init function should not be called.
+        """
+
+        self._path_init()
+        self.wandb_init()
+        self.logger = Logger(self)
+        self.log = self.logger.log
+        self.wandb_log = self.logger.wandb_log
+        self.log(self)
+        self._exp_init()
+        return self
+
+
     def _intermediate_args_init(self):
         """
         Parse intermediate settings that shan't be saved or printed.
@@ -41,6 +69,7 @@ class LMConfig(ModelConfig):
         self.mode = 'pre_train'
         self.md = self.meta_data[self.model]
         self.hf_model = self.md.hf_model
+        self.father_model = self.md.father_model
         self.hidden_dim = int(self.feat_shrink) if self.feat_shrink else self.md.hidden_dim
 
         # * Init LM settings using pre-train folder
@@ -54,7 +83,7 @@ class LMConfig(ModelConfig):
                   result=f'{lm_folder}{model}.result')
 
     def _exp_init(self):
-        super()._exp_init()
+        super()._exp_init() # will initialize the data
         # ! Batch_size Setting
         max_bsz = self.md.max_bsz
         self.batch_size, self.grad_acc_steps = uf.calc_bsz_grad_acc(self.eq_batch_size, max_bsz.train, SV_INFO)
@@ -65,27 +94,19 @@ class LMConfig(ModelConfig):
         self.lm_md = self.md
         self.data = Sequence(self)
 
-    # *  <<<<<<<<<<<<<<<<<<<< PATH RELATED >>>>>>>>>>>>>>>>>>>>
-    # para_prefix = {
-    #     'model': '', 'lr': 'lr', 'eq_batch_size': 'bsz',
-    #     'weight_decay': 'wd', 'dropout': 'do', 'att_dropout': 'atdo', 'cla_dropout': 'cla_do', 'cla_bias': 'cla_bias',
-    #     'epochs': 'e', 'warmup_epochs': 'we', 'eval_patience': 'ef',
-    #     'label_smoothing_factor': 'lsf', 'ce_reduction': 'red', 'feat_shrink': ''}
-
-    # args_to_parse = list(para_prefix.keys())
     meta_data = None
 
     @property
     def parser(self):
         parser = ArgumentParser("Experimental settings")
-        parser.add_argument("-g", '--gpus', default=DEFAULT_GPU, type=str,
+        parser.add_argument("-g", '--gpus', default='cpu', type=str,
                             help='a list of active gpu ids, separated by ",", "cpu" for cpu-only mode.')
         parser.add_argument("-d", "--dataset", type=str, default=DEFAULT_DATASET)
         parser.add_argument("-t", "--train_percentage", default=DEFAULT_D_INFO['train_ratio'], type=int)
         parser.add_argument("-v", "--verbose", default=1, type=int, help='Verbose level, higher level generates more log, -1 to shut down')
         parser.add_argument('--tqdm_on', action="store_true", help='show log by tqdm or not')
         parser.add_argument("-w", "--wandb_name", default='OFF', type=str, help='Wandb logger or not.')
-        parser.add_argument("--epochs", default=MAX_EPOCHS, type=int)
+        parser.add_argument("--epochs", default=3, type=int)
         parser.add_argument("--seed", default=0, type=int)
         parser.add_argument("-m", "--model", default='TinyBert')
         parser.add_argument("-I", "--is_inf", action="store_true")
@@ -140,7 +161,7 @@ def get_lm_model():
 
 def get_lm_trainer(model):
     if model in ['GPT2','GPT2-large']:
-        from LMs.GPT_trainer import GPTTrainer as LMTrainer
+        from GPT_trainer import GPTTrainer as LMTrainer
     else:
         from lm_trainer import LMTrainer as LMTrainer
     return LMTrainer

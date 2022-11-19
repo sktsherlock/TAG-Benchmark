@@ -46,17 +46,18 @@ MNT_DIR = get_info_by_sv_type('mnt_dir', SV_INFO)
 
 import os.path as osp
 
-PROJ_DIR = osp.abspath(osp.dirname(__file__)).split('utils')[0]
+PROJ_DIR = osp.abspath(osp.dirname(__file__)).split('LMs')[0]
+LM_PROJ_DIR = osp.join(PROJ_DIR, 'LMs/')
 
 # Temp paths: discarded when container is destroyed
-TEMP_DIR = PROJ_DIR
-TEMP_PATH = f'{TEMP_DIR}temp/'
-LOG_PATH = f'{TEMP_DIR}log/'
+TEMP_DIR = LM_PROJ_DIR
+TEMP_PATH = f'{LM_PROJ_DIR}temp/'
+LOG_PATH = f'{LM_PROJ_DIR}log/'
 
-MNT_TEMP_DIR = f'{PROJ_DIR}temp/'
-TEMP_RES_PATH = f'{PROJ_DIR}temp_results/'
-RES_PATH = f'{PROJ_DIR}results/'
-DB_PATH = f'{PROJ_DIR}exp_db/'
+MNT_TEMP_DIR = f'{LM_PROJ_DIR}temp/'
+TEMP_RES_PATH = f'{LM_PROJ_DIR}temp_results/'
+RES_PATH = f'{LM_PROJ_DIR}results/'
+DB_PATH = f'{LM_PROJ_DIR}exp_db/'
 
 # ! Data Settings
 DATA_PATH = f'{PROJ_DIR}data/'
@@ -75,15 +76,11 @@ DATA_INFO = {
         'raw_text_url': 'https://snap.stanford.edu/ogb/data/misc/ogbn_arxiv/titleabs.tsv.gz',
     },
 }
+
 get_d_info = lambda x: DATA_INFO[x.split('_')[0]]
 
-TR_RATIO_DICT = {_d: _['train_ratio'] for _d, _ in DATA_INFO.items()}
 DATASETS = list(DATA_INFO.keys())
 DEFAULT_DATASET = 'arxiv_TA'
 DEFAULT_D_INFO = get_d_info(DEFAULT_DATASET)
 
 METRIC = 'acc'
-
-# ! Default Settings
-EARLY_STOP = 30
-MAX_EPOCHS = 300
