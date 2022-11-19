@@ -14,7 +14,5 @@ if __name__ == "__main__":
     cf = Config(args).init()
     # ! Load data and train
     trainer = Trainer(cf=cf)
-    if cf.pretrain is True:
-        trainer.pretrain()
     trainer.train()
     trainer.eval_and_save()
