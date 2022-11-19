@@ -125,7 +125,7 @@ class LMConfig(ModelConfig):
         parser.add_argument("-wid", "--wandb_id", default=None, type=str)
         parser.add_argument("--device", default=None, type=str)
         parser.add_argument("--wandb_on", default=False, type=bool)
-        parser.add_argument("-prt", "--pretrain", default=False, type=bool)
+        parser.add_argument("-prt", "--pretrain_path", default=None, type=str)
         return parser
 
 
