@@ -76,7 +76,7 @@ class LMTrainer():
             save_total_limit=1,
             report_to='wandb' if cf.wandb_on else None,
             per_device_train_batch_size=cf.batch_size,
-            per_device_eval_batch_size=cf.batch_size * 10,
+            per_device_eval_batch_size=cf.batch_size * 6 if cf.hf_model in {'distilbert-base-uncased', 'google/electra-base-discriminator'} else cf.batch_size * 10,
             warmup_steps=warmup_steps,
             disable_tqdm=False,
             dataloader_drop_last=True,
@@ -86,7 +86,6 @@ class LMTrainer():
             fp16=True,
         )
 
-        # ! Get dataloader
 
         def compute_metrics(pred: EvalPrediction):
             predictions, references = pred.predictions.argmax(1), pred.label_ids.argmax(1)
@@ -122,5 +121,4 @@ class LMTrainer():
         uf.pickle_save(res, cf.lm.result)
         cf.wandb_log({f'lm_prt_{k}': v for k, v in res.items()})
 
-        print(f'\nTrain seed{cf.seed} finished\nResults: {res}\n{cf}')
-
+        self.log(f'\nTrain seed{cf.seed} finished\nResults: {res}\n{cf}')

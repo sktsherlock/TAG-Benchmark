@@ -77,6 +77,8 @@ class Sequence():
     def _from_numpy(self, x, on_cpu=False):
         return th.from_numpy(np.array(x)) if on_cpu else th.from_numpy(np.array(x)).to(self.device)
 
+    def _th_float(self, x, on_cpu=False):
+        return self._from_numpy(x, on_cpu).to(th.float32)
 
     def y_gold(self, nodes, on_cpu=False):
         labels = self._from_numpy(self.ndata['labels'][nodes], on_cpu).to(th.int64)
