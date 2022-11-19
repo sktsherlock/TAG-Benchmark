@@ -62,7 +62,7 @@ def _tokenize_ogb_arxiv_datasets(d, labels, chunk_size=50000):
         text = pd.read_csv(osp.join(d.data_root, 'ogbn-arxiv.txt'), sep='\t', header=None)
         text = text[0]
     # Tokenize
-    tokenizer = AutoTokenizer.from_pretrained(d.hf_model, use_fast_tokenizer=True)
+    tokenizer = AutoTokenizer.from_pretrained(d.hf_model)
 
     if d.hf_model in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
         print('Adding pad token')

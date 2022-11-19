@@ -55,6 +55,7 @@ def plot_length_distribution(node_text, tokenizer, g):
 def tokenize_graph(cf):
     # = Tokenization on Full Graph
     full_dict = deepcopy(cf.model_conf)
+    full_dict['dataset'] = '_'.join(full_dict['dataset'].split('_')[:2])
     full_cf = cf.__class__(SN(**full_dict)).init()
     d = full_cf.data
     if not d.is_processed('token'):
@@ -89,12 +90,6 @@ def load_ogb_graph_structure_only(cf):
     labels = labels.squeeze().numpy()
     return g, labels, split_idx
 
-def process_split(cf):
-    #! Todo
-    labels = None
-    split_idx = None
-    num_nodes = None
-    return num_nodes, labels, split_idx
 
 def load_TAG_info(cf):
     d = cf.data
