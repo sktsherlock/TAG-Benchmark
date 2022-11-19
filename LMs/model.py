@@ -38,7 +38,7 @@ class BertClassifier(PreTrainedModel):
 
     def forward(self, **input):
         # Extract outputs from the model
-        labels, is_gold = [input.pop(_) for _ in ["labels", 'is_gold']]
+        labels = [input.pop(_) for _ in ["labels"]]
         outputs = self.bert_encoder(**input, output_hidden_states=True)
         emb = self.dropout(outputs['hidden_states'][-1])  # outputs[0]=last hidden state
         # Use CLS Emb as sentence emb.
