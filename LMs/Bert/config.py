@@ -13,6 +13,7 @@ class BertConfig(LMConfig):
         'Bert':
             SN(
                 hf_model='bert-base-uncased',
+                father_model='Bert',
                 hidden_dim=768,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 12, 24: 16, 32: 24},
@@ -33,6 +34,7 @@ class BertConfig(LMConfig):
         'Bert-large':
             SN(
                 hf_model='bert-large-uncased',
+                father_model='Bert',
                 hidden_dim=1024,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 18, 24: 120, 32: 9},
@@ -54,6 +56,7 @@ class BertConfig(LMConfig):
         'TinyBert':
             SN(
                 hf_model='prajjwal1/bert-tiny',
+                father_model = 'Bert',
                 hidden_dim=128,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 18, 24: 12, 32: 72},
