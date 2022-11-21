@@ -14,6 +14,7 @@ class ERNIE(LMConfig):
         'ERNIE':
             SN(
                 hf_model='nghuyong/ernie-2.0-base-en',
+                father_model = 'ERNIE',
                 hidden_dim=768,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 12, 24: 16, 32:18},
