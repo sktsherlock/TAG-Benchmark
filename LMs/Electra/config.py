@@ -14,6 +14,7 @@ class ElectraConfig(LMConfig):
         'Electra':
             SN(
                 hf_model='google/electra-small-discriminator',
+                father_model='Electra',
                 hidden_dim=256,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 40, 24: 9, 32: 80, 40: 18, 70: 48},
@@ -40,6 +41,7 @@ class ElectraConfig(LMConfig):
         'Electra-base':
             SN(
                 hf_model='google/electra-base-discriminator',
+                father_model='Electra',
                 hidden_dim=768,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 18, 24: 9, 32: 40, 40: 18, 70: 48},
@@ -66,6 +68,7 @@ class ElectraConfig(LMConfig):
         'Electra-large':
             SN(
                 hf_model='google/electra-large-discriminator',
+                father_model='Electra',
                 hidden_dim=768,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 12, 24: 9, 32: 12, 40: 18, 70: 48},

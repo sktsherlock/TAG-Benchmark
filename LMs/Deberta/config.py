@@ -14,6 +14,7 @@ class DeBERTaConfig(LMConfig):
         'Deberta':
             SN(
                 hf_model='microsoft/deberta-base',
+                father_model='Deberta',
                 hidden_dim=768,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 12, 24: 9, 32: 30, 40: 32, 70: 96},
@@ -40,6 +41,7 @@ class DeBERTaConfig(LMConfig):
         'Deberta-large':
             SN(
                 hf_model='microsoft/deberta-large',
+                father_model='Deberta',
                 hidden_dim=1024,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 6, 16: 10, 24: 16, 32: 9},
