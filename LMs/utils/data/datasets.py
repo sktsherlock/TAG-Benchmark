@@ -62,7 +62,7 @@ class Sequence():
         for k in self.info:
             i = self.info[k]
             try:
-                self.ndata[k] = np.memmap(i.path, mode='r', dtype=i.type, shape=i.shape)
+                self.ndata[k] = np.load(i.path)#np.memmap(i.path, mode='r', dtype=i.type, shape=i.shape)
             except:
                 raise ValueError(f'Shape not match {i.shape}')
 

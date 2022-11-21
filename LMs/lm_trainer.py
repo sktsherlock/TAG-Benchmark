@@ -10,8 +10,8 @@ METRICS = {  # metric -> metric_path
     'f1score': 'hf_f1.py',
     'precision': 'hf_precision.py',
     'recall': 'hf_recall.py',
-    # 'spearmanr': 'src/utils/function/hf_spearmanr.py',
-    # 'pearsonr': 'src/utils/function/hf_pearsonr.py',
+    'spearmanr': 'hf_spearmanr.py',
+    'pearsonr': 'hf_pearsonr.py',
 
 }
 
@@ -21,6 +21,8 @@ class LMTrainer():
         self.cf = cf
         # logging.set_verbosity_warning()
         from transformers import logging as trfm_logging
+        self.logger = cf.logger
+        self.log = cf.logger.log
         trfm_logging.set_verbosity_error()
 
     @uf.time_logger
@@ -34,21 +36,30 @@ class LMTrainer():
         self.metrics = {m: load_metric(m_path) for m, m_path in METRICS.items()}
 
 
-        # Pretrain on gold data
+        # Finetune on dowstream tasks
         self.train_data = self.datasets['train']
         train_steps = len(d.train_x) // cf.eq_batch_size + 1
         warmup_steps = int(cf.warmup_epochs * train_steps)
         eval_steps = cf.eval_patience // cf.eq_batch_size
 
         # ! Load bert and build classifier
-        bert_model = AutoModel.from_pretrained(cf.hf_model)
-        self.model = BertClassifier(
-            bert_model, cf.data.n_labels,
-            dropout=cf.cla_dropout,
-            loss_func=th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction),
-            cla_bias=cf.cla_bias == 'T',
-            feat_shrink=cf.feat_shrink
-        )
+        model = AutoModel.from_pretrained(cf.hf_model)
+        if cf.model == 'Distilbert':
+            self.model = DistilBertClassifier(
+                model, cf.data.n_labels,
+                dropout=cf.cla_dropout,
+                loss_func=th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction),
+                cla_bias=cf.cla_bias == 'T',
+                feat_shrink=cf.feat_shrink
+            )
+        else:
+            self.model = BertClassifier(
+                model, cf.data.n_labels,
+                dropout=cf.cla_dropout,
+                loss_func=th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction),
+                cla_bias=cf.cla_bias == 'T',
+                feat_shrink=cf.feat_shrink
+            )
         if cf.local_rank <= 0:
             trainable_params = sum(
             p.numel() for p in self.model.parameters() if p.requires_grad
@@ -102,9 +113,7 @@ class LMTrainer():
         )
         self.eval_phase = 'Eval'
         self.trainer.train()
-        # ! Save bert
-        # self.model.save_pretrained(cf.out_ckpt, self.model.state_dict())
-        # ! Save BertClassifer Save model parameters
+
         if cf.local_rank <= 0:
             th.save(self.model.state_dict(), uf.init_path(cf.lm.ckpt))
 
@@ -117,8 +126,7 @@ class LMTrainer():
 
         cf = self.cf
         res = {**get_metric('valid'), **get_metric('test')}
-        res = {'val_acc': res['valid_accuracy'], 'test_acc': res['test_accuracy']}
         uf.pickle_save(res, cf.lm.result)
-        cf.wandb_log({f'lm_prt_{k}': v for k, v in res.items()})
+        cf.wandb_log({f'lm_finetune_{k}': v for k, v in res.items()})
 
         self.log(f'\nTrain seed{cf.seed} finished\nResults: {res}\n{cf}')

@@ -108,7 +108,7 @@ class LMConfig(ModelConfig):
         parser.add_argument("-w", "--wandb_name", default='OFF', type=str, help='Wandb logger or not.')
         parser.add_argument("--epochs", default=3, type=int)
         parser.add_argument("--seed", default=0, type=int)
-        parser.add_argument("-m", "--model", default='TinyBert')
+        parser.add_argument("-m", "--model", default='Electra', help='name of the model, such as Bert, TinyBert, Deberta, Distilbert, Electra.')
         parser.add_argument("-I", "--is_inf", action="store_true")
         parser.add_argument("-lr", "--lr", default=0.00002, type=float, help='LM model learning rate')
         parser.add_argument("-bsz", "--eq_batch_size", default=36, type=int)
@@ -118,7 +118,7 @@ class LMConfig(ModelConfig):
         parser.add_argument("-cla", "--cla_dropout", default=0.1, type=float)
         parser.add_argument("-cla_bias", "--cla_bias", default='T',help='Classification model bias')
         parser.add_argument("-wmp", "--warmup_epochs", default=0.2, type=float)
-        parser.add_argument("-ef", "--eval_patience", default=100000, type=int)
+        parser.add_argument("-ef", "--eval_patience", default=50000, type=int)
         parser.add_argument("-lsf", "--label_smoothing_factor", default= 0.1, type=float)
         parser.add_argument("-ce", "--ce_reduction", default='mean')
         parser.add_argument("-feat_shrink", "--feat_shrink", default=None, type=str)
@@ -160,10 +160,7 @@ def get_lm_model():
 
 
 def get_lm_trainer(model):
-    if model in ['GPT2','GPT2-large']:
-        from GPT_trainer import GPTTrainer as LMTrainer
-    else:
-        from lm_trainer import LMTrainer as LMTrainer
+    from lm_trainer import LMTrainer as LMTrainer
     return LMTrainer
 
 
