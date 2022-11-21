@@ -28,7 +28,7 @@ class Sequence():
         # * TAG-related files information
         self._g_info_folder = init_path(f"{DATA_PATH}{cf.dataset}/")
         self._g_info_file = f"{self._g_info_folder}graph.info "
-        self._token_folder = init_path(f"{DATA_PATH}{cf.dataset}/{self.father_model}/{cf.model}")
+        self._token_folder = init_path(f"{DATA_PATH}{cf.dataset}/{self.father_model}/{cf.model}/")
         self._processed_flag = {
             'g_info': f'{self._g_info_folder}processed.flag',
             'token': f'{self._token_folder}processed.flag',

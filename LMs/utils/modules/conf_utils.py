@@ -37,7 +37,6 @@ class ModelConfig(metaclass=ABCMeta):
         intermediate_paras = [_ for _ in self.__dict__ if _ not in prev_cf]
         self._ignored_paras += intermediate_paras
 
-
     def wandb_init(self):
         # Turn off Wandb gradients loggings
         os.environ["WANDB_WATCH"] = "false"
@@ -70,7 +69,6 @@ class ModelConfig(metaclass=ABCMeta):
     # *  <<<<<<<<<<<<<<<<<<<< PATH RELATED >>>>>>>>>>>>>>>>>>>>
     # 对结果有影响的参数写在 para_prefix 里，结果没有影响的参数不要写在 para_prefix 里（e.g. shared configs like LM checkpoint）
     # Example: 'epochs' : 'e' 表示 epochs 参数要以 e 为 prefix 成为 f_prefix 的一部分
-    para_prefix = {_: '' for _ in ['gpus', 'dataset']}
     _path_attrs = []
 
     def _path_init(self, ):
@@ -80,7 +78,7 @@ class ModelConfig(metaclass=ABCMeta):
 
     @property
     def f_prefix(self):
-        return f"{self.model}/{self.dataset}/l{self.train_percentage:02d}/seed{self.seed}{self.model_cf_str}"
+        return f"{self.model}/{self.dataset}/seed{self.seed}{self.model_cf_str}"
 
     @property
     def res_file(self):
@@ -101,20 +99,6 @@ class ModelConfig(metaclass=ABCMeta):
         # Print the model settings only.
         return {p: v for p, v in sorted(self.__dict__.items()) if judge_para(p, v)}
 
-    # @property
-    # def parser(self) -> ArgumentParser:
-    #     # parser = ArgumentParser("Experimental settings")
-    #     # parser.add_argument("-g", '--gpus', default=DEFAULT_GPU, type=str,
-    #     #                     help='a list of active gpu ids, separated by ",", "cpu" for cpu-only mode.')
-    #     # parser.add_argument("-d", "--dataset", type=str, default=DEFAULT_DATASET)
-    #     # parser.add_argument("-t", "--train_percentage", default=DEFAULT_D_INFO['train_ratio'], type=int)
-    #     # parser.add_argument("-v", "--verbose", default=1, type=int, help='Verbose level, higher level generates more log, -1 to shut down')
-    #     # parser.add_argument('--tqdm_on', action="store_true", help='show log by tqdm or not')
-    #     # parser.add_argument("-w", "--wandb_name", default='OFF', type=str, help='Wandb logger or not.')
-    #     # parser.add_argument("--epochs", default=MAX_EPOCHS, type=int)
-    #     # parser.add_argument("--seed", default=0, type=int)
-    #     return parser
-
     def __str__(self):
         return f'{self.model} config: \n{self.model_conf}'
 
@@ -122,3 +106,28 @@ class ModelConfig(metaclass=ABCMeta):
         # ! Parse defined args
         defined_args = (parser := self.parser).parse_known_args()[0]
         return parser.parse_args()
+
+
+class SubConfig(SN):
+    """
+    SubConfig for parsing and generating file-prefixes that distinguishes results.
+    """
+
+    def __init__(self, conf: ModelConfig, para_prefix_dict, sub_cf_prefix=None, ignored_paras=[]):
+        para_map = lambda x: f"{'' if sub_cf_prefix is None else f'{sub_cf_prefix}_'}{x}"
+        # Init sub config by para_prefix_dict
+        super().__init__(**{_: getattr(conf, para_map(_)) for _ in para_prefix_dict})
+        cf_to_str = lambda c, f: '' if f is None else f'{f}{getattr(conf, para_map(c))}'
+        self.f_prefix = '_'.join(cf_to_str(c, f) for c, f in para_prefix_dict.items())
+        for c, f in para_prefix_dict.items():
+            cf_to_str(c, f)
+        # Defines intermediate variables that shan't be passed to args
+        self._ignored_paras = ['train_cmds', 'f_prefix'] + ignored_paras
+
+    @property
+    def model_conf(self):
+        is_para = lambda para: para[0] != '_' and para not in self._ignored_paras
+        return SN(**{k: v for k, v in self.__dict__.items() if is_para(k)})
+
+    def combine(self, new_conf):
+        return SN(**{**new_conf.model_conf.__dict__, **self.model_conf.__dict__})

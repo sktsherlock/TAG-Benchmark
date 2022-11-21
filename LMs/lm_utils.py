@@ -1,11 +1,12 @@
 import os
 import utils.function as uf
 from utils.data import Sequence
-from utils.modules import ModelConfig
+from utils.modules import ModelConfig, SubConfig
 from utils.settings import *
 from importlib import import_module
 from argparse import ArgumentParser
 from utils.modules.logger import Logger
+
 
 class LMConfig(ModelConfig):
     def __init__(self, args=None):
@@ -46,7 +47,6 @@ class LMConfig(ModelConfig):
         self.birth_time = uf.get_cur_time(t_format='%m_%d-%H_%M_%S')
         self._wandb = None
 
-
     def init(self):
         """Initialize path, logger, experiment environment
         These environment variables should only be initialized in the actual training process. In other cases, where we only want the config parameters parser/res_file, the init function should not be called.
@@ -61,6 +61,12 @@ class LMConfig(ModelConfig):
         self._exp_init()
         return self
 
+    para_prefix = {'dataset': '',
+                   'model': '', 'lr': 'lr', 'eq_batch_size': 'bsz',
+                   'weight_decay': 'wd', 'dropout': 'do', 'att_dropout': 'atdo', 'cla_dropout': 'cla_do',
+                   'cla_bias': 'cla_bias',
+                   'epochs': 'e', 'warmup_epochs': 'we', 'eval_patience': 'ef', 'label_smoothing_factor': 'lsf',
+                   'feat_shrink': ''}
 
     def _intermediate_args_init(self):
         """
@@ -71,19 +77,20 @@ class LMConfig(ModelConfig):
         self.hf_model = self.md.hf_model
         self.father_model = self.md.father_model
         self.hidden_dim = int(self.feat_shrink) if self.feat_shrink else self.md.hidden_dim
+        self._lm = SubConfig(self, self.para_prefix)
 
         # * Init LM settings using pre-train folder
-        self.lm = self.get_lm_info(self.save_folder, self.model)
+        self.lm = self.get_lm_info(self.save_dir, self.model)
 
     def get_lm_info(self, lm_folder, model):
         return SN(folder=lm_folder,
-                  emb=f'{lm_folder}{model}.emb',
-                  pred=f'{lm_folder}{model}.pred',
-                  ckpt=f'{lm_folder}{model}.ckpt',
-                  result=f'{lm_folder}{model}.result')
+                  emb=f'{lm_folder}/{model}.emb',
+                  pred=f'{lm_folder}/{model}.pred',
+                  ckpt=f'{lm_folder}/{model}.ckpt',
+                  result=f'{lm_folder}/{model}.result')
 
     def _exp_init(self):
-        super()._exp_init() # will initialize the data
+        super()._exp_init()  # will initialize the data
         # ! Batch_size Setting
         max_bsz = self.md.max_bsz
         self.batch_size, self.grad_acc_steps = uf.calc_bsz_grad_acc(self.eq_batch_size, max_bsz.train, SV_INFO)
@@ -99,16 +106,18 @@ class LMConfig(ModelConfig):
     @property
     def parser(self):
         parser = ArgumentParser("Experimental settings")
-        parser.add_argument("-g", '--gpus', default='cpu', type=str,
+        parser.add_argument("-g", '--gpus', default='0', type=str,
                             help='a list of active gpu ids, separated by ",", "cpu" for cpu-only mode.')
         parser.add_argument("-d", "--dataset", type=str, default=DEFAULT_DATASET)
         parser.add_argument("-t", "--train_percentage", default=DEFAULT_D_INFO['train_ratio'], type=int)
-        parser.add_argument("-v", "--verbose", default=1, type=int, help='Verbose level, higher level generates more log, -1 to shut down')
+        parser.add_argument("-v", "--verbose", default=1, type=int,
+                            help='Verbose level, higher level generates more log, -1 to shut down')
         parser.add_argument('--tqdm_on', action="store_true", help='show log by tqdm or not')
         parser.add_argument("-w", "--wandb_name", default='OFF', type=str, help='Wandb logger or not.')
         parser.add_argument("--epochs", default=3, type=int)
         parser.add_argument("--seed", default=0, type=int)
-        parser.add_argument("-m", "--model", default='Electra', help='name of the model, such as Bert, TinyBert, Deberta, Distilbert, Electra.')
+        parser.add_argument("-m", "--model", default='TinyBert',
+                            help='name of the model, such as Bert, TinyBert, Deberta, Distilbert, Electra, RoBerta.')
         parser.add_argument("-I", "--is_inf", action="store_true")
         parser.add_argument("-lr", "--lr", default=0.00002, type=float, help='LM model learning rate')
         parser.add_argument("-bsz", "--eq_batch_size", default=36, type=int)
@@ -116,10 +125,10 @@ class LMConfig(ModelConfig):
         parser.add_argument("-do", "--dropout", default=0.1, type=float)
         parser.add_argument("-atdo", "--att_dropout", default=0.1, type=float)
         parser.add_argument("-cla", "--cla_dropout", default=0.1, type=float)
-        parser.add_argument("-cla_bias", "--cla_bias", default='T',help='Classification model bias')
+        parser.add_argument("-cla_bias", "--cla_bias", default='T', help='Classification model bias')
         parser.add_argument("-wmp", "--warmup_epochs", default=0.2, type=float)
         parser.add_argument("-ef", "--eval_patience", default=50000, type=int)
-        parser.add_argument("-lsf", "--label_smoothing_factor", default= 0.1, type=float)
+        parser.add_argument("-lsf", "--label_smoothing_factor", default=0.1, type=float)
         parser.add_argument("-ce", "--ce_reduction", default='mean')
         parser.add_argument("-feat_shrink", "--feat_shrink", default=None, type=str)
         parser.add_argument("-wid", "--wandb_id", default=None, type=str)
@@ -128,16 +137,19 @@ class LMConfig(ModelConfig):
         parser.add_argument("-prt", "--pretrain_path", default=None, type=str)
         return parser
 
-
         return parser
 
     @property
     def out_dir(self):
-        return f'{TEMP_PATH}{self.model}/ckpts/{self.dataset}/'
+        return f'{TEMP_PATH}{self.model}/ckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
+
+    @property
+    def save_dir(self):
+        return f'{TEMP_PATH}{self.model}/finetune/{self.dataset}/seed{self.seed}{self.model_cf_str}'
 
     @property
     def model_cf_str(self):
-        return self.para_prefix
+        return self._lm.f_prefix
 
 
 # ! LM Settings
@@ -154,7 +166,8 @@ LM_MODEL_MAP = {
     'Electra-base': 'Electra',
 }
 
-#! Need
+
+# ! Need
 def get_lm_model():
     return LMConfig().parser.parse_known_args()[0].model
 
