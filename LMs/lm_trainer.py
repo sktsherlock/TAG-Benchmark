@@ -43,7 +43,7 @@ class LMTrainer():
         eval_steps = cf.eval_patience // cf.eq_batch_size
 
         # ! Load bert and build classifier
-        model = AutoModel.from_pretrained(cf.hf_model) if cf.pretrained is None else AutoModel.from_pretrained(cf.pretrained)
+        model = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(cf.pretrain_path)
         if cf.model == 'Distilbert':
             self.model = DistilBertClassifier(
                 model, cf.data.n_labels,
