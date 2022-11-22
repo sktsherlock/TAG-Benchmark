@@ -49,7 +49,7 @@ class ModelConfig(metaclass=ABCMeta):
                 import wandb
                 from private.exp_settings import WANDB_API_KEY, WANDB_DIR, WANDB_PROJ, WANDB_ENTITY
                 os.environ['WANDB_API_KEY'] = WANDB_API_KEY
-
+                print('self.wandb_id ==', self.wandb_id)
                 # ! Create wandb session
                 if self.wandb_id == '':
                     # First time running, create new wandb

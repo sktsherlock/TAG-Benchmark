@@ -11,7 +11,7 @@ SV_INIT_CMDS = [
 ]
 
 # ! Wandb settings
-WANDB_API_KEY = '6d7419c4c0209ac98b0ae8f24554c9460a5ae0a9'
+WANDB_API_KEY = '874c44bb13f3aabd11d2998863dbd85bb70ffe27'
 WANDB_DIR = 'wandb_temp'
-WANDB_ENTITY = 'cirtraining'
-WANDB_PROJ = 'CT-Debug'
+WANDB_ENTITY = 'csu_tag'
+WANDB_PROJ = 'Debug'
