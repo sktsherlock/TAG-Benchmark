@@ -14,6 +14,7 @@ class GPTConfig(LMConfig):
         'GPT2':
             SN(
                 hf_model='gpt2',
+                father_model='GPT',
                 hidden_dim=768,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 12, 24: 9, 32: 30, 40: 32, 70: 96},

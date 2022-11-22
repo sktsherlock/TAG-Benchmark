@@ -1,5 +1,5 @@
 from datasets import load_metric
-from transformers import AutoModel, EvalPrediction, TrainingArguments, Trainer, AutoModelForMaskedLM
+from transformers import AutoModel, EvalPrediction, TrainingArguments, Trainer, AutoTokenizer
 import utils as uf
 from model import *
 from utils.data.datasets import *
@@ -43,9 +43,20 @@ class LMTrainer():
         eval_steps = cf.eval_patience // cf.eq_batch_size
 
         # ! Load bert and build classifier
-        model = AutoModel.from_pretrained(cf.hf_model)
+        model = AutoModel.from_pretrained(cf.hf_model) if cf.pretrained is None else AutoModel.from_pretrained(cf.pretrained)
         if cf.model == 'Distilbert':
             self.model = DistilBertClassifier(
+                model, cf.data.n_labels,
+                dropout=cf.cla_dropout,
+                loss_func=th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction),
+                cla_bias=cf.cla_bias == 'T',
+                feat_shrink=cf.feat_shrink
+            )
+        elif cf.model == 'GPT2':
+            tokenizer = AutoTokenizer.from_pretrained(cf.hf_model)
+            tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+            model.resize_token_embeddings(len(tokenizer))
+            self.model = GPTClassifier(
                 model, cf.data.n_labels,
                 dropout=cf.cla_dropout,
                 loss_func=th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction),
@@ -67,14 +78,16 @@ class LMTrainer():
             print(f" LM Model parameters are {trainable_params}")
 
         load_best_model_at_end = True
-        if cf.hf_model == 'distilbert-base-uncased':
+        if cf.model == 'Distilbert':
             self.model.config.dropout = cf.dropout
             self.model.config.attention_dropout = cf.att_dropout
+        elif cf.model == 'GPT2':
+            self.model.config.attn_pdrop = cf.att_dropout
+            self.model.config.embd_pdrop = cf.dropout
         else:
-            print('default dropout and attention_dropout are:', self.model.config.hidden_dropout_prob, self.model.config.attention_probs_dropout_prob)
             self.model.config.hidden_dropout_prob = cf.dropout
             self.model.config.attention_probs_dropout_prob = cf.att_dropout
-
+        self.log(self.model.config)
 
         training_args = TrainingArguments(
             output_dir=cf.out_dir,

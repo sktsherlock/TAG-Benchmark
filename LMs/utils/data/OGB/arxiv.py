@@ -62,15 +62,18 @@ def _tokenize_ogb_arxiv_datasets(d, labels, chunk_size=50000):
         text = pd.read_csv(osp.join(d.data_root, 'ogbn-arxiv.txt'), sep='\t', header=None)
         text = text[0]
     # Tokenize
-    tokenizer = AutoTokenizer.from_pretrained(d.hf_model)
 
     if d.hf_model in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
-        print('Adding pad token')
-        tokenizer.padding_side = 'left'
-        tokenizer.pad_token = tokenizer.eos_token
-
-    tokenized = tokenizer(text.tolist(), padding='max_length', truncation=True, max_length=512,
-                          return_token_type_ids=True).data
+        from transformers import GPT2TokenizerFast
+        tokenizer = AutoTokenizer.from_pretrained(d.hf_model)
+        tokenizer.padding_side = 'right'
+        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+        tokenized = tokenizer(text.tolist(), padding='max_length', truncation=True, max_length=512,
+                              return_token_type_ids=True).data
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(d.hf_model)
+        tokenized = tokenizer(text.tolist(), padding='max_length', truncation=True, max_length=512,
+                              return_token_type_ids=True).data
     mkdir_p(d._token_folder)
     for k in tokenized:
         with open(osp.join(d._token_folder, f'{k}.npy'), 'wb') as f:

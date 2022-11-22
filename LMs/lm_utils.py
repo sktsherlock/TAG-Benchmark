@@ -116,7 +116,7 @@ class LMConfig(ModelConfig):
         parser.add_argument("-w", "--wandb_name", default='OFF', type=str, help='Wandb logger or not.')
         parser.add_argument("--epochs", default=3, type=int)
         parser.add_argument("--seed", default=0, type=int)
-        parser.add_argument("-m", "--model", default='TinyBert',
+        parser.add_argument("-m", "--model", default='GPT2',
                             help='name of the model, such as Bert, TinyBert, Deberta, Distilbert, Electra, RoBerta.')
         parser.add_argument("-I", "--is_inf", action="store_true")
         parser.add_argument("-lr", "--lr", default=0.00002, type=float, help='LM model learning rate')
@@ -141,11 +141,17 @@ class LMConfig(ModelConfig):
 
     @property
     def out_dir(self):
-        return f'{TEMP_PATH}{self.model}/ckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
+        if self.cf.pretrain_path is not None:
+            return f'{TEMP_PATH}{self.model}/PRTckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
+        else:
+            return f'{TEMP_PATH}{self.model}/ckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
 
     @property
     def save_dir(self):
-        return f'{TEMP_PATH}{self.model}/finetune/{self.dataset}/seed{self.seed}{self.model_cf_str}'
+        if self.cf.pretrain_path is not None:
+            return f'{TEMP_PATH}{self.model}/PRT/{self.dataset}/seed{self.seed}{self.model_cf_str}'
+        else:
+            return f'{TEMP_PATH}{self.model}/finetune/{self.dataset}/seed{self.seed}{self.model_cf_str}'
 
     @property
     def model_cf_str(self):
