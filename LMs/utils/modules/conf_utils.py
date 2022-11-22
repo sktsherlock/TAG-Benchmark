@@ -60,7 +60,9 @@ class ModelConfig(metaclass=ABCMeta):
                     wandb.init(project=WANDB_PROJ, entity=WANDB_ENTITY, reinit=True,
                                resume='must', id=self.wandb_id)
                 self.wandb_on = True
+                print('self.wandb_on is ', self.wandb_on)
             except:
+                print('self.wandb_on is ', self.wandb_on)
                 return None
         else:
             os.environ["WANDB_DISABLED"] = "true"
