@@ -141,14 +141,14 @@ class LMConfig(ModelConfig):
 
     @property
     def out_dir(self):
-        if self.cf.pretrain_path is not None:
+        if self.pretrain_path is not None:
             return f'{TEMP_PATH}{self.model}/PRTckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
         else:
             return f'{TEMP_PATH}{self.model}/ckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
 
     @property
     def save_dir(self):
-        if self.cf.pretrain_path is not None:
+        if self.pretrain_path is not None:
             return f'{TEMP_PATH}{self.model}/PRT/{self.dataset}/seed{self.seed}{self.model_cf_str}'
         else:
             return f'{TEMP_PATH}{self.model}/finetune/{self.dataset}/seed{self.seed}{self.model_cf_str}'
