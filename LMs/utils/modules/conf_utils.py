@@ -51,7 +51,7 @@ class ModelConfig(metaclass=ABCMeta):
                 os.environ['WANDB_API_KEY'] = WANDB_API_KEY
                 print('self.wandb_id ==', self.wandb_id)
                 # ! Create wandb session
-                if self.wandb_id == '':
+                if self.wandb_id == None:
                     # First time running, create new wandb
                     wandb.init(project=WANDB_PROJ, entity=WANDB_ENTITY, reinit=True, config=self.model_conf)
                     self.wandb_id = wandb.run.id
