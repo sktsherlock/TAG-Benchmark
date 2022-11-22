@@ -44,7 +44,7 @@ class LMTrainer():
 
         # ! Load bert and build classifier
         print(cf.pretrain_path)
-        model = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(cf.pretrain_path)
+        model = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(f'{cf.pretrain_path}')
         if cf.model == 'Distilbert':
             self.model = DistilBertClassifier(
                 model, cf.data.n_labels,
