@@ -12,8 +12,9 @@ def find_free_port():
 
 
 cmd = ' '.join(sys.argv[1:])
+
 N_GPUS = len((gpus := os.environ['CUDA_VISIBLE_DEVICES']).split(','))
-if cmd in {'train_MLM.py','train_CLM.py', 'LMs/train_MLM.py'}:
+if cmd.split()[0] in {'train_MLM.py','train_CLM.py', 'LMs/train_MLM.py'}:
     cmd = f"CUDA_VISIBLE_DEVICES={gpus} torchrun --master_port={find_free_port()} --nproc_per_node={N_GPUS} {cmd}"
 else:
     cmd = f"CUDA_VISIBLE_DEVICES={gpus} torchrun --master_port={find_free_port()} --nproc_per_node={N_GPUS} {cmd} --gpus={gpus}"
