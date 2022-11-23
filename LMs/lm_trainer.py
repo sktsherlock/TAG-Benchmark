@@ -98,7 +98,7 @@ class LMTrainer():
             save_steps=eval_steps,
             learning_rate=cf.lr, weight_decay=cf.weight_decay,
             load_best_model_at_end=load_best_model_at_end, gradient_accumulation_steps=cf.grad_acc_steps,
-            save_total_limit=1,
+            save_total_limit=None,
             report_to='wandb' if cf.wandb_on else None,
             per_device_train_batch_size=cf.batch_size,
             per_device_eval_batch_size=cf.batch_size * 6 if cf.hf_model in {'distilbert-base-uncased', 'google/electra-base-discriminator'} else cf.batch_size * 10,
