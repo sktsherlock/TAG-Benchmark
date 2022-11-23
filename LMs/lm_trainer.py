@@ -130,6 +130,10 @@ class LMTrainer():
 
         if cf.local_rank <= 0:
             th.save(self.model.state_dict(), uf.init_path(cf.lm.ckpt))
+        else:
+            print('Dont save the model in the local_rank:', cf.local_rank)
+
+        self.log(f'LM saved to {cf.lm.ckpt}')
 
     def eval_and_save(self):
         def get_metric(split):
