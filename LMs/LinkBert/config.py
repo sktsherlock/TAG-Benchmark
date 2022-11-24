@@ -32,7 +32,7 @@ class LinkBertConfig(LMConfig):
                 hf_model='michiyasunaga/LinkBERT-large',
                 hidden_dim=1024,
                 max_bsz=SN(  # Batch size for different device
-                    train={12: 6, 16: 10, 24: 16, 32: 9},
+                    train={12: 6, 16: 10, 24: 16, 32: 12},
                     inf={12: 150, 16: 200, 24: 150, 32: 250},
                 ),
                 prt_lm={  # Initial LM configs
