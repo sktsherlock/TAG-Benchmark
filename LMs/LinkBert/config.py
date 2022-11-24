@@ -14,6 +14,7 @@ class LinkBertConfig(LMConfig):
         'LinkBert':
             SN(
                 hf_model='michiyasunaga/LinkBERT-base',
+                father_model='LinkBert',
                 hidden_dim=768,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 12, 24: 9, 32: 40, 40: 32, 70: 96},
@@ -30,6 +31,7 @@ class LinkBertConfig(LMConfig):
         'LinkBert-large':
             SN(
                 hf_model='michiyasunaga/LinkBERT-large',
+                father_model='LinkBert',
                 hidden_dim=1024,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 6, 16: 10, 24: 16, 32: 12},
