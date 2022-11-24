@@ -15,6 +15,7 @@ class Distilbert(LMConfig):
             SN(
                 hf_model='distilbert-base-uncased',
                 hidden_dim=768,
+                father_model='Distilbert',
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 12, 24: 60, 32: 80},
                     inf={12: 150, 16: 200, 24: 300, 32: 512},
