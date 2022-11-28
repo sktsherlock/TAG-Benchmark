@@ -66,7 +66,7 @@ class LMConfig(ModelConfig):
                    'weight_decay': 'wd', 'dropout': 'do', 'att_dropout': 'atdo', 'cla_dropout': 'cla_do',
                    'cla_bias': 'cla_bias',
                    'epochs': 'e', 'warmup_epochs': 'we', 'eval_patience': 'ef', 'label_smoothing_factor': 'lsf',
-                   'feat_shrink': ''}
+                   'feat_shrink': '', 'PrtMode': 'mode'}
 
     def _intermediate_args_init(self):
         """
@@ -135,9 +135,9 @@ class LMConfig(ModelConfig):
         parser.add_argument("--device", default=None, type=str)
         parser.add_argument("--wandb_on", default=False, type=bool)
         parser.add_argument("-prt", "--pretrain_path", default=None, type=str)
+        parser.add_argument("-prtMode", "--PrtMode", default=None, type=str)
         return parser
 
-        return parser
 
     @property
     def out_dir(self):
