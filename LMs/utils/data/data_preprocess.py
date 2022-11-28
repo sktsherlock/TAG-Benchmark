@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 from ogb.nodeproppred import DglNodePropPredDataset
 from ogb.utils.url import download_url
-
+import dgl
+import copy
 
 def read_data(filename):
     df = pd.read_csv(filename)
@@ -42,11 +43,12 @@ def read_ids_and_labels(data_root, labels):
 def process_raw_text_df(meta_data, node_ids, categories):
     data = merge_by_ids(meta_data.dropna(), node_ids, categories)
     text_func = {
-        'TA': lambda x: f"Title: {x['title']}. Abstract: {x['abstract']}.",
+        'TA': lambda x: f"Title: {x['title']}. Abstract: {x['abstract']}",
         'T': lambda x: x['title'],
     }
     # Merge title and abstract
     data['text'] = data.apply(text_func['TA'], axis=1)
+    data['text'] = data.apply(lambda x: ' '.join(x['text'].split(' ')[:512]), axis=1)
     data['len'] = data.apply(lambda x: len(x['text'].split(' ')), axis=1)
     # data['text'] = data.apply(lambda x: ' '.join(x['text'].split(' ')[:512]), axis=1) # 截断
     return data['text'], data['len']
@@ -61,17 +63,37 @@ def merge_by_ids(meta_data, node_ids, categories):
     data = pd.merge(data, categories, how="left", on="label_id")
     return data
 
+def Toplogy_Augment(text, edge0, edge1):
+    edge0 = np.array(edge0)
+    edge1 = np.array(edge1)
+    assert len(edge0) == len(edge1)
+    ans = copy.copy(text)
+    for i, j in zip(edge0, edge1):
+        ans[i] += ' Neighbour: ' + text[j]
+    text = ans
+    return text
+    #169343 个点；107337个边，0-5 +
 
 def main():
-    dataset = DglNodePropPredDataset('ogbn-arxiv', root='data/ogb/')
-    _, labels = dataset[0]
+    dataset = DglNodePropPredDataset('ogbn-arxiv', root='/mnt/v-haoyan1/CirTraining/data/ogb/')
+    g, labels = dataset[0]
+    g.remove_self_loop()
+    sampler = dgl.dataloading.MultiLayerNeighborSampler([2])
+    collator = dgl.dataloading.NodeCollator(g, np.arange(g.num_nodes()), sampler)
+    _, _, blocks = collator.collate(np.arange(g.num_nodes()))
+    # zipped = zip(blocks[0].edges()[0], blocks[0].edges()[1])
+    # sort_zipped = sorted(zipped,key=lambda x:(x[0],x[1]))
+
     raw_text_path = '/mnt/v-haoyan1/CirTraining/data/ogb/ogbn_arxiv/titleabs.tsv.gz'
     categories, node_ids = read_ids_and_labels('/mnt/v-haoyan1/CirTraining/data/ogb/ogbn_arxiv', labels)
     text = pd.read_table(raw_text_path, header=None, skiprows=[0])
     # ! 统计每个item的文本信息的 min max mean
     text, _ = process_raw_text_df(text, node_ids, categories)
+    # Augmentation
+    text = Toplogy_Augment(text, blocks[0].edges()[1], blocks[0].edges()[0])
     # 保存text，text_len 文件
     text.to_csv('ogbn-arxiv.txt', sep='\t', header=None, index=False)
+
 
 if __name__ == '__main__':
     main()

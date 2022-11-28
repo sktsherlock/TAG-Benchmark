@@ -15,7 +15,6 @@ METRICS = {  # metric -> metric_path
 
 }
 
-
 class LMTrainer():
     def __init__(self, cf):
         self.cf = cf
