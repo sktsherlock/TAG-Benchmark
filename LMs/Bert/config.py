@@ -16,7 +16,7 @@ class BertConfig(LMConfig):
                 father_model='Bert',
                 hidden_dim=768,
                 max_bsz=SN(  # Batch size for different device
-                    train={12: 8, 16: 12, 24: 16, 32: 24},
+                    train={12: 8, 16: 12, 24: 16, 32: 30},
                     inf={12: 150, 16: 200, 24: 300, 32: 360},
                 ),
                 prt_lm={  # Initial LM configs
