@@ -29,9 +29,11 @@ class Sequence():
         self._g_info_folder = init_path(f"{DATA_PATH}{cf.dataset}/")
         self._g_info_file = f"{self._g_info_folder}graph.info "
         self._token_folder = init_path(f"{DATA_PATH}{cf.dataset}/{self.father_model}/{cf.model}/")
+        self._NP_token_folder = init_path(f"{DATA_PATH}{cf.dataset}/TNP/{self.father_model}/{cf.model}/")
         self._processed_flag = {
             'g_info': f'{self._g_info_folder}processed.flag',
             'token': f'{self._token_folder}processed.flag',
+            'NP_token': f'{self._NP_token_folder}processed.flag',
         }
         self.g, self.split = None, None
 
@@ -58,11 +60,36 @@ class Sequence():
 
         return self
 
+    def NP_init(self):
+        from utils.data.preprocess import tokenize_NP_graph
+        cf = self.cf
+        self.gi = g_info = load_TAG_info(cf)
+        # ! LM phase
+        tokenize_NP_graph(self.cf)
+        self._load_NP_data_fields()
+        self.device = cf.device  # if cf.local_rank<0 else th.device(cf.local_rank)
+        # 划分训练集 验证集
+        from sklearn.model_selection import train_test_split
+        train_x, valid_x, _, _ = train_test_split(np.arange(self.n_nodes), self.ndata['labels'], test_size=0.1)
+        dic = {'train_x': train_x, 'valid_x': valid_x}
+        self.__dict__.update(dic)
+
+        return self
+
+    def _load_NP_data_fields(self):
+        for k, info in self.info.items():
+            info.NP_path = f'{self._NP_token_folder}/{k}.npy'
+            try:
+                self.ndata[k] = np.load(info.NP_path)
+            except:
+                raise ValueError(f'There is no file')
+        self.ndata['labels'] = np.load(f'{self._NP_token_folder}/labels.npy')
+
     def _load_data_fields(self):
         for k in self.info:
             i = self.info[k]
             try:
-                self.ndata[k] = np.load(i.path)#np.memmap(i.path, mode='r', dtype=i.type, shape=i.shape)
+                self.ndata[k] = np.load(i.path)  # np.memmap(i.path, mode='r', dtype=i.type, shape=i.shape)
             except:
                 raise ValueError(f'Shape not match {i.shape}')
 
@@ -93,7 +120,17 @@ class Sequence():
         item = {}
         item['attention_mask'] = _load('attention_mask')
         item['input_ids'] = th.IntTensor(np.array(self['input_ids'][node_id]).astype(np.int32))
-        if self.hf_model not in ['distilbert-base-uncased','roberta-base']:
+        if self.hf_model not in ['distilbert-base-uncased', 'roberta-base']:
+            item['token_type_ids'] = _load('token_type_ids')
+        return item
+
+    def get_NP_tokens(self, node_id):
+        _load = lambda k: th.IntTensor(np.array(self.ndata[k][node_id]))
+        item = {}
+        item['attention_mask'] = _load('attention_mask')
+        item['input_ids'] = th.IntTensor(np.array(self['input_ids'][node_id]).astype(np.int32))
+        item['labels'] = th.LongTensor(np.array(self.ndata['labels'][node_id]))
+        if self.hf_model not in ['distilbert-base-uncased', 'roberta-base']:
             item['token_type_ids'] = _load('token_type_ids')
         return item
 
@@ -111,3 +148,15 @@ class SeqGraphDataset(th.utils.data.Dataset):  # Map style
     def __len__(self):
         return self.d.n_nodes
 
+
+class NP_Dataset(th.utils.data.Dataset):  # Map style
+    def __init__(self, data: Sequence):
+        super().__init__()
+        self.d = data
+
+    def __getitem__(self, node_id):
+        item = self.d.get_NP_tokens(node_id)
+        return item
+
+    def __len__(self):
+        return self.d.n_nodes

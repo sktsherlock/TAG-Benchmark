@@ -118,3 +118,31 @@ def load_TAG_info(cf):
     return g_info
 
 
+def tokenize_NP_graph(cf):
+    from utils.data.OGB.arxiv import _tokenize_NP_ogb_arxiv_datasets
+    full_dict = deepcopy(cf.model_conf)
+    full_dict['dataset'] = '_'.join(full_dict['dataset'].split('_')[:2])
+    full_cf = cf.__class__(SN(**full_dict)).init()
+    d = full_cf.data
+    if not d.is_processed('NP_token'):
+        if cf.local_rank <= 0:
+            # ! Load full-graph
+            print(f'Processing data on LOCAL_RANK #{cf.local_rank}...')
+            g_info = load_TAG_info(full_cf)
+            if d.md['type'] == 'ogb':
+                if d.ogb_name == 'ogbn-arxiv':
+                    _tokenize_NP_ogb_arxiv_datasets(d, g_info.labels, NP=True)
+                else:
+                    raise NotImplementedError
+            else:
+                raise NotImplementedError
+            print(f'Tokenization finished on LOCAL_RANK #{cf.local_rank}')
+        else:
+            # If not main worker (i.e. Local_rank!=0), wait until data is processed and load
+            print(f'Waiting for tokenization on LOCAL_RANK #{cf.local_rank}')
+            while not d.is_processed('token'):
+                time.sleep(2)  # Check if processed every 2 seconds
+            print(f'Detected processed data, LOCAL_RANK #{cf.local_rank} start loading!')
+            time.sleep(5)  # Wait for file write for 5 seconds
+    else:
+        cf.log(f'Found processed NP {cf.dataset}.')

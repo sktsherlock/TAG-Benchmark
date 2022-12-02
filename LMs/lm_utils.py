@@ -116,10 +116,10 @@ class LMConfig(ModelConfig):
         parser.add_argument("-w", "--wandb_name", default='OFF', type=str, help='Wandb logger or not.')
         parser.add_argument("--epochs", default=3, type=int)
         parser.add_argument("--seed", default=0, type=int)
-        parser.add_argument("-m", "--model", default='GPT2',
+        parser.add_argument("-m", "--model", default='TinyBert',
                             help='name of the model, such as Bert, TinyBert, Deberta, Distilbert, Electra, RoBerta.')
         parser.add_argument("-I", "--is_inf", action="store_true")
-        parser.add_argument("-lr", "--lr", default=0.00002, type=float, help='LM model learning rate')
+        parser.add_argument("-lr", "--lr", default=0.002, type=float, help='LM model learning rate')
         parser.add_argument("-bsz", "--eq_batch_size", default=36, type=int)
         parser.add_argument("-wd", "--weight_decay", default=0.01)
         parser.add_argument("-do", "--dropout", default=0.1, type=float)
@@ -138,20 +138,25 @@ class LMConfig(ModelConfig):
         parser.add_argument("-prtMode", "--PrtMode", default=None, type=str)
         return parser
 
-
     @property
     def out_dir(self):
         if self.pretrain_path is not None:
             return f'{TEMP_PATH}{self.model}/PRTckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
         else:
-            return f'{TEMP_PATH}{self.model}/ckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
+            if self.PrtMode is not None:
+                return f'{TEMP_PATH}{self.model}/PrtModeckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
+            else:
+                return f'{TEMP_PATH}{self.model}/ckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
 
     @property
     def save_dir(self):
         if self.pretrain_path is not None:
             return f'{TEMP_PATH}{self.model}/PRT/{self.dataset}/seed{self.seed}{self.model_cf_str}'
         else:
-            return f'{TEMP_PATH}{self.model}/finetune/{self.dataset}/seed{self.seed}{self.model_cf_str}'
+            if self.PrtMode is not None:
+                return f'{TEMP_PATH}{self.model}/PrtMode/{self.dataset}/seed{self.seed}{self.model_cf_str}'
+            else:
+                return f'{TEMP_PATH}{self.model}/finetune/{self.dataset}/seed{self.seed}{self.model_cf_str}'
 
     @property
     def model_cf_str(self):
@@ -181,6 +186,11 @@ def get_lm_model():
 def get_lm_trainer(model):
     from lm_trainer import LMTrainer as LMTrainer
     return LMTrainer
+
+
+def get_TNP_trainer(model):
+    from TNP_trainer import TNPTrainer as TNP_trainer
+    return TNP_trainer
 
 
 def get_lm_config(model):
