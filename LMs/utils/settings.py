@@ -42,13 +42,19 @@ CPU_CF = {
 get_info_by_sv_type = lambda attr, t: CPU_CF[attr] if t == 'CPU' else GPU_CF[attr]
 DEFAULT_GPU = get_info_by_sv_type('default_gpu', SV_INFO)
 PYTHON = get_info_by_sv_type('py_path', SV_INFO)
-MNT_DIR = get_info_by_sv_type('mnt_dir', SV_INFO)
+# MNT_DIR = get_info_by_sv_type('mnt_dir', SV_INFO)
 
 import os.path as osp
 
 PROJ_DIR = osp.abspath(osp.dirname(__file__)).split('LMs')[0]
 LM_PROJ_DIR = osp.join(PROJ_DIR, 'LMs/')
 
+# Mount paths: kept in cloud and shared cross containers
+MS_USER = 'v-haoyan1'
+MNT_ROOT = f'/mnt/{MS_USER}/'
+# Mount path: to be shared
+MOUNTED = osp.exists(MNT_ROOT)
+MNT_DIR = f'{MNT_ROOT}{PROJ_NAME}/' if MOUNTED else PROJ_DIR
 # Temp paths: discarded when container is destroyed
 TEMP_DIR = LM_PROJ_DIR
 TEMP_PATH = f'{LM_PROJ_DIR}temp/'
@@ -60,8 +66,8 @@ RES_PATH = f'{LM_PROJ_DIR}results/'
 DB_PATH = f'{LM_PROJ_DIR}exp_db/'
 
 # ! Data Settings
-DATA_PATH = f'{PROJ_DIR}data/'
-OGB_ROOT = f'{PROJ_DIR}data/ogb/'
+DATA_PATH = f'{MNT_DIR}data/'
+OGB_ROOT = f'{MNT_DIR}data/ogb/'
 
 DATA_INFO = {
     'arxiv': {
