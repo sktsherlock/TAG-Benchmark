@@ -140,7 +140,7 @@ def tokenize_NP_graph(cf):
         else:
             # If not main worker (i.e. Local_rank!=0), wait until data is processed and load
             print(f'Waiting for tokenization on LOCAL_RANK #{cf.local_rank}')
-            while not d.is_processed('token'):
+            while not d.is_processed('NP_token'):
                 time.sleep(2)  # Check if processed every 2 seconds
             print(f'Detected processed data, LOCAL_RANK #{cf.local_rank} start loading!')
             time.sleep(5)  # Wait for file write for 5 seconds
