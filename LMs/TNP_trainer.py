@@ -7,17 +7,6 @@ import torch as th
 import evaluate
 import wandb
 
-METRICS = {  # metric -> metric_path
-    'accuracy': 'hf_accuracy.py',
-    'f1score': 'hf_f1.py',
-    'precision': 'hf_precision.py',
-    'recall': 'hf_recall.py',
-    'spearmanr': 'hf_spearmanr.py',
-    'pearsonr': 'hf_pearsonr.py',
-
-}
-
-
 class TNPTrainer():
     def __init__(self, cf):
         self.cf = cf
@@ -111,7 +100,6 @@ class TNPTrainer():
 
         cf = self.cf
         res = {**get_metric('valid')}
-        print(res)
         uf.pickle_save(res, cf.lm.result)
         cf.wandb_log({f'TNP_{k}': v for k, v in res.items()})
 
