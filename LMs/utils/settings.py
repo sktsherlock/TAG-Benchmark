@@ -60,7 +60,7 @@ TEMP_DIR = LM_PROJ_DIR
 TEMP_PATH = f'{LM_PROJ_DIR}temp/'
 LOG_PATH = f'{LM_PROJ_DIR}log/'
 
-MNT_TEMP_DIR = f'{LM_PROJ_DIR}temp/'
+MNT_TEMP_DIR = f'{MNT_DIR}temp/'
 TEMP_RES_PATH = f'{LM_PROJ_DIR}temp_results/'
 RES_PATH = f'{LM_PROJ_DIR}results/'
 DB_PATH = f'{LM_PROJ_DIR}exp_db/'

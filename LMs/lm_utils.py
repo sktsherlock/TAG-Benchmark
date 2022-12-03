@@ -141,10 +141,13 @@ class LMConfig(ModelConfig):
     @property
     def out_dir(self):
         if self.pretrain_path is not None:
-            return f'{TEMP_PATH}{self.model}/PRTckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
+            if self.PrtMode is not None:
+                return f'{TEMP_PATH}{self.model}/ckpts/{self.PrtMode}/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
+            else:
+                raise ValueError('Please input the PrtMode!')
         else:
             if self.PrtMode is not None:
-                return f'{TEMP_PATH}{self.model}/PrtModeckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
+                return f'{TEMP_PATH}{self.model}/{self.PrtMode}/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
             else:
                 return f'{TEMP_PATH}{self.model}/ckpts/{self.dataset}/seed{self.seed}{self.model_cf_str}/'
 
