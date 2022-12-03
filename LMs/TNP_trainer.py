@@ -97,7 +97,7 @@ class TNPTrainer():
             compute_metrics=compute_metrics,
         )
         self.eval_phase = 'Eval'
-        # self.trainer.train()
+        self.trainer.train()
 
         if cf.local_rank <= 0:
             th.save(self.model.state_dict(), uf.init_path(cf.lm.ckpt))
