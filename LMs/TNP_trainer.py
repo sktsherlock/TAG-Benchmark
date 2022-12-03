@@ -5,6 +5,7 @@ from model import *
 from utils.data.datasets import *
 import torch as th
 import evaluate
+import wandb
 
 METRICS = {  # metric -> metric_path
     'accuracy': 'hf_accuracy.py',
@@ -86,7 +87,7 @@ class TNPTrainer():
         )
 
         def compute_metrics(pred: EvalPrediction):
-            predictions, references = pred.predictions.argmax(1), pred.label_ids.argmax(1)
+            predictions, references = pred.predictions.argmax(1), pred.label_ids
             return self.metric.compute(predictions=predictions, references=references)
 
         self.trainer = Trainer(
