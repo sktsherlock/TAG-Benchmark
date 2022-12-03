@@ -98,13 +98,9 @@ class TNPTrainer():
         )
         self.eval_phase = 'Eval'
         self.trainer.train()
+        self.trainer.save_model()
 
-        if cf.local_rank <= 0:
-            th.save(self.model.state_dict(), uf.init_path(cf.lm.ckpt))
-        else:
-            print('Dont save the model in the local_rank:', cf.local_rank)
-
-        self.log(f'LM saved to {cf.lm.ckpt}')
+        self.log(f'TNP LM saved finish.')
 
     def eval_and_save(self):
         def get_metric(split):
