@@ -42,7 +42,7 @@ class TNPTrainer():
         # ! Load bert and build classifier
         model = AutoModel.from_pretrained(cf.hf_model)  # TinyBert NSP: 4386178; Pure TinyBERT: 4385920;
         self.model = TNPClassifier(
-            model, 2,
+            model=model, n_labels=3,
             dropout=cf.cla_dropout,
             loss_func=th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction),
             cla_bias=cf.cla_bias == 'T',
