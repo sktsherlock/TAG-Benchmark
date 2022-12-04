@@ -129,33 +129,49 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
         _, _, blocks = collator.collate(np.arange(g.num_nodes()))
         edge0 = np.array(blocks[0].edges()[1])
         edge1 = np.array(blocks[0].edges()[0])
+
         assert len(edge0) == len(edge1)
-        adj = coo_matrix((np.ones(edge0.shape), (edge0, edge1)), shape=(169343, 169343))
-        neighbours = [row for row in adj.tolil().rows]
-        return neighbours
+        adj0 = coo_matrix((np.ones(edge0.shape), (edge0, edge1)), shape=(169343, 169343))
+        adj1 = adj0@adj0
+
+        neighbours_0 = [row for row in adj0.tolil().rows]
+        neighbours_1 = [row for row in adj1.tolil().rows]
+
+        return neighbours_0, neighbours_1
 
     def NP_make_corpus(d, text, neighbours):
+        n0, n1 = neighbours
         import random
         Document_a = []
         Document_b = []
         label = []
         corpus = text.to_list()
+        print('start NP_make_corpus!!!!!!!')
         for i in range(d.n_nodes):
             # 50/50 whether is IsNextSentence or NotNextSentence
             if random.random() >= 0.5:
                 # this is IsNeighbour
-                Document_a.append(corpus[i])
-                j = np.random.choice(neighbours[i], 1)
+                Document_a.append(' '.join(corpus[i].split(' ')[0:256]))
+                j = np.random.choice(n0[i], 1)
                 Document_b.append(corpus[j[0]])
                 label.append(0)
             else:
-                # this is NotNextSentence
-                Document_a.append(corpus[i])
-                j = np.random.choice(d.n_nodes, 1)
-                while j in neighbours[i]:
+                if random.random() <= 0.2:
+                    # this is NotNextSentence
+                    Document_a.append(' '.join(corpus[i].split(' ')[0:256]))
                     j = np.random.choice(d.n_nodes, 1)
-                Document_b.append(corpus[j[0]])
-                label.append(1)
+                    while j in n1[i]:
+                        j = np.random.choice(d.n_nodes, 1)
+                    Document_b.append(corpus[j[0]])
+                    label.append(2)
+                else:
+                    # this is NotNextSentence
+                    Document_a.append(' '.join(corpus[i].split(' ')[0:256]))
+                    j = np.random.choice(n1[i], 1)
+                    while j in n0[i]:
+                        j = np.random.choice(n1[i], 1)
+                    Document_b.append(corpus[j[0]])
+                    label.append(1)
 
         return Document_a, Document_b, label
 
@@ -180,8 +196,19 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
         text = text[0]
 
     # 处理数据
-    neighbours = top_Augmentation(d)
-    doca, docb, label = NP_make_corpus(d, text, neighbours)
+    if not osp.exists(osp.join(d.data_root, 'ogbn-arxiv_NP.txt')):
+        neighbours = top_Augmentation(d)
+        Document_a, Document_b, label = NP_make_corpus(d, text, neighbours)
+        # 保存数据
+        data = pd.DataFrame({'Document_a': Document_a, 'Document_b': Document_b, 'label': label})
+        data.to_csv(osp.join(d.data_root, 'ogbn-arxiv_NP.txt'), sep='\t', header=None, index=False)
+    else:
+        data = pd.read_csv(osp.join(d.data_root, 'ogbn-arxiv_NP.txt'), sep='\t', header=None)
+        data.columns = ['Document_a', 'Document_b', 'label']
+        label = data['label'].tolist()
+        Document_a = data['Document_a'].tolist()
+        Document_b = data['Document_b'].tolist()
+    print('start tokenizer!!!')
     # Tokenize
     if d.hf_model in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
         from transformers import GPT2TokenizerFast
@@ -192,10 +219,10 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
                               return_token_type_ids=True).data
     else:
         tokenizer = AutoTokenizer.from_pretrained(d.hf_model)
-        tokenized = tokenizer(doca, docb, padding='max_length', truncation=True, max_length=512,
+        tokenized = tokenizer(Document_a, Document_b, padding='max_length', truncation=True, max_length=512,
                               return_token_type_ids=True).data
     label = np.array(label).T
-    label = th.sparse.torch.eye(2).index_select(0, th.tensor(label))
+    label = th.sparse.torch.eye(3).index_select(0, th.tensor(label))
     tokenized['labels'] = np.array(label)
     mkdir_p(d._NP_token_folder)
     for k in tokenized:
