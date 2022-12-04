@@ -194,7 +194,9 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
         tokenizer = AutoTokenizer.from_pretrained(d.hf_model)
         tokenized = tokenizer(doca, docb, padding='max_length', truncation=True, max_length=512,
                               return_token_type_ids=True).data
-    tokenized['labels'] = np.array([label]).T
+    label = np.array(label).T
+    label = th.sparse.torch.eye(2).index_select(0, th.tensor(label))
+    tokenized['labels'] = np.array(label)
     mkdir_p(d._NP_token_folder)
     for k in tokenized:
         with open(osp.join(d._NP_token_folder, f'{k}.npy'), 'wb') as f:

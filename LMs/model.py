@@ -20,6 +20,26 @@ def compute_loss(logits, labels, loss_func, is_gold=None, pl_weight=0.5, is_augm
         loss = loss_func(logits, labels)
     return loss
 
+class TNPClassifier(PreTrainedModel):
+    def __init__(self, model, n_labels, loss_func, dropout=0.0, seed=0, cla_bias=True):
+        super.__init__(model.config)
+        self.encoder, self.loss_func = model, loss_func
+        self.dropout = nn.Dropout(dropout)
+        hidden_dim = model.config.hidden_size
+        self.classifier = nn.Linear(hidden_dim, n_labels, bias=cla_bias)
+        init_random_state(seed)
+
+    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, labels=None):
+        # Extract outputs from the model
+        outputs = self.encoder(input_ids, attention_mask, token_type_ids, output_hidden_states=True)
+        emb = self.dropout(outputs['hidden_states'][-1])  # outputs[0]=last hidden state
+        # Use CLS Emb as sentence emb.
+        cls_token_emb = emb.permute(1, 0, 2)[0]
+        logits = self.classifier(cls_token_emb)
+        if labels.shape[-1] == 1:
+            labels = labels.squeeze()
+        loss = self.loss_func(logits, labels)
+        return TokenClassifierOutput(loss=loss, logits=logits)
 
 class BertClassifier(PreTrainedModel):
     def __init__(self, model, n_labels, loss_func, pseudo_label_weight=1, dropout=0.0, seed=0, cla_bias=True, feat_shrink=''):
@@ -49,7 +69,6 @@ class BertClassifier(PreTrainedModel):
             labels = labels.squeeze()
         loss = self.loss_func(logits, labels)
         return TokenClassifierOutput(loss=loss, logits=logits)
-
 
 class DistilBertClassifier(PreTrainedModel):
     def __init__(self, model, n_labels, loss_func, pseudo_label_weight=1, dropout=0.0, seed=0, cla_bias=True, feat_shrink=''):

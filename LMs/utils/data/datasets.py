@@ -129,7 +129,7 @@ class Sequence():
         item = {}
         item['attention_mask'] = _load('attention_mask')
         item['input_ids'] = th.IntTensor(np.array(self['input_ids'][node_id]).astype(np.int32))
-        item['labels'] = th.LongTensor(np.array(self.ndata['labels'][node_id]))
+        item['labels'] = self._from_numpy(self.ndata['labels'][node_id]).type(th.FloatTensor)
         if self.hf_model not in ['distilbert-base-uncased', 'roberta-base']:
             item['token_type_ids'] = _load('token_type_ids')
         return item
