@@ -22,7 +22,7 @@ def compute_loss(logits, labels, loss_func, is_gold=None, pl_weight=0.5, is_augm
 
 class TNPClassifier(PreTrainedModel):
     def __init__(self, model, n_labels, loss_func, dropout=0.0, seed=0, cla_bias=True):
-        super.__init__(model.config)
+        super().__init__(model.config)
         self.encoder, self.loss_func = model, loss_func
         self.dropout = nn.Dropout(dropout)
         hidden_dim = model.config.hidden_size
