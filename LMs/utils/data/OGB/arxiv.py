@@ -146,6 +146,7 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
         return neighbours_0, neighbours_1, neighbours_2, neighbours_3
 
     def NP_make_corpus(d, text, neighbours):
+        print('start NP_make_corpus')
         n1, n2, n3, n4 = neighbours
         import random
         Document_a = []
