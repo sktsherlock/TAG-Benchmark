@@ -121,6 +121,7 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
         from scipy.sparse import coo_matrix
         from ogb.nodeproppred import DglNodePropPredDataset
         import dgl
+        import os
         dataset = DglNodePropPredDataset('ogbn-arxiv', root=d.raw_data_path)
         g, _ = dataset[0]
         g = dgl.to_bidirected(g)
@@ -133,14 +134,19 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
         assert len(edge0) == len(edge1)
         adj0 = coo_matrix((np.ones(edge0.shape), (edge0, edge1)), shape=(169343, 169343))
         adj1 = adj0@adj0
-
+        print('Start adj2')
+        adj2 = adj0@adj1
+        print('Start adj3')
+        adj3 = adj0@adj2
         neighbours_0 = [row for row in adj0.tolil().rows]
         neighbours_1 = [row for row in adj1.tolil().rows]
+        neighbours_2 = [row for row in adj2.tolil().rows]
+        neighbours_3 = [row for row in adj3.tolil().rows]
 
-        return neighbours_0, neighbours_1
+        return neighbours_0, neighbours_1, neighbours_2, neighbours_3
 
     def NP_make_corpus(d, text, neighbours):
-        n0, n1 = neighbours
+        n1, n2, n3, n4 = neighbours
         import random
         Document_a = []
         Document_b = []
@@ -152,26 +158,17 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
             if random.random() >= 0.5:
                 # this is IsNeighbour
                 Document_a.append(' '.join(corpus[i].split(' ')[0:256]))
-                j = np.random.choice(n0[i], 1)
+                j = np.random.choice(n1[i], 1)
                 Document_b.append(corpus[j[0]])
                 label.append(0)
             else:
-                if random.random() <= 0.2:
-                    # this is NotNextSentence
-                    Document_a.append(' '.join(corpus[i].split(' ')[0:256]))
-                    j = np.random.choice(d.n_nodes, 1)
-                    while j in n1[i]:
-                        j = np.random.choice(d.n_nodes, 1)
-                    Document_b.append(corpus[j[0]])
-                    label.append(2)
-                else:
-                    # this is NotNextSentence
-                    Document_a.append(' '.join(corpus[i].split(' ')[0:256]))
-                    j = np.random.choice(n1[i], 1)
-                    while j in n0[i]:
-                        j = np.random.choice(n1[i], 1)
-                    Document_b.append(corpus[j[0]])
-                    label.append(1)
+                # this is NotNeighbour
+                Document_a.append(' '.join(corpus[i].split(' ')[0:256]))
+                j = np.random.choice(n4[i], 1)
+                while j in n3[i]:
+                    j = np.random.choice(n4[i], 1)
+                Document_b.append(corpus[j[0]])
+                label.append(1)
 
         return Document_a, Document_b, label
 
@@ -196,7 +193,7 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
         text = text[0]
 
     # 处理数据
-    if not osp.exists(osp.join(d.data_root, 'ogbn-arxiv_NP.txt')):
+    if not osp.exists(osp.join(d.data_root, 'ogbn-arxiv_TNP.txt')):
         neighbours = top_Augmentation(d)
         Document_a, Document_b, label = NP_make_corpus(d, text, neighbours)
         # 保存数据
@@ -222,7 +219,7 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
         tokenized = tokenizer(Document_a, Document_b, padding='max_length', truncation=True, max_length=512,
                               return_token_type_ids=True).data
     label = np.array(label).T
-    label = th.sparse.torch.eye(3).index_select(0, th.tensor(label))
+    label = th.sparse.torch.eye(2).index_select(0, th.tensor(label))
     tokenized['labels'] = np.array(label)
     mkdir_p(d._NP_token_folder)
     for k in tokenized:
