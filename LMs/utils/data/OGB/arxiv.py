@@ -206,7 +206,7 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
         Document_a, Document_b, label = NP_make_corpus(d, text, neighbours)
         # 保存数据
         data = pd.DataFrame({'Document_a': Document_a, 'Document_b': Document_b, 'label': label})
-        data.to_csv(osp.join(d.data_root, 'ogbn-arxiv_NP.txt'), sep='\t', header=None, index=False)
+        data.to_csv(osp.join(d.data_root, 'ogbn-arxiv_TNP.txt'), sep='\t', header=None, index=False)
     else:
         data = pd.read_csv(osp.join(d.data_root, 'ogbn-arxiv_TNP.txt'), sep='\t', header=None)
         data.columns = ['Document_a', 'Document_b', 'label']
