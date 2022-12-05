@@ -121,7 +121,7 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
         from scipy.sparse import coo_matrix
         from ogb.nodeproppred import DglNodePropPredDataset
         import dgl
-        import os
+        import time
         dataset = DglNodePropPredDataset('ogbn-arxiv', root=d.raw_data_path)
         g, _ = dataset[0]
         g = dgl.to_bidirected(g)
@@ -132,22 +132,29 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
         edge1 = np.array(blocks[0].edges()[0])
 
         assert len(edge0) == len(edge1)
-        adj0 = coo_matrix((np.ones(edge0.shape), (edge0, edge1)), shape=(169343, 169343))
-        adj1 = adj0@adj0
-        print('Start adj2')
-        adj2 = adj0@adj1
+        adj1 = coo_matrix((np.ones(edge0.shape), (edge0, edge1)), shape=(169343, 169343))
+        adj2 = adj1 @ adj1
         print('Start adj3')
-        adj3 = adj0@adj2
-        neighbours_0 = [row for row in adj0.tolil().rows]
-        neighbours_1 = [row for row in adj1.tolil().rows]
-        neighbours_2 = [row for row in adj2.tolil().rows]
-        neighbours_3 = [row for row in adj3.tolil().rows]
+        a = time.time()
+        adj3 = adj1 @ adj2
+        print('waste time in adj3:', time.time() - a)
+        print('Start adj4')
+        # adj4 = adj1@adj3
+        print('waste time:', time.time() - a)
+        a = time.time()
+        neighbours_1 = adj1.tolil().rows
+        print('waste time:', time.time() - a)
+        neighbours_2 = adj2.tolil().rows
+        print('waste time in neighbours2:', time.time() - a)
+        neighbours_3 = adj3.tolil().rows
+        print('waste time in neighbours3:', time.time() - a)
+        # neighbours_3 = [row for row in adj3.tolil().rows]
 
-        return neighbours_0, neighbours_1, neighbours_2, neighbours_3
+        return neighbours_1, neighbours_2, neighbours_3
 
     def NP_make_corpus(d, text, neighbours):
         print('start NP_make_corpus')
-        n1, n2, n3, n4 = neighbours
+        neighbours_1, neighbours_2, neighbours_3 = neighbours
         import random
         Document_a = []
         Document_b = []
@@ -159,15 +166,15 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
             if random.random() >= 0.5:
                 # this is IsNeighbour
                 Document_a.append(' '.join(corpus[i].split(' ')[0:256]))
-                j = np.random.choice(n1[i], 1)
+                j = np.random.choice(neighbours_1[i], 1)
                 Document_b.append(corpus[j[0]])
                 label.append(0)
             else:
                 # this is NotNeighbour
                 Document_a.append(' '.join(corpus[i].split(' ')[0:256]))
-                j = np.random.choice(n4[i], 1)
-                while j in n3[i]:
-                    j = np.random.choice(n4[i], 1)
+                j = np.random.choice(neighbours_3[i], 1)
+                while j in neighbours_2[i]:
+                    j = np.random.choice(neighbours_3[i], 1)
                 Document_b.append(corpus[j[0]])
                 label.append(1)
 
