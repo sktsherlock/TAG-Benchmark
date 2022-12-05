@@ -225,5 +225,5 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
     for k in tokenized:
         with open(osp.join(d._NP_token_folder, f'{k}.npy'), 'wb') as f:
             np.save(f, tokenized[k])
-    uf.pickle_save('processed', d._processed_flag['NP_token'])
+    uf.pickle_save('processed', d._processed_flag['TNP_token'])
     return

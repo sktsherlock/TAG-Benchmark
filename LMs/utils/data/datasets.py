@@ -33,7 +33,7 @@ class Sequence():
         self._processed_flag = {
             'g_info': f'{self._g_info_folder}processed.flag',
             'token': f'{self._token_folder}processed.flag',
-            'NP_token': f'{self._NP_token_folder}processed.flag',
+            'TNP_token': f'{self._NP_token_folder}processed.flag',
         }
         self.g, self.split = None, None
 

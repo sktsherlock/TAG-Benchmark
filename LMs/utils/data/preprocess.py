@@ -124,7 +124,7 @@ def tokenize_NP_graph(cf):
     full_dict['dataset'] = '_'.join(full_dict['dataset'].split('_')[:2])
     full_cf = cf.__class__(SN(**full_dict)).init()
     d = full_cf.data
-    if not d.is_processed('NP_token'):
+    if not d.is_processed('TNP_token'):
         if cf.local_rank <= 0:
             # ! Load full-graph
             print(f'Processing data on LOCAL_RANK #{cf.local_rank}...')
@@ -140,7 +140,7 @@ def tokenize_NP_graph(cf):
         else:
             # If not main worker (i.e. Local_rank!=0), wait until data is processed and load
             print(f'Waiting for tokenization on LOCAL_RANK #{cf.local_rank}')
-            while not d.is_processed('NP_token'):
+            while not d.is_processed('TNP_token'):
                 time.sleep(2)  # Check if processed every 2 seconds
             print(f'Detected processed data, LOCAL_RANK #{cf.local_rank} start loading!')
             time.sleep(5)  # Wait for file write for 5 seconds
