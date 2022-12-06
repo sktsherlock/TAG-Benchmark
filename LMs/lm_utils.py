@@ -186,14 +186,16 @@ def get_lm_model():
     return LMConfig().parser.parse_known_args()[0].model
 
 
-def get_lm_trainer(model):
-    from lm_trainer import LMTrainer as LMTrainer
+def get_lm_trainer(model, name=None):
+    if name is 'TNP':
+        from TNP_trainer import TNPTrainer as LMTrainer
+    elif name is 'TRP':
+        from TRP_trainer import TRPTrainer as LMTrainer
+    else:
+        from lm_trainer import LMTrainer as LMTrainer
     return LMTrainer
 
 
-def get_TNP_trainer(model):
-    from TNP_trainer import TNPTrainer as TNP_trainer
-    return TNP_trainer
 
 
 def get_lm_config(model):

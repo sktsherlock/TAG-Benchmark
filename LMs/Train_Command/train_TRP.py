@@ -7,7 +7,7 @@ from lm_utils import *
 if __name__ == "__main__":
     # ! Init Arguments
     model = get_lm_model()
-    Trainer = get_TRP_trainer(model)
+    Trainer = get_lm_trainer(model, 'TRP')
     Config = get_lm_config(model)
 
     args = Config().parse_args()
