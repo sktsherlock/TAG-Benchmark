@@ -19,7 +19,7 @@ class TRPTrainer():
         self.cf = cf
         # logging.set_verbosity_warning()
         from transformers import logging as trfm_logging
-        self.logger = cf.loggers
+        self.logger = cf.logger
         self.log = cf.logger.log
         trfm_logging.set_verbosity_error()
 
@@ -27,12 +27,17 @@ class TRPTrainer():
     def train(self):
         # ! Prepare data
         self.d = d = Sequence(cf := self.cf).TRP_init()
-        self.train_data = NP_Dataset(self.d)
+        gold_data = NP_Dataset(self.d)
+        subset_data = lambda sub_idx: th.utils.data.Subset(gold_data, sub_idx)
+        self.datasets = {_: subset_data(getattr(d, f'{_}_x'))
+                         for _ in ['train', 'valid']}
         self.metric = evaluate.load("accuracy")
 
         # Toplogical pretrain in the TRP tasks
+        self.train_data = self.datasets['train']
         train_steps = len(self.train_data) // cf.eq_batch_size + 1
         warmup_steps = int(cf.warmup_epochs * train_steps)
+        eval_steps = cf.eval_patience // cf.eq_batch_size
 
         # ! Load bert and build classifier
         model = AutoModel.from_pretrained(cf.hf_model)  # TinyBert NSP: 4386178; Pure TinyBERT: 4385920;
@@ -42,15 +47,18 @@ class TRPTrainer():
             loss_func=th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction),
             cla_bias=cf.cla_bias == 'T',
         )
-        load_best_model_at_end = True
+
         self.log(self.model.config)
 
         training_args = TrainingArguments(
             output_dir=cf.out_dir,
+            evaluation_strategy='steps',
+            eval_steps=eval_steps,
             save_strategy='steps',
-            save_steps=5000,
+            save_steps=eval_steps,
             learning_rate=cf.lr, weight_decay=cf.weight_decay,
-            load_best_model_at_end=load_best_model_at_end, gradient_accumulation_steps=cf.grad_acc_steps,
+            load_best_model_at_end=True,
+            gradient_accumulation_steps=cf.grad_acc_steps,
             save_total_limit=None,
             report_to='wandb' if cf.wandb_on else None,
             per_device_train_batch_size=cf.batch_size,
@@ -73,6 +81,7 @@ class TRPTrainer():
             model=self.model,
             args=training_args,
             train_dataset=self.train_data,
+            eval_dataset=self.datasets['valid'],
             compute_metrics=compute_metrics,
         )
         self.eval_phase = 'Eval'
@@ -80,3 +89,16 @@ class TRPTrainer():
         self.trainer.save_model()
 
         self.log(f'TRP LM saved finish.')
+
+    def eval_and_save(self):
+        def get_metric(split):
+            self.eval_phase = 'Eval'
+            mtc_dict = self.trainer.predict(self.datasets[split]).metrics
+            return mtc_dict
+
+        cf = self.cf
+        res = {**get_metric('valid')}
+        uf.pickle_save(res, cf.lm.result)
+        cf.wandb_log({f'TNP_{k}': v for k, v in res.items()})
+
+        self.log(f'\nTRP Train seed{cf.seed} finished\n Results: {res}\n{cf}')
