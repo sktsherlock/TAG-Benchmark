@@ -2,7 +2,7 @@ import os.path as osp
 import sys
 
 # sys.path.append((osp.abspath(osp.dirname(__file__)).split('src')[0] + 'src'))
-from .lm_utils import *
+from lm_utils import *
 
 if __name__ == "__main__":
     # ! Init Arguments
