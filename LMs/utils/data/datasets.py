@@ -96,9 +96,9 @@ class Sequence():
         tokenize_TRP_graph(self.cf)
         self._load_TRP_data_fields()
         self.device = cf.device
-        # 划分数据集
+        # 划分训练集 验证集
         from sklearn.model_selection import train_test_split
-        train_x, valid_x, _, _ = train_test_split(np.arange(self.n_nodes), self.ndata['labels'], test_size=0.1)
+        train_x, valid_x, _, _ = train_test_split(np.arange(self.n_nodes), self.ndata['labels'], test_size=0.05)
         dic = {'train_x': train_x, 'valid_x': valid_x}
         self.__dict__.update(dic)
 

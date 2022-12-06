@@ -160,7 +160,7 @@ def tokenize_TRP_graph(cf):
             g_info = load_TAG_info(full_cf)
             if d.md['type'] == 'ogb':
                 if d.ogb_name == 'ogbn-arxiv':
-                    _tokenize_TRP_ogb_arxiv_datasets(d, g_info.labels, NP=True)
+                    _tokenize_TRP_ogb_arxiv_datasets(d, g_info.labels)
                 else:
                     raise NotImplementedError
             else:
@@ -174,4 +174,4 @@ def tokenize_TRP_graph(cf):
             print(f'Detected processed data, LOCAL_RANK #{cf.local_rank} start loading!')
             time.sleep(5)  # Wait for file write for 5 seconds
     else:
-        cf.log(f'Found processed NP {cf.dataset}.')
+        cf.log(f'Found processed TRP {cf.dataset}.')

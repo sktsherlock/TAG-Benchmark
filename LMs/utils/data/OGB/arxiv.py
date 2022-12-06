@@ -239,7 +239,7 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
 
 
 # def _tokenize_TRP_ogb_arxiv_datasets
-def tokenize_TRP_ogb_arxiv_datasets(d, labels):
+def _tokenize_TRP_ogb_arxiv_datasets(d, labels):
     def TRP_make_corpus(d, text, neighbours):
         neighbours_1, neighbours_2, neighbours_3 = neighbours
         import random
@@ -256,9 +256,9 @@ def tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 # this is A->B->C->D
                 Document_a.append(' '.join(corpus[i].split(' ')[0:128]))
                 j = np.random.choice(neighbours_1[i], 1)
-                Document_b.append(corpus[j[0]].split(' ')[0:128])
+                Document_b.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_2[i], 1)
-                Document_c.append(corpus[j[0]].split(' ')[0:128])
+                Document_c.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_3[i], 1)
                 Document_d.append(corpus[j[0]])
                 label.append(0)
@@ -266,9 +266,9 @@ def tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 # this is A->B->D->C
                 Document_a.append(' '.join(corpus[i].split(' ')[0:128]))
                 j = np.random.choice(neighbours_1[i], 1)
-                Document_b.append(corpus[j[0]].split(' ')[0:128])
+                Document_b.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_2[i], 1)
-                Document_d.append(corpus[j[0]].split(' ')[0:128])
+                Document_d.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_3[i], 1)
                 Document_c.append(corpus[j[0]])
                 label.append(1)
@@ -276,9 +276,9 @@ def tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 # this is A->C->B->D
                 Document_a.append(' '.join(corpus[i].split(' ')[0:128]))
                 j = np.random.choice(neighbours_1[i], 1)
-                Document_c.append(corpus[j[0]].split(' ')[0:128])
+                Document_c.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_2[i], 1)
-                Document_b.append(corpus[j[0]].split(' ')[0:128])
+                Document_b.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_3[i], 1)
                 Document_d.append(corpus[j[0]])
                 label.append(2)
@@ -286,9 +286,9 @@ def tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 # this is A->C->D->B
                 Document_a.append(' '.join(corpus[i].split(' ')[0:128]))
                 j = np.random.choice(neighbours_1[i], 1)
-                Document_c.append(corpus[j[0]].split(' ')[0:128])
+                Document_c.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_2[i], 1)
-                Document_d.append(corpus[j[0]].split(' ')[0:128])
+                Document_d.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_3[i], 1)
                 Document_b.append(corpus[j[0]])
                 label.append(3)
@@ -296,9 +296,9 @@ def tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 # this is A->D->B->C
                 Document_a.append(' '.join(corpus[i].split(' ')[0:128]))
                 j = np.random.choice(neighbours_1[i], 1)
-                Document_d.append(corpus[j[0]].split(' ')[0:128])
+                Document_d.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_2[i], 1)
-                Document_b.append(corpus[j[0]].split(' ')[0:128])
+                Document_b.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_3[i], 1)
                 Document_c.append(corpus[j[0]])
                 label.append(4)
@@ -306,9 +306,9 @@ def tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 # this is A->D->C->B
                 Document_a.append(' '.join(corpus[i].split(' ')[0:128]))
                 j = np.random.choice(neighbours_1[i], 1)
-                Document_d.append(corpus[j[0]].split(' ')[0:128])
+                Document_d.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_2[i], 1)
-                Document_c.append(corpus[j[0]].split(' ')[0:128])
+                Document_c.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_3[i], 1)
                 Document_b.append(corpus[j[0]])
                 label.append(5)
@@ -335,7 +335,7 @@ def tokenize_TRP_ogb_arxiv_datasets(d, labels):
     else:
         data = pd.read_csv(osp.join(d.data_root, 'ogbn-arxiv_TRP.txt'), sep='\t', header=None)
         data.columns = ['Document_a', 'Document_b', 'Document_c', 'Document_d', 'Label']
-        label = data['label'].tolist()
+        label = data['Label'].tolist()
         Document_a = data['Document_a'].tolist()
         Document_b = data['Document_b'].tolist()
         Document_c = data['Document_c'].tolist()
