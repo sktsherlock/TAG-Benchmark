@@ -1,7 +1,7 @@
 import os.path as osp
 import sys
 
-# sys.path.append((osp.abspath(osp.dirname(__file__)).split('src')[0] + 'src'))
+sys.path.append((osp.abspath(osp.dirname(__file__)).split('LMs')[0]+'LMs'))
 from lm_utils import *
 
 if __name__ == "__main__":
@@ -15,4 +15,3 @@ if __name__ == "__main__":
     # ! Load data and train
     trainer = Trainer(cf=cf)
     trainer.train()
-    trainer.eval_and_save()

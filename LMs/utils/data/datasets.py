@@ -30,10 +30,12 @@ class Sequence():
         self._g_info_file = f"{self._g_info_folder}graph.info "
         self._token_folder = init_path(f"{DATA_PATH}{cf.dataset}/{self.father_model}/{cf.model}/")
         self._NP_token_folder = init_path(f"{DATA_PATH}{cf.dataset}/TNP/{self.father_model}/{cf.model}/")
+        self._TRP_token_folder = init_path(f"{DATA_PATH}{cf.dataset}/TRP/{self.father_model}/{cf.model}/")
         self._processed_flag = {
             'g_info': f'{self._g_info_folder}processed.flag',
             'token': f'{self._token_folder}processed.flag',
             'TNP_token': f'{self._NP_token_folder}processed.flag',
+            'TRP_token': f'{self._TRP_token_folder}processed.flag',
         }
         self.g, self.split = None, None
 
@@ -84,6 +86,32 @@ class Sequence():
             except:
                 raise ValueError(f'There is no file')
         self.ndata['labels'] = np.load(f'{self._NP_token_folder}/labels.npy')
+
+    # TRP
+    def TRP_init(self):
+        from utils.data.preprocess import tokenize_TRP_graph
+        cf = self.cf
+        self.gi = g_info = load_TAG_info(cf)
+        # ! LM phase
+        tokenize_TRP_graph(self.cf)
+        self._load_TRP_data_fields()
+        self.device = cf.device
+        # 划分数据集
+        from sklearn.model_selection import train_test_split
+        train_x, valid_x, _, _ = train_test_split(np.arange(self.n_nodes), self.ndata['labels'], test_size=0.1)
+        dic = {'train_x': train_x, 'valid_x': valid_x}
+        self.__dict__.update(dic)
+
+        return self
+
+    def _load_TRP_data_fields(self):
+        for k, info in self.info.items():
+            info.TRP_path = f'{self._TRP_token_folder}/{k}.npy'
+            try:
+                self.ndata[k] = np.load(info.TRP_path)
+            except:
+                raise ValueError(f'There is no file')
+        self.ndata['labels'] = np.load(f'{self._TRP_token_folder}/labels.npy')
 
     def _load_data_fields(self):
         for k in self.info:

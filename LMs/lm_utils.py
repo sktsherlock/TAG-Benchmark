@@ -187,10 +187,10 @@ def get_lm_model():
 
 
 def get_lm_trainer(model, name=None):
-    if name is 'TNP':
+    if name == 'TNP':
         from TNP_trainer import TNPTrainer as LMTrainer
-    elif name is 'TRP':
-        from TRP_trainer import TRPTrainer as LMTrainer
+    elif name == 'TRP':
+        from Trainer.TRP_trainer import TRPTrainer as LMTrainer
     else:
         from lm_trainer import LMTrainer as LMTrainer
     return LMTrainer
