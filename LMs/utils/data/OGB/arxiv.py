@@ -258,8 +258,12 @@ def _tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 j = np.random.choice(neighbours_1[i], 1)
                 Document_b.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_2[i], 1)
+                while j in neighbours_1[i]:
+                    j = np.random.choice(neighbours_2[i], 1)
                 Document_c.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_3[i], 1)
+                while j in neighbours_1[i] or j in neighbours_2[i]:
+                    j = np.random.choice(neighbours_3[i], 1)
                 Document_d.append(corpus[j[0]])
                 label.append(0)
             elif random.random() < 2 / 6:
@@ -268,8 +272,12 @@ def _tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 j = np.random.choice(neighbours_1[i], 1)
                 Document_b.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_2[i], 1)
+                while j in neighbours_1[i]:
+                    j = np.random.choice(neighbours_2[i], 1)
                 Document_d.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_3[i], 1)
+                while j in neighbours_1[i] or j in neighbours_2[i]:
+                    j = np.random.choice(neighbours_3[i], 1)
                 Document_c.append(corpus[j[0]])
                 label.append(1)
             elif random.random() < 3 / 6:
@@ -278,8 +286,12 @@ def _tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 j = np.random.choice(neighbours_1[i], 1)
                 Document_c.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_2[i], 1)
+                while j in neighbours_1[i]:
+                    j = np.random.choice(neighbours_2[i], 1)
                 Document_b.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_3[i], 1)
+                while j in neighbours_1[i] or j in neighbours_2[i]:
+                    j = np.random.choice(neighbours_3[i], 1)
                 Document_d.append(corpus[j[0]])
                 label.append(2)
             elif random.random() < 4 / 6:
@@ -288,8 +300,12 @@ def _tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 j = np.random.choice(neighbours_1[i], 1)
                 Document_c.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_2[i], 1)
+                while j in neighbours_1[i]:
+                    j = np.random.choice(neighbours_2[i], 1)
                 Document_d.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_3[i], 1)
+                while j in neighbours_1[i] or j in neighbours_2[i]:
+                    j = np.random.choice(neighbours_3[i], 1)
                 Document_b.append(corpus[j[0]])
                 label.append(3)
             elif random.random() < 5 / 6:
@@ -298,8 +314,12 @@ def _tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 j = np.random.choice(neighbours_1[i], 1)
                 Document_d.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_2[i], 1)
+                while j in neighbours_1[i]:
+                    j = np.random.choice(neighbours_2[i], 1)
                 Document_b.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_3[i], 1)
+                while j in neighbours_1[i] or j in neighbours_2[i]:
+                    j = np.random.choice(neighbours_3[i], 1)
                 Document_c.append(corpus[j[0]])
                 label.append(4)
             else:
@@ -308,8 +328,12 @@ def _tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 j = np.random.choice(neighbours_1[i], 1)
                 Document_d.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_2[i], 1)
+                while j in neighbours_1[i]:
+                    j = np.random.choice(neighbours_2[i], 1)
                 Document_c.append(' '.join(corpus[j[0]].split(' ')[0:128]))
                 j = np.random.choice(neighbours_3[i], 1)
+                while j in neighbours_1[i] or j in neighbours_2[i]:
+                    j = np.random.choice(neighbours_3[i], 1)
                 Document_b.append(corpus[j[0]])
                 label.append(5)
 
@@ -325,17 +349,17 @@ def _tokenize_TRP_ogb_arxiv_datasets(d, labels):
     text = pd.read_csv(osp.join(d.data_root, 'ogbn-arxiv.txt'), sep='\t', header=None)
     text = text[0]
     # 处理数据
-    if not osp.exists(osp.join(d.data_root, 'ogbn-arxiv_TRP.txt')):
+    if not osp.exists(osp.join(d.data_root, 'ogbn-arxiv_TTRP.txt')):
         neighbours = top_Augmentation(d)
-        D_a, D_b, D_c, D_d, label = TRP_make_corpus(d, text, neighbours)
+        Document_a, Document_b, Document_c, Document_d, label = TRP_make_corpus(d, text, neighbours)
         # 保存数据
         data = pd.DataFrame(
-            {'Document_a': D_a, 'Document_b': D_b, 'Document_c': D_c, 'Document_d': D_d, 'Label': label})
-        data.to_csv(osp.join(d.data_root, 'ogbn-arxiv_TRP.txt'), sep='\t', header=None, index=False)
+            {'Document_a': Document_a, 'Document_b': Document_b, 'Document_c': Document_c, 'Document_d': Document_d, 'label': label})
+        data.to_csv(osp.join(d.data_root, 'ogbn-arxiv_TTRP.txt'), sep='\t', header=None, index=False)
     else:
-        data = pd.read_csv(osp.join(d.data_root, 'ogbn-arxiv_TRP.txt'), sep='\t', header=None)
-        data.columns = ['Document_a', 'Document_b', 'Document_c', 'Document_d', 'Label']
-        label = data['Label'].tolist()
+        data = pd.read_csv(osp.join(d.data_root, 'ogbn-arxiv_TTRP.txt'), sep='\t', header=None)
+        data.columns = ['Document_a', 'Document_b', 'Document_c', 'Document_d', 'label']
+        label = data['label'].tolist()
         Document_a = data['Document_a'].tolist()
         Document_b = data['Document_b'].tolist()
         Document_c = data['Document_c'].tolist()
