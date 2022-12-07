@@ -39,7 +39,10 @@ def top_Augmentation(d, nums=1):
     print('waste time in neighbours2:', time.time() - a)
     neighbours_3 = adj3.tolil().rows
     print('waste time in neighbours3:', time.time() - a)
-    # neighbours_3 = [row for row in adj3.tolil().rows]
+    # 去重 neighbours_2 中不包括 neighbours_1 的元素
+    neighbours_2 = [list(set(neighbours_2[i]) - set(neighbours_1[i])) for i in range(len(neighbours_2))]
+    # 去重 neighbours_3 中不包括 neighbours_1 和 neighbours_2 的元素
+    neighbours_3 = [list(set(neighbours_3[i]) - set(neighbours_1[i]) - set(neighbours_2[i])) for i in range(len(neighbours_3))]
 
     return neighbours_1, neighbours_2, neighbours_3
 
@@ -119,64 +122,26 @@ def _tokenize_ogb_arxiv_datasets(d, labels):
 
 
 def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
-    def merge_by_ids(meta_data, node_ids, categories):
-        meta_data.columns = ["ID", "Title", "Abstract"]
-        # meta_data.drop([0, meta_data.shape[0] - 1], axis=0, inplace=True)  # Drop first and last in Arxiv full dataset processing
-        meta_data["ID"] = meta_data["ID"].astype(np.int64)
-        meta_data.columns = ["mag_id", "title", "abstract"]
-        data = pd.merge(node_ids, meta_data, how="left", on="mag_id")
-        data = pd.merge(data, categories, how="left", on="label_id")
-        return data
-
-    def read_ids_and_labels(data_root):
-        category_path_csv = f"{data_root}/mapping/labelidx2arxivcategeory.csv.gz"
-        paper_id_path_csv = f"{data_root}/mapping/nodeidx2paperid.csv.gz"  #
-        paper_ids = pd.read_csv(paper_id_path_csv)
-        categories = pd.read_csv(category_path_csv)
-        categories.columns = ["ID", "category"]  # 指定ID 和 category列写进去
-        paper_ids.columns = ["ID", "mag_id"]
-        categories.columns = ["label_id", "category"]
-        paper_ids["label_id"] = labels
-        return categories, paper_ids  # 返回类别和论文ID
-
-    def process_raw_text_df(meta_data, node_ids, categories):
-        data = merge_by_ids(meta_data.dropna(), node_ids, categories)
-        data = data[~data['title'].isnull()]
-        text_func = {
-            'TA': lambda x: f"Title: {x['title']}. Abstract: {x['abstract']}",
-            'T': lambda x: x['title'],
-        }
-        # Merge title and abstract
-        data['text'] = data.apply(text_func[d.process_mode], axis=1)
-        data['text'] = data.apply(lambda x: ' '.join(x['text'].split(' ')[:d.cut_off]), axis=1)
-        data['len'] = data.apply(lambda x: len(x['text'].split(' ')), axis=1)
-
-        return data['text'], data['len']
-
     def NP_make_corpus(d, text, neighbours):
         print('start NP_make_corpus')
         neighbours_1, neighbours_2, neighbours_3 = neighbours
-        import random
         Document_a = []
         Document_b = []
         label = []
         corpus = text.to_list()
         print('start NP_make_corpus!!!!!!!')
         for i in range(d.n_nodes):
-            # 50/50 whether is IsNextSentence or NotNextSentence
-            if random.random() >= 0.5:
-                # this is IsNeighbour
+            # this is IsNeighbour
+            j = np.random.choice(neighbours_1[i], 4)
+            for k in range(4):
                 Document_a.append(' '.join(corpus[i].split(' ')[0:256]))
-                j = np.random.choice(neighbours_1[i], 1)
-                Document_b.append(corpus[j[0]])
+                Document_b.append(corpus[j[k]])
                 label.append(0)
-            else:
-                # this is NotNeighbour
+            # this is NotNeighbour
+            j = np.random.choice(neighbours_3[i], 4)
+            for k in range(4):
                 Document_a.append(' '.join(corpus[i].split(' ')[0:256]))
-                j = np.random.choice(neighbours_3[i], 1)
-                while j in neighbours_2[i]:
-                    j = np.random.choice(neighbours_3[i], 1)
-                Document_b.append(corpus[j[0]])
+                Document_b.append(corpus[j[k]])
                 label.append(1)
 
         return Document_a, Document_b, label
@@ -187,19 +152,9 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
     raw_text_path = download_url(d.raw_text_url, d.data_root)
     # 先加载原始数据
     if not osp.exists(osp.join(d.data_root, 'ogbn-arxiv.txt')):
-        categories, node_ids = read_ids_and_labels(d.data_root)
-        text = pd.read_table(raw_text_path, header=None, skiprows=[0])
-        text, length = process_raw_text_df(text, node_ids, categories)
-        # 保存text，text_len 文件
-        text.to_csv(osp.join(d.data_root, 'ogbn-arxiv.txt'), sep='\t', header=None, index=False)
-        # 保存文本统计信息
-        text_stat = pd.DataFrame(length.describe())
-        text_stat.index.rename('Statics', inplace=True)
-        text_stat.columns = ["Length"]
-        text_stat.to_csv(osp.join(d.data_root, 'ogbn-arxiv_stat.txt'))
-    else:
-        text = pd.read_csv(osp.join(d.data_root, 'ogbn-arxiv.txt'), sep='\t', header=None)
-        text = text[0]
+        _tokenize_ogb_arxiv_datasets(d, labels)
+    text = pd.read_csv(osp.join(d.data_root, 'ogbn-arxiv.txt'), sep='\t', header=None)
+    text = text[0]
 
     # 处理数据
     if not osp.exists(osp.join(d.data_root, 'ogbn-arxiv_TNP.txt')):
