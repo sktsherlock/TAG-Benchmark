@@ -157,18 +157,18 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
     text = text[0]
 
     # 处理数据
-    if not osp.exists(osp.join(d.data_root, 'ogbn-arxiv_TNP.txt')):
-        neighbours = top_Augmentation(d)
-        Document_a, Document_b, label = NP_make_corpus(d, text, neighbours)
-        # 保存数据
-        data = pd.DataFrame({'Document_a': Document_a, 'Document_b': Document_b, 'label': label})
-        data.to_csv(osp.join(d.data_root, 'ogbn-arxiv_TNP.txt'), sep='\t', header=None, index=False)
+    if not osp.exists(osp.join(d.data_root, 'ogbn-arxiv_Link.txt')):
+        raise ValueError
+        # neighbours = top_Augmentation(d)
+        # Document_a, Document_b, label = NP_make_corpus(d, text, neighbours)
+        # # 保存数据
+        # data = pd.DataFrame({'Document_a': Document_a, 'Document_b': Document_b, 'label': label})
+        # data.to_csv(osp.join(d.data_root, 'ogbn-arxiv_TNP.txt'), sep='\t', header=None, index=False)
     else:
-        data = pd.read_csv(osp.join(d.data_root, 'ogbn-arxiv_TNP.txt'), sep='\t', header=None)
-        data.columns = ['Document_a', 'Document_b', 'label']
+        data = pd.read_csv(osp.join(d.data_root, 'ogbn-arxiv_Link.txt'), sep='\t', header=None)
+        data.columns = ['Document', 'label']
         label = data['label'].tolist()
-        Document_a = data['Document_a'].tolist()
-        Document_b = data['Document_b'].tolist()
+        Document = data['Document'].tolist()
     print('start tokenizer!!!')
     # Tokenize
     if d.hf_model in ['gpt2', 'gpt2-medium', 'gpt2-large', 'gpt2-xl']:
@@ -180,10 +180,10 @@ def _tokenize_NP_ogb_arxiv_datasets(d, labels, NP=False):
                               return_token_type_ids=True).data
     else:
         tokenizer = AutoTokenizer.from_pretrained(d.hf_model)
-        tokenized = tokenizer(Document_a, Document_b, padding='max_length', truncation=True, max_length=512,
+        tokenized = tokenizer(Document, padding='max_length', truncation=True, max_length=512,
                               return_token_type_ids=True).data
     label = np.array(label).T
-    label = th.sparse.torch.eye(2).index_select(0, th.tensor(label))
+    label = th.sparse.torch.eye(3).index_select(0, th.tensor(label))
     tokenized['labels'] = np.array(label)
     mkdir_p(d._NP_token_folder)
     for k in tokenized:

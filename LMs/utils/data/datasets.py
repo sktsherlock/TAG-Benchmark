@@ -72,7 +72,7 @@ class Sequence():
         self.device = cf.device  # if cf.local_rank<0 else th.device(cf.local_rank)
         # 划分训练集 验证集
         from sklearn.model_selection import train_test_split
-        train_x, valid_x, _, _ = train_test_split(np.arange(1354744), self.ndata['labels'], test_size=0.1)
+        train_x, valid_x, _, _ = train_test_split(np.arange(508029), self.ndata['labels'], test_size=0.05)
         dic = {'train_x': train_x, 'valid_x': valid_x}
         self.__dict__.update(dic)
 

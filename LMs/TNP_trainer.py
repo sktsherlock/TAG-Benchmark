@@ -42,7 +42,7 @@ class TNPTrainer():
         # ! Load bert and build classifier
         model = AutoModel.from_pretrained(cf.hf_model)  # TinyBert NSP: 4386178; Pure TinyBERT: 4385920;
         self.model = TNPClassifier(
-            model=model, n_labels=2,
+            model=model, n_labels=3,
             dropout=cf.cla_dropout,
             loss_func=th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction),
             cla_bias=cf.cla_bias == 'T',
@@ -137,7 +137,7 @@ class TNPTrainer():
         train_dataloader = DataLoader(self.train_data, shuffle=True,  batch_size=cf.batch_size )
         eval_dataloader = DataLoader(self.datasets['valid'], batch_size=per_device_eval_batch_size)
         # ! Load Model for NP with no trainer
-        self.model = AutoModelForMaskedLM.from_pretrained(cf.hf_model, num_labels=2)
+        self.model = AutoModelForMaskedLM.from_pretrained(cf.hf_model, num_labels=3)
 
         # ! Prepare the optimizer
         # Optimizer
