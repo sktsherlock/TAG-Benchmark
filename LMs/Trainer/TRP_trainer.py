@@ -86,7 +86,8 @@ class TRPTrainer():
         )
         self.eval_phase = 'Eval'
         self.trainer.train()
-        self.trainer.save_model()
+        # self.trainer.save_model()
+        model.save_pretrained(cf.out_dir)
 
         self.log(f'TRP LM saved finish.')
 

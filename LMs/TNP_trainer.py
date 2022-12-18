@@ -6,6 +6,8 @@ from transformers import (
     AutoTokenizer,
     AutoModelForNextSentencePrediction,
     AutoModel,
+    AutoConfig,
+    AutoModelForMaskedLM,
 )
 import utils as uf
 from model import *
@@ -40,7 +42,9 @@ class TNPTrainer():
         eval_steps = cf.eval_patience // cf.eq_batch_size
 
         # ! Load bert and build classifier
+        # config = AutoConfig.from_pretrained(cf.hf_model)
         model = AutoModel.from_pretrained(cf.hf_model)  # TinyBert NSP: 4386178; Pure TinyBERT: 4385920;
+        #model = AutoModelForMaskedLM.from_pretrained(cf.hf_model)
         self.model = TNPClassifier(
             model=model, n_labels=3,
             dropout=cf.cla_dropout,
@@ -85,7 +89,9 @@ class TNPTrainer():
         )
         self.eval_phase = 'Eval'
         self.trainer.train()
-        self.trainer.save_model()
+        #self.trainer.save_model()
+        model.save_pretrained(cf.out_dir)
+        #self.trainer.save_state()
 
         self.log(f'TNP LM saved finish.')
 
