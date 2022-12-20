@@ -46,7 +46,7 @@ class TNPTrainer():
         model = AutoModel.from_pretrained(cf.hf_model)  # TinyBert NSP: 4386178; Pure TinyBERT: 4385920;
         #model = AutoModelForMaskedLM.from_pretrained(cf.hf_model)
         self.model = TNPClassifier(
-            model=model, n_labels=3,
+            model=model, n_labels=2,
             dropout=cf.cla_dropout,
             loss_func=th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction),
             cla_bias=cf.cla_bias == 'T',
