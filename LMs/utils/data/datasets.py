@@ -200,6 +200,21 @@ class SeqGraphDataset(th.utils.data.Dataset):  # Map style
     def __len__(self):
         return self.d.n_nodes
 
+class SeqCLDataset(th.utils.data.Dataset):
+    def __init__(self, data: Sequence):
+        super().__init__()
+        self.d = data
+
+    def __getitem__(self, node_id):
+        item = self.d.get_tokens(node_id)
+        neighbours = self.d.neighbours[node_id]
+        k = np.random.choice(neighbours, 1)
+        item['neighbours'] = self.d.get_tokens(k[0])
+        return item
+
+    def __len__(self):
+        return self.d.n_nodes
+
 
 class NP_Dataset(th.utils.data.Dataset):  # Map style
     def __init__(self, data: Sequence):

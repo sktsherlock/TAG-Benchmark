@@ -191,6 +191,8 @@ def get_lm_trainer(model, name=None):
         from TNP_trainer import TNPTrainer as LMTrainer
     elif name == 'TRP':
         from Trainer.TRP_trainer import TRPTrainer as LMTrainer
+    elif name == 'TCL':
+        from Trainer.TCL_trainer import TCLTrainer as LMTrainer
     else:
         from lm_trainer import LMTrainer as LMTrainer
     return LMTrainer
