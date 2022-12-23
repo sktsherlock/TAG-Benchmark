@@ -136,7 +136,7 @@ class CLIPModel(PreTrainedModel):
         toplogy_contrast_embeddings = self.project(toplogy_emb)
 
         loss = infonce(center_contrast_embeddings, toplogy_contrast_embeddings)
-        return loss.mean()
+        return loss
 
 
 def cross_entropy(preds, targets, reduction='none'):
