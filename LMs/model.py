@@ -110,7 +110,6 @@ class CLIPModel(PreTrainedModel):
         super().__init__(PLM.config)
         self.dropout = nn.Dropout(dropout)
         hidden_dim = PLM.config.hidden_size
-        self.gnn_encoder = GConv(input_dim=PLM.config.hidden_size, hidden_dim=PLM.config.hidden_size, num_layers=2)
         self.text_encoder = PLM
 
         self.project = torch.nn.Sequential(
