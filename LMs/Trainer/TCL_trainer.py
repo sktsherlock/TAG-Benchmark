@@ -120,17 +120,16 @@ class TCLTrainer():
         progress_bar.update(starting_epoch * num_update_steps_per_epoch)
         completed_steps = starting_epoch * num_update_steps_per_epoch
 
-        for epoch in range(starting_epoch, cf.batch_size):
+        for epoch in range(starting_epoch, cf.epochs):
             self.model.train()
             for step, batch in enumerate(train_dataloader):
                 with accelerator.accumulate(self.model):
                     loss = self.model(**batch)
+                    wandb.log({'CL_loss': loss})
                     accelerator.backward(loss)
                     self.optimizer.step()
                     lr_scheduler.step()
                     self.optimizer.zero_grad()
-                    wandb.log({'CL_loss': loss})
-
 
                 # Checks if the accelerator has performed an optimization step behind the scenes
                 if accelerator.sync_gradients:
