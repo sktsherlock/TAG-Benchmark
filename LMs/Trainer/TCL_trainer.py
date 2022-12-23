@@ -129,7 +129,7 @@ class TCLTrainer():
                     self.optimizer.step()
                     lr_scheduler.step()
                     self.optimizer.zero_grad()
-                    wandb.log('CL_loss', loss)
+                    wandb.log({'CL_loss', loss})
 
 
                 # Checks if the accelerator has performed an optimization step behind the scenes
