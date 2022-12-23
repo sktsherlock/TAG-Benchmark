@@ -118,7 +118,7 @@ class CLIPModel(PreTrainedModel):
             nn.ReLU(inplace=True),
             nn.Linear(hidden_dim, hidden_dim))
 
-    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, node_id=None, labels=None,
+    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, node_id=None,
                 neighbours=None):
         # Getting Center Node text features and its neighbours feature
         center_node_outputs = self.text_encoder(
@@ -126,8 +126,11 @@ class CLIPModel(PreTrainedModel):
         )
         center_node_emb = self.dropout(center_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
         # 10 * 128
+        toplogy_node_outputs = self.text_encoder(
+            input_ids=neighbours['input_ids'], attention_mask=neighbours['attention_mask'], token_type_ids=neighbours['token_type_ids'], output_hidden_states=True
+        )
 
-        toplogy_emb = self.dropout(center_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
+        toplogy_emb = self.dropout(toplogy_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
         # 10 * 128
         # Getting Image and Text Embeddings (with same dimension)
         center_contrast_embeddings = self.project(center_node_emb)
