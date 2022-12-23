@@ -105,7 +105,6 @@ class TCLTrainer():
         # Afterwards we recalculate our number of training epochs
         self.cf.epochs = math.ceil(total_train_steps / num_update_steps_per_epoch)
 
-        self.log(self.model.config)
         self.log("***** Running training *****")
         self.log(f"  Num examples = {len(self.train_data)}")
         self.log(f"  Num Epochs = {self.cf.epochs}")
