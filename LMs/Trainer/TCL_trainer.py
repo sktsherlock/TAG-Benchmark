@@ -50,10 +50,7 @@ class TCLTrainer():
         accelerator = Accelerator(gradient_accumulation_steps=cf.grad_acc_steps)
 
         # ! Prepare your Dataloader
-        per_device_eval_batch_size = cf.batch_size * 6 if cf.hf_model in {'distilbert-base-uncased',
-                                                                          'google/electra-base-discriminator'} else cf.batch_size * 10
         train_dataloader = DataLoader(self.train_data, shuffle=True, batch_size=cf.batch_size)
-        eval_dataloader = DataLoader(self.datasets['valid'], batch_size=per_device_eval_batch_size)
         # ! Load Model for NP with no trainer
         PLM = AutoModel.from_pretrained(cf.hf_model)
 
@@ -82,7 +79,7 @@ class TCLTrainer():
         # ! # Prepare some config
         train_steps = len(self.train_data) // cf.eq_batch_size + 1
         warmup_steps = int(cf.warmup_epochs * train_steps)
-        eval_steps = cf.eval_patience // cf.eq_batch_size
+
 
         # Scheduler and math around the number of training steps.
         num_update_steps_per_epoch = math.ceil(len(train_dataloader) / cf.grad_acc_steps)
@@ -97,8 +94,8 @@ class TCLTrainer():
         )
 
         # Prepare everything with our `accelerator`.
-        self.model, self.optimizer, train_dataloader, eval_dataloader, lr_scheduler = accelerator.prepare(
-            self.model, self.optimizer, train_dataloader, eval_dataloader, lr_scheduler
+        self.model, self.optimizer, train_dataloader, lr_scheduler = accelerator.prepare(
+            self.model, self.optimizer, train_dataloader, lr_scheduler
         )
 
         # We need to recalculate our total training steps as the size of the training dataloader may have changed.
