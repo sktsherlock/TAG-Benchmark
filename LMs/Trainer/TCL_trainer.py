@@ -146,3 +146,4 @@ class TCLTrainer():
                 unwrapped_model.save_pretrained(
                     cf.out_dir, is_main_process=accelerator.is_main_process, save_function=accelerator.save
                 )
+                print('cf.out_dir:', cf.out_dir)
