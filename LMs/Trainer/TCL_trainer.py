@@ -175,12 +175,18 @@ class TCLTrainer():
         eval_steps = cf.eval_patience // cf.eq_batch_size
         # ! Load Model for NP with no trainer
         PLM = AutoModel.from_pretrained(cf.hf_model)
-
-        self.model = CLIPModel(
-            PLM,
-            dropout=cf.cla_dropout,
-            cla_bias=cf.cla_bias == 'T',
-        )
+        if cf.model == 'Distilbert':
+            self.model = CLIP_Dis_Model(
+                PLM,
+                dropout=cf.cla_dropout,
+                cla_bias=cf.cla_bias == 'T',
+            )
+        else:
+            self.model = CLIPModel(
+                PLM,
+                dropout=cf.cla_dropout,
+                cla_bias=cf.cla_bias == 'T',
+            )
         if cf.local_rank <= 0:
             trainable_params = sum(
                 p.numel() for p in self.model.parameters() if p.requires_grad
