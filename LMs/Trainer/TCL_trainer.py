@@ -179,7 +179,6 @@ class TCLTrainer():
             self.model = CLIP_Dis_Model(
                 PLM,
                 dropout=cf.cla_dropout,
-                cla_bias=cf.cla_bias == 'T',
             )
         else:
             self.model = CLIPModel(
