@@ -184,6 +184,14 @@ class Sequence():
             item['token_type_ids'] = _load('token_type_ids')
         return item
 
+    def get_NB_tokens(self, item, node_id):
+        _load = lambda k: th.IntTensor(np.array(self.ndata[k][node_id]))
+        item['nb_attention_mask'] = _load('attention_mask')
+        item['nb_input_ids'] = th.IntTensor(np.array(self['input_ids'][node_id]).astype(np.int32))
+        if self.hf_model not in ['distilbert-base-uncased', 'roberta-base']:
+            item['nb_token_type_ids'] = _load('token_type_ids')
+        return item
+
 
 class SeqGraphDataset(th.utils.data.Dataset):  # Map style
     def __init__(self, data: Sequence):
@@ -200,6 +208,7 @@ class SeqGraphDataset(th.utils.data.Dataset):  # Map style
     def __len__(self):
         return self.d.n_nodes
 
+
 class SeqCLDataset(th.utils.data.Dataset):
     def __init__(self, data: Sequence):
         super().__init__()
@@ -209,7 +218,7 @@ class SeqCLDataset(th.utils.data.Dataset):
         item = self.d.get_tokens(node_id)
         neighbours = self.d.neighbours[node_id]
         k = np.random.choice(neighbours, 1)
-        item['neighbours'] = self.d.get_tokens(k[0])
+        item = self.d.get_NB_tokens(item, k[0])
         return item
 
     def __len__(self):
