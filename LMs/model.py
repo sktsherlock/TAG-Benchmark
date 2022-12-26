@@ -118,58 +118,43 @@ class CLIPModel(PreTrainedModel):
             nn.Linear(hidden_dim, hidden_dim))
 
     def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, node_id=None,
-                neighbours=None):
+                nb_input_ids=None, nb_attention_mask=None, nb_token_type_ids=None):
         # Getting Center Node text features and its neighbours feature
         center_node_outputs = self.text_encoder(
             input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, output_hidden_states=True
         )
         center_node_emb = self.dropout(center_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
-        # 10 * 128
+
         toplogy_node_outputs = self.text_encoder(
-            input_ids=neighbours['input_ids'], attention_mask=neighbours['attention_mask'], token_type_ids=neighbours['token_type_ids'], output_hidden_states=True
+            input_ids=nb_input_ids, attention_mask=nb_attention_mask, token_type_ids=nb_token_type_ids, output_hidden_states=True
         )
 
         toplogy_emb = self.dropout(toplogy_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
-        # 10 * 128
-        # Getting Image and Text Embeddings (with same dimension)
+
         center_contrast_embeddings = self.project(center_node_emb)
         toplogy_contrast_embeddings = self.project(toplogy_emb)
 
-        loss = infonce(center_contrast_embeddings, toplogy_contrast_embeddings)
-        return loss
-
-
-def cross_entropy(preds, targets, reduction='none'):
-    log_softmax = nn.LogSoftmax(dim=-1)
-    loss = (-targets * log_softmax(preds)).sum(1)
-    if reduction == "none":
-        return loss
-    elif reduction == "mean":
-        return loss.mean()
+        return center_contrast_embeddings, toplogy_contrast_embeddings
 
 
 def _similarity(h1: torch.Tensor, h2: torch.Tensor):
-    h1 = F.normalize(h1, dim=-1, p=2)
-    h2 = F.normalize(h2, dim=-1, p=2)
+    h1 = F.normalize(h1)
+    h2 = F.normalize(h2)
     return h1 @ h2.t()
 
 
-def infonce(anchor, sample):
-    tau = 1
-    f = lambda x: torch.exp(x / tau)
-    sim = f(_similarity(anchor, sample))  # anchor x sample
-    num_graphs = anchor.shape[0]
+def infonce(anchor, sample, tau=0.2):
+    sim = _similarity(anchor, sample) / tau
+    num_nodes = anchor.shape[0]
     device = anchor.device
-    pos_mask = torch.eye(num_graphs).to(device)
-    neg_mask = 1 - pos_mask
+    pos_mask = torch.eye(num_nodes, dtype=torch.float32).to(device)
+    neg_mask = 1. - pos_mask
     assert sim.size() == pos_mask.size()  # sanity check
-    pos = (sim * pos_mask).sum(dim=1)
-    neg = (sim * neg_mask).sum(dim=1)
-
-    loss = pos / (pos + neg)
-    loss = -torch.log(loss)
-
-    return loss.mean()
+    exp_sim = torch.exp(sim) * (pos_mask + neg_mask)
+    log_prob = sim - torch.log(exp_sim.sum(dim=1, keepdim=True))
+    loss = log_prob * pos_mask
+    loss = loss.sum(dim=1) / pos_mask.sum(dim=1)
+    return -loss.mean()
 
 
 def make_gin_conv(input_dim, out_dim):

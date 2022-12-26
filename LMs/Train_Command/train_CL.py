@@ -14,5 +14,5 @@ if __name__ == "__main__":
     cf = Config(args).init()
     # ! Load data and train
     trainer = Trainer(cf=cf)
-    trainer.train()
+    trainer.train_trainer()
 
