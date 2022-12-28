@@ -164,27 +164,21 @@ class TCLTrainer():
         # ! Prepare data
         self.d = d = Sequence(cf := self.cf).init()
         self.train_data = SeqCLDataset(self.d)
-        # ! Prepare data
-        self.d = d = Sequence(cf := self.cf).init()
-        gold_data = SeqGraphDataset(self.d)
-        self.metrics = {m: load_metric(m_path) for m, m_path in METRICS.items()}
 
         # Finetune on dowstream tasks
         train_steps = len(d.train_x) // cf.eq_batch_size + 1
         warmup_steps = int(cf.warmup_epochs * train_steps)
-        eval_steps = cf.eval_patience // cf.eq_batch_size
         # ! Load Model for NP with no trainer
         PLM = AutoModel.from_pretrained(cf.hf_model)
         if cf.model == 'Distilbert':
-            self.model = CLIP_Dis_Model(
+            self.model = CL_Dis_Model(
                 PLM,
                 dropout=cf.cla_dropout,
             )
         else:
-            self.model = CLIPModel(
+            self.model = CLModel(
                 PLM,
                 dropout=cf.cla_dropout,
-                cla_bias=cf.cla_bias == 'T',
             )
         if cf.local_rank <= 0:
             trainable_params = sum(
@@ -218,7 +212,7 @@ class TCLTrainer():
             dataloader_drop_last=True,
             num_train_epochs=cf.epochs,
             local_rank=cf.local_rank,
-            dataloader_num_workers=0,
+            dataloader_num_workers=1,
             fp16=True,
         )
 

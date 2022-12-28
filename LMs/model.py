@@ -105,8 +105,8 @@ class DistilBertClassifier(PreTrainedModel):
         return TokenClassifierOutput(loss=loss, logits=logits)
 
 
-class CLIPModel(PreTrainedModel):
-    def __init__(self, PLM, dropout=0.0, cla_bias=True):
+class CLModel(PreTrainedModel):
+    def __init__(self, PLM, dropout=0.0):
         super().__init__(PLM.config)
         self.dropout = nn.Dropout(dropout)
         hidden_dim = PLM.config.hidden_size
@@ -136,7 +136,7 @@ class CLIPModel(PreTrainedModel):
 
         return center_contrast_embeddings, toplogy_contrast_embeddings
 
-class CLIP_Dis_Model(PreTrainedModel):
+class CL_Dis_Model(PreTrainedModel):
     def __init__(self, PLM, dropout=0.0):
         super().__init__(PLM.config)
         self.dropout = nn.Dropout(dropout)
