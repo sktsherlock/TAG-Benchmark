@@ -64,7 +64,7 @@ class Sequence():
         tokenize_graph(self.cf)
         self._load_data_fields()
         self.device = cf.device  # if cf.local_rank<0 else th.device(cf.local_rank)
-        self.neighbours = self.get_neighbours(self.n_nodes)
+        self.neighbours = self.get_neighbours()
 
         return self
 
@@ -149,20 +149,11 @@ class Sequence():
     def __getitem__(self, k):
         return self.ndata[k]
 
-    def get_neighbours(self, n_nodes):
-
+    def get_neighbours(self):
         dataset = DglNodePropPredDataset('ogbn-arxiv', root=self.raw_data_path)
         g, _ = dataset[0]
         g = dgl.to_bidirected(g)
-        sampler = dgl.dataloading.MultiLayerNeighborSampler([999])
-        collator = dgl.dataloading.NodeCollator(g, np.arange(g.num_nodes()), sampler)
-        _, _, blocks = collator.collate(np.arange(g.num_nodes()))
-        edge0 = np.array(blocks[0].edges()[1])
-        edge1 = np.array(blocks[0].edges()[0])
-        assert len(edge0) == len(edge1)
-
-        adj1 = coo_matrix((np.ones(edge0.shape), (edge0, edge1)), shape=(n_nodes, n_nodes))
-        neighbours_1 = list(adj1.tolil().rows)
+        neighbours_1 = list(g.adjacency_matrix_scipy().tolil().rows)
         return neighbours_1
 
     def get_tokens(self, node_id):
