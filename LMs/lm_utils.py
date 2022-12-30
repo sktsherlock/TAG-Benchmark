@@ -121,6 +121,8 @@ class LMConfig(ModelConfig):
         parser.add_argument("-I", "--is_inf", action="store_true")
         parser.add_argument("-lr", "--lr", default=0.002, type=float, help='LM model learning rate')
         parser.add_argument("-bsz", "--eq_batch_size", default=36, type=int)
+        parser.add_argument("-per_bsz", "--per_device_bsz", default=None, type=int)
+        parser.add_argument("-gra", "--grad_steps", default=None, type=int)
         parser.add_argument("-wd", "--weight_decay", default=0.01)
         parser.add_argument("-do", "--dropout", default=0.1, type=float)
         parser.add_argument("-atdo", "--att_dropout", default=0.1, type=float)

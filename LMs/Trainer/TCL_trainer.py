@@ -196,7 +196,9 @@ class TCLTrainer():
             self.model.config.attention_probs_dropout_prob = cf.att_dropout
         self.log(self.model.config)
 
-
+        if cf.grad_steps is not None:
+            cf.grad_acc_steps = cf.grad_steps
+            cf.batch_size = cf.per_device_bsz
 
         training_args = TrainingArguments(
             output_dir=cf.out_dir,
