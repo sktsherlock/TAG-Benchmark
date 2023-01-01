@@ -347,7 +347,7 @@ def main():
     print(f"Total edges after adding self-loop {graph.number_of_edges()}")
 
     if args.use_PLM:
-        feat = th.from_numpy(np.load(args.use_PLM))
+        feat = th.from_numpy(np.load(args.use_PLM).astype(np.float32))
         in_feats = feat.shape[1]
     else:
         feat = graph.ndata["feat"]
