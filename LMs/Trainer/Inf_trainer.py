@@ -45,4 +45,4 @@ class LmInfTrainer:
         with open(osp.join(f'{self.cf.out_dir}inf/', 'emb.npy'), 'wb') as f:
             np.save(f, out_emb.predictions)
 
-        self.log(f'LM inference completed')
+        self.log(f'LM inference completed in {self.cf.out_dir}inf/')
