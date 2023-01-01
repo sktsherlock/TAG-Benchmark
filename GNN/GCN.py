@@ -294,7 +294,7 @@ def main():
         help="Use labels in the training set as input features.",
     )
     argparser.add_argument(
-        "--use-linear", type=bool , help="Use linear layer."
+        "--use-linear", type=bool, default=True, help="Use linear layer."
     )
     argparser.add_argument(
         "--lr", type=float, default=0.005, help="learning rate"
