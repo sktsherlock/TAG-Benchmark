@@ -4,7 +4,7 @@
 import argparse
 import math
 import time
-
+import wandb
 import numpy as np
 import torch as th
 import torch.nn.functional as F
@@ -294,7 +294,7 @@ def main():
         help="Use labels in the training set as input features.",
     )
     argparser.add_argument(
-        "--use-linear", action="store_true", help="Use linear layer."
+        "--use-linear", action="store_true" , help="Use linear layer."
     )
     argparser.add_argument(
         "--lr", type=float, default=0.005, help="learning rate"
@@ -319,6 +319,7 @@ def main():
         "--use_PLM", type=str, default=None, help="Use LM embedding as feature"
     )
     args = argparser.parse_args()
+    wandb.config = args
 
     if args.cpu:
         device = th.device("cpu")
