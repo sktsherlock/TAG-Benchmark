@@ -18,7 +18,7 @@ class RoBERTaConfig(LMConfig):
                 father_model='RoBerta',
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 12, 24: 9, 32: 30, 40: 18, 70: 48},
-                    inf={12: 150, 16: 200, 24: 150, 32: 512, 40: 300, 70: 560},
+                    inf={12: 150, 16: 200, 24: 150, 32: 720, 40: 300, 70: 560},
                 ),
                 prt_lm={  # Initial LM configs
                     'arxiv': SN(
