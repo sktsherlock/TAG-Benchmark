@@ -167,6 +167,21 @@ class CL_Dis_Model(PreTrainedModel):
 
         return center_contrast_embeddings, toplogy_contrast_embeddings
 
+class BertEmbInfModel(PreTrainedModel):
+    def __init__(self, model):
+        super().__init__(model.config)
+        self.bert_encoder = model
+
+    @th.no_grad()
+    def forward(self, **input):
+        # Extract outputs from the model
+        outputs = self.bert_encoder(**input, output_hidden_states=True)
+        emb = outputs['hidden_states'][-1]  # Last layer
+        # Use CLS Emb as sentence emb.
+
+        node_cls_emb = emb.permute(1, 0, 2)[0]
+        return TokenClassifierOutput(logits=node_cls_emb)
+
 def _similarity(h1: torch.Tensor, h2: torch.Tensor):
     h1 = F.normalize(h1)
     h2 = F.normalize(h2)
