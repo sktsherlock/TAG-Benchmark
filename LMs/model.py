@@ -173,10 +173,9 @@ class BertEmbInfModel(PreTrainedModel):
         self.bert_encoder = model
 
     @torch.no_grad()
-    def forward(self, inputs):
+    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, labels=None):
         # Extract outputs from the model
-        _ = [inputs.pop(_) for _ in ["labels"]]
-        outputs = self.bert_encoder(**inputs, output_hidden_states=True)
+        outputs = self.bert_encoder(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, output_hidden_states=True)
         emb = outputs['hidden_states'][-1]  # Last layer
         # Use CLS Emb as sentence emb.
 
