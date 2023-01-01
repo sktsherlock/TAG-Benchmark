@@ -320,6 +320,7 @@ def main():
     )
     args = argparser.parse_args()
     wandb.config = args
+    wandb.init(config=args, reinit=True)
 
     if args.cpu:
         device = th.device("cpu")
