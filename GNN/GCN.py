@@ -290,7 +290,8 @@ def main():
     )
     argparser.add_argument(
         "--use-labels",
-        action="store_true",
+        type=bool,
+        default=False,
         help="Use labels in the training set as input features.",
     )
     argparser.add_argument(
