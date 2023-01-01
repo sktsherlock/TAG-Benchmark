@@ -46,5 +46,7 @@ class LmInfTrainer:
             raise ValueError('Please input the true inference dir.')
         else:
             with open(osp.join(self.cf.inference_dir, 'emb.npy'), 'wb') as f:
+                if not osp.exists(self.cf.inference_dir):
+                    mkdir_p(self.cf.inference_dir)
                 np.save(f, out_emb.predictions)
             self.log(f'LM inference completed in {self.cf.out_dir}inf/')
