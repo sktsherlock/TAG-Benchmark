@@ -67,10 +67,9 @@ def adjust_learning_rate(optimizer, lr, epoch):
             param_group["lr"] = lr * epoch / 50
 
 
-def train(model, graph, labels, train_idx, optimizer, use_labels):
+def train(model, graph, feat, labels, train_idx, optimizer, use_labels):
     model.train()
 
-    feat = graph.ndata["feat"]
 
     if use_labels:
         mask_rate = 0.5
@@ -97,11 +96,9 @@ def train(model, graph, labels, train_idx, optimizer, use_labels):
 
 @th.no_grad()
 def evaluate(
-    model, graph, labels, train_idx, val_idx, test_idx, use_labels, evaluator
+    model, graph, feat, labels, train_idx, val_idx, test_idx, use_labels, evaluator
 ):
     model.eval()
-
-    feat = graph.ndata["feat"]
 
     if use_labels:
         feat = add_labels(feat, labels, train_idx)
@@ -122,7 +119,7 @@ def evaluate(
 
 
 def run(
-    args, graph, labels, train_idx, val_idx, test_idx, evaluator, n_running
+    args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, n_running
 ):
     # define model and optimizer
     model = gen_model(args)
@@ -153,7 +150,7 @@ def run(
         adjust_learning_rate(optimizer, args.lr, epoch)
 
         loss, pred = train(
-            model, graph, labels, train_idx, optimizer, args.use_labels
+            model, graph, feat, labels, train_idx, optimizer, args.use_labels
         )
         acc = compute_acc(pred[train_idx], labels[train_idx], evaluator)
 
@@ -167,6 +164,7 @@ def run(
         ) = evaluate(
             model,
             graph,
+            feat,
             labels,
             train_idx,
             val_idx,
@@ -317,6 +315,9 @@ def main():
     argparser.add_argument(
         "--plot-curves", action="store_true", help="plot learning curves"
     )
+    argparser.add_argument(
+        "--use_PLM", type=str, default=None, help="Use LM embedding as feature"
+    )
     args = argparser.parse_args()
 
     if args.cpu:
@@ -345,7 +346,12 @@ def main():
     graph = graph.remove_self_loop().add_self_loop()
     print(f"Total edges after adding self-loop {graph.number_of_edges()}")
 
-    in_feats = graph.ndata["feat"].shape[1]
+    if args.use_PLM:
+        feat = np.load(args.use_PLM)
+        in_feats = feat.shape[1]
+    else:
+        feat = graph.ndata["feat"]
+        in_feats = graph.ndata["feat"].shape[1]
     n_classes = (labels.max() + 1).item()
     graph.create_formats_()
 
@@ -361,7 +367,7 @@ def main():
 
     for i in range(args.n_runs):
         val_acc, test_acc = run(
-            args, graph, labels, train_idx, val_idx, test_idx, evaluator, i
+            args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, i
         )
         val_accs.append(val_acc)
         test_accs.append(test_acc)
