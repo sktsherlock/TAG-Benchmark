@@ -6,6 +6,7 @@ from transformers import AutoModel, TrainingArguments, Trainer
 
 from lm_utils import *
 from model import *
+import numpy as np
 from utils.data.datasets import SeqGraphDataset
 from transformers import logging as trfm_logging
 from ogb.nodeproppred import Evaluator
