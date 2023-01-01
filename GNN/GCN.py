@@ -370,6 +370,7 @@ def main():
         val_acc, test_acc = run(
             args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, i
         )
+        wandb.log({'Val_Acc': val_acc, 'Test_Acc': test_acc})
         val_accs.append(val_acc)
         test_accs.append(test_acc)
 
@@ -379,6 +380,7 @@ def main():
     print(f"Average val accuracy: {np.mean(val_accs)} ± {np.std(val_accs)}")
     print(f"Average test accuracy: {np.mean(test_accs)} ± {np.std(test_accs)}")
     print(f"Number of params: {count_parameters(args)}")
+    wandb.log({'Mean_Val_Acc': np.mean(val_accs), 'Mean_Test_Acc': np.mean(test_accs)})
 
 
 if __name__ == "__main__":
