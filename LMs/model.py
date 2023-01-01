@@ -173,14 +173,26 @@ class BertEmbInfModel(PreTrainedModel):
         self.bert_encoder = model
 
     @torch.no_grad()
-    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, labels=None):
+    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None):
         # Extract outputs from the model
         outputs = self.bert_encoder(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, output_hidden_states=True)
         emb = outputs['hidden_states'][-1]  # Last layer
         # Use CLS Emb as sentence emb.
-
         node_cls_emb = emb.permute(1, 0, 2)[0]
-        self.feature = node_cls_emb.detach()
+        return TokenClassifierOutput(logits=node_cls_emb)
+
+class DistillBertEmbInfModel(PreTrainedModel):
+    def __init__(self, model):
+        super().__init__(model.config)
+        self.bert_encoder = model
+
+    @torch.no_grad()
+    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None):
+        # Extract outputs from the model
+        outputs = self.bert_encoder(input_ids=input_ids, attention_mask=attention_mask, output_hidden_states=True)
+        emb = outputs['hidden_states'][-1]  # Last layer
+        # Use CLS Emb as sentence emb.
+        node_cls_emb = emb.permute(1, 0, 2)[0]
         return TokenClassifierOutput(logits=node_cls_emb)
 
 def _similarity(h1: torch.Tensor, h2: torch.Tensor):
