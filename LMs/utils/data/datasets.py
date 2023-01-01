@@ -185,13 +185,14 @@ class Sequence():
 
 
 class SeqGraphDataset(th.utils.data.Dataset):  # Map style
-    def __init__(self, data: Sequence):
+    def __init__(self, data: Sequence, mode=None):
         super().__init__()
         self.d = data
-
+        self.mode = mode
     def __getitem__(self, node_id):
         item = self.d.get_tokens(node_id)
-        item['labels'] = self.d.y_gold(node_id)
+        if self.mode is None:
+            item['labels'] = self.d.y_gold(node_id)
         # neighbours = self.d.neighbours[node_id]
         # item['neighbours'] = self.d.get_tokens(neighbours[0])
         return item

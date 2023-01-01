@@ -180,6 +180,7 @@ class BertEmbInfModel(PreTrainedModel):
         # Use CLS Emb as sentence emb.
 
         node_cls_emb = emb.permute(1, 0, 2)[0]
+        self.feature = node_cls_emb.detach()
         return TokenClassifierOutput(logits=node_cls_emb)
 
 def _similarity(h1: torch.Tensor, h2: torch.Tensor):
