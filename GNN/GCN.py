@@ -347,10 +347,10 @@ def main():
     print(f"Total edges after adding self-loop {graph.number_of_edges()}")
 
     if args.use_PLM:
-        feat = th.from_numpy(np.load(args.use_PLM).astype(np.float32))
+        feat = th.from_numpy(np.load(args.use_PLM).astype(np.float32)).to(device)
         in_feats = feat.shape[1]
     else:
-        feat = graph.ndata["feat"]
+        feat = graph.ndata["feat"].to(device)
         in_feats = graph.ndata["feat"].shape[1]
     n_classes = (labels.max() + 1).item()
     graph.create_formats_()
