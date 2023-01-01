@@ -172,7 +172,7 @@ class BertEmbInfModel(PreTrainedModel):
         super().__init__(model.config)
         self.bert_encoder = model
 
-    @th.no_grad()
+    @torch.no_grad()
     def forward(self, **input):
         # Extract outputs from the model
         outputs = self.bert_encoder(**input, output_hidden_states=True)
