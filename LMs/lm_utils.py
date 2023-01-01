@@ -138,6 +138,7 @@ class LMConfig(ModelConfig):
         parser.add_argument("--wandb_on", default=False, type=bool)
         parser.add_argument("-prt", "--pretrain_path", default=None, type=str)
         parser.add_argument("-prtMode", "--PrtMode", default=None, type=str)
+        parser.add_argument("-inf_dir", "--inference_dir", default=None, type=str)
         return parser
 
     @property

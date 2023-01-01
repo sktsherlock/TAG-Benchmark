@@ -42,7 +42,9 @@ class LmInfTrainer:
         )
         self.trainer = Trainer(model=inf_model, args=inference_args)
         out_emb = self.trainer.predict(inference_dataset)
-        with open(osp.join(f'{self.cf.out_dir}inf/', 'emb.npy'), 'wb') as f:
-            np.save(f, out_emb.predictions)
-
-        self.log(f'LM inference completed in {self.cf.out_dir}inf/')
+        if self.cf.inference_dir is None:
+            raise ValueError('Please input the true inference dir.')
+        else:
+            with open(osp.join(self.cf.inference_dir, 'emb.npy'), 'wb') as f:
+                np.save(f, out_emb.predictions)
+            self.log(f'LM inference completed in {self.cf.out_dir}inf/')
