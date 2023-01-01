@@ -33,15 +33,10 @@ class LmInfTrainer:
         # self.pred = np.memmap(uf.init_path(self.cf.emi.lm.pred), dtype=np.float16, mode='w+',
         #                       shape=(self.d.n_nodes, self.d.md['n_labels']))
         # ! Load BertConfigs Encoder + Decoder together and output emb + predictions
-        bert_model = AutoModel.from_pretrained(self.cf.hf_model)
-        self.model = BertClassifier(
-            bert_model, self.cf.data.n_labels,
-            loss_func=th.nn.CrossEntropyLoss(label_smoothing=self.cf.label_smoothing_factor, reduction=cf.ce_reduction), cla_bias=self.cf.cla_bias == 'T', pseudo_label_weight=self.cf.pl_weight,
-            feat_shrink=self.cf.feat_shrink
-        )
+        self.model = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(
+            f'{cf.pretrain_path}')
         # The reduction should be sum in case unbalanced gold and pseudo data
-        self.model.load_state_dict(th.load(ckpt := self.cf.lm.ckpt, map_location='cpu'))
-        self.log(f'Performing inference using LM model: {ckpt}')
+        self.log(f'Performing inference using LM model: {cf.pretrain_path}')
 
     @th.no_grad()
     def inference_emb(self):
@@ -62,6 +57,8 @@ class LmInfTrainer:
         )
         trainer = Trainer(model=inf_model, args=inference_args)
         out_emb = trainer.predict(inference_dataset)
+        with open(osp.join(self.cf.out_dir, 'emb.npy'), 'wb') as f:
+            np.save(f, out_emb)
 
         self.log(f'LM inference completed')
 
