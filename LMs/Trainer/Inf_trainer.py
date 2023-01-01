@@ -29,7 +29,10 @@ class LmInfTrainer:
             f'{cf.pretrain_path}')
         # The reduction should be sum in case unbalanced gold and pseudo data
         self.log(f'Performing inference using LM model: {cf.pretrain_path}')
-        inf_model = BertEmbInfModel(self.model)  # .to(self.cf.device)
+        if cf.model == 'Distilbert':
+            inf_model = DistillBertEmbInfModel(self.model)  # .to(self.cf.device)
+        else:
+            inf_model = BertEmbInfModel(self.model)
         inf_model.eval()
         inference_args = TrainingArguments(
             output_dir=f'{self.cf.out_dir}inf/',
