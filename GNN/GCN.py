@@ -172,7 +172,7 @@ def run(
             args.use_labels,
             evaluator,
         )
-
+        wandb.log({'Train_loss': train_loss, 'Val_loss': val_loss, 'Test_loss': test_loss})
         lr_scheduler.step(loss)
 
         toc = time.time()
