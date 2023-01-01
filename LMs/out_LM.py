@@ -38,7 +38,7 @@ class LmInfTrainer:
         # The reduction should be sum in case unbalanced gold and pseudo data
         self.log(f'Performing inference using LM model: {cf.pretrain_path}')
 
-    @th.no_grad()
+    @torch.no_grad()
     def inference_emb(self):
         th.cuda.empty_cache()
         inference_dataset = SeqGraphDataset(self.d)
