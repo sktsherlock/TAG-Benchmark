@@ -48,6 +48,8 @@ class LmInfTrainer:
         else:
             if not osp.exists(self.cf.inference_dir):
                 mkdir_p(self.cf.inference_dir)
-            with open(osp.join(self.cf.inference_dir, 'emb.npy'), 'wb') as f:
-                np.save(f, out_emb.predictions)
+                with open(osp.join(self.cf.inference_dir, 'emb.npy'), 'wb') as f:
+                    np.save(f, out_emb.predictions)
+            else:
+                self.log('LM have inferenced before')
             self.log(f'LM inference completed in {self.cf.inference_dir})')
