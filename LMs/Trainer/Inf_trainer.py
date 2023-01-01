@@ -5,6 +5,7 @@ from tqdm import tqdm
 from transformers import AutoModel, TrainingArguments, Trainer
 
 from lm_utils import *
+from utils.function.os_utils import mkdir_p
 from model import *
 import numpy as np
 from utils.data.datasets import SeqGraphDataset
