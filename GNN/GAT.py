@@ -13,7 +13,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from matplotlib import pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
-from models import GAT
+from model.models import GAT
 from ogb.nodeproppred import DglNodePropPredDataset, Evaluator
 
 import dgl
@@ -376,7 +376,8 @@ def main():
     )
     argparser.add_argument(
         "--use-labels",
-        action="store_true",
+        type=bool,
+        default=False,
         help="Use labels in the training set as input features.",
     )
     argparser.add_argument(
@@ -389,11 +390,13 @@ def main():
         "--mask-rate", type=float, default=0.5, help="mask rate"
     )
     argparser.add_argument(
-        "--no-attn-dst", action="store_true", help="Don't use attn_dst."
+        "--no-attn-dst", type=bool, default=True, help="Don't use attn_dst."
     )
+
     argparser.add_argument(
         "--use-norm",
-        action="store_true",
+        type=bool,
+        default=False,
         help="Use symmetrically normalized adjacency matrix.",
     )
     argparser.add_argument(
