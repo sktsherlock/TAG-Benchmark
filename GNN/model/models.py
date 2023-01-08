@@ -54,6 +54,11 @@ class GraphSAGE(nn.Module):
                  use_linear=False,
                  input_drop=0.0):
         super(GraphSAGE, self).__init__()
+        self.n_layers = n_layers
+        self.n_hidden = n_hidden
+        self.n_classes = n_classes
+        self.use_linear = use_linear
+
         self.layers = nn.ModuleList()
         if use_linear:
             self.linear = nn.ModuleList()
