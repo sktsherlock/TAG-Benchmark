@@ -57,6 +57,7 @@ class GraphSAGE(nn.Module):
         self.layers = nn.ModuleList()
         if use_linear:
             self.linear = nn.ModuleList()
+        self.norms = nn.ModuleList()
 
         # input layer
         for i in range(n_layers):
