@@ -284,6 +284,7 @@ class GAT(nn.Module):
         edge_drop=0.0,
         use_attn_dst=True,
         use_symmetric_norm=False,
+        residual=False,
     ):
         super().__init__()
         self.in_feats = in_feats
@@ -310,7 +311,7 @@ class GAT(nn.Module):
                     edge_drop=edge_drop,
                     use_attn_dst=use_attn_dst,
                     use_symmetric_norm=use_symmetric_norm,
-                    residual=True,
+                    residual=residual,
                 )
             )
 

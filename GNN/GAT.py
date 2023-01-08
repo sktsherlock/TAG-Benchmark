@@ -93,6 +93,7 @@ def gen_model(args):
         edge_drop=args.edge_drop,
         use_attn_dst=not args.no_attn_dst,
         use_symmetric_norm=args.use_norm,
+        residual=args.residual,
     )
 
     return model
@@ -437,6 +438,7 @@ def main():
         "--edge-drop", type=float, default=0.0, help="edge drop rate"
     )
     argparser.add_argument("--wd", type=float, default=0, help="weight decay")
+    argparser.add_argument("--residual", type=bool, default=False, help="use residual connection")
     argparser.add_argument(
         "--log-every", type=int, default=20, help="log every LOG_EVERY epochs"
     )

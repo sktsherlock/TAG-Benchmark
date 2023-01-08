@@ -55,6 +55,7 @@ optional arguments:
   --edge-drop EDGE_DROP
                         edge drop rate (default: 0.0)
   --wd WD               weight decay (default: 0)
+  --residual            use residual connection (default: False)
   --log-every LOG_EVERY
                         log every LOG_EVERY epochs (default: 20)
   --plot-curves         plot learning curves (default: False)
