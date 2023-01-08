@@ -206,8 +206,19 @@ def run(
 
     # define model and optimizer
     model = gen_model(args).to(device)
-    optimizer = optim.RMSprop(
+    # optimizer = optim.RMSprop(
+    #     model.parameters(), lr=args.lr, weight_decay=args.wd
+    # )
+    optimizer = optim.AdamW(
         model.parameters(), lr=args.lr, weight_decay=args.wd
+    )
+    lr_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer,
+        mode="min",
+        factor=0.5,
+        patience=100,
+        verbose=True,
+        min_lr=1e-3,
     )
 
     # training loop
@@ -256,6 +267,8 @@ def run(
             evaluator_wrapper,
         )
         wandb.log({'Train_loss': train_loss, 'Val_loss': val_loss, 'Test_loss': test_loss})
+        lr_scheduler.step(loss)
+
         toc = time.time()
         total_time += toc - tic
 

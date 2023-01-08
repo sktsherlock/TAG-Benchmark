@@ -52,6 +52,7 @@ class GCN(nn.Module):
         activation,
         dropout,
         use_linear,
+        input_drop=0.0,
     ):
         super().__init__()
         self.n_layers = n_layers
@@ -77,7 +78,7 @@ class GCN(nn.Module):
             if i < n_layers - 1:
                 self.norms.append(nn.BatchNorm1d(out_hidden))
 
-        self.input_drop = nn.Dropout(min(0.1, dropout))
+        self.input_drop = nn.Dropout(input_drop)
         self.dropout = nn.Dropout(dropout)
         self.activation = activation
 

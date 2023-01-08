@@ -29,6 +29,7 @@ def gen_model(args):
             F.relu,
             args.dropout,
             args.use_linear,
+            args.input_drop,
         )
     else:
         model = GCN(
@@ -39,6 +40,7 @@ def gen_model(args):
             F.relu,
             args.dropout,
             args.use_linear,
+            args.input_drop,
         )
     return model
 
@@ -308,6 +310,9 @@ def main():
     )
     argparser.add_argument(
         "--dropout", type=float, default=0.5, help="dropout rate"
+    )
+    argparser.add_argument(
+        "--input-drop", type=float, default=0.1, help="input drop rate"
     )
     argparser.add_argument("--wd", type=float, default=0, help="weight decay")
     argparser.add_argument(
