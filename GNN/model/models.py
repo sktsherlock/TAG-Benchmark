@@ -42,6 +42,57 @@ class ElementWiseLinear(nn.Module):
         return x
 
 
+class GraphSAGE(nn.Module):
+    def __init__(self,
+                 in_feats,
+                 n_hidden,
+                 n_classes,
+                 n_layers,
+                 activation,
+                 dropout,
+                 aggregator_type,
+                 use_linear=False,
+                 input_drop=0.0):
+        super(GraphSAGE, self).__init__()
+        self.layers = nn.ModuleList()
+        if use_linear:
+            self.linear = nn.ModuleList()
+
+        # input layer
+        for i in range(n_layers):
+            in_hidden = n_hidden if i > 0 else in_feats
+            out_hidden = n_hidden if i < n_layers - 1 else n_classes
+
+            self.layers.append(dglnn.SAGEConv(in_hidden, out_hidden, aggregator_type))
+            if use_linear:
+                self.linear.append(nn.Linear(in_hidden, out_hidden, bias=False))
+            if i < n_layers - 1:
+                self.norms.append(nn.BatchNorm1d(out_hidden))
+
+        self.input_drop = nn.Dropout(input_drop)
+        self.dropout = nn.Dropout(dropout)
+        self.activation = activation
+
+    def forward(self, graph, feat):
+        h = feat
+        h = self.input_drop(h)
+
+        for l, layer in enumerate(self.layers):
+            conv = layer(graph, h)
+            if self.use_linear:
+                linear = self.linear[l](h)
+                h = conv + linear
+            else:
+                h = conv
+
+            if l != len(self.layers) - 1:
+                h = self.norms[l](h)
+                h = self.activation(h)
+                h = self.dropout(h)
+
+        return h
+
+
 class GCN(nn.Module):
     def __init__(
         self,
