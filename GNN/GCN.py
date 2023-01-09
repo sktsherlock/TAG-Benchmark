@@ -62,6 +62,7 @@ def compute_rocauc(pred, labels):
     y_true = labels
     y_true, y_pred = _parse_and_check_input(y_pred, y_true)
     rocauc_list = []
+    print(y_true.shape, y_pred.shape, y_true, y_pred)
 
     for i in range(y_true.shape[1]):
         #AUC is only defined when there is at least one positive data.
