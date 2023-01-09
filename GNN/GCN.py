@@ -60,6 +60,7 @@ def compute_rocauc(pred, labels):
     from sklearn.metrics import roc_auc_score
     y_pred = pred.argmax(dim=-1, keepdim=True)
     y_true = labels
+    y_true, y_pred = _parse_and_check_input(y_pred, y_true)
     rocauc_list = []
 
     for i in range(y_true.shape[1]):
@@ -72,6 +73,29 @@ def compute_rocauc(pred, labels):
         raise RuntimeError('No positively labeled data available. Cannot compute ROC-AUC.')
 
     return sum(rocauc_list)/len(rocauc_list)
+
+def _parse_and_check_input(y_pred, y_true):
+        # converting to torch.Tensor to numpy on cpu
+        if th is not None and isinstance(y_true, th.Tensor):
+            y_true = y_true.detach().cpu().numpy()
+
+        if th is not None and isinstance(y_pred, th.Tensor):
+            y_pred = y_pred.detach().cpu().numpy()
+
+        ## check type
+        if not (isinstance(y_true, np.ndarray) and isinstance(y_true, np.ndarray)):
+            raise RuntimeError('Arguments to Evaluator need to be either numpy ndarray or torch tensor')
+
+        if not y_true.shape == y_pred.shape:
+            raise RuntimeError('Shape of y_true and y_pred must be the same')
+
+        if not y_true.ndim == 2:
+            raise RuntimeError('y_true and y_pred must to 2-dim arrray, {}-dim array given'.format(y_true.ndim))
+
+        if not y_true.shape[1] == self.num_tasks:
+            raise RuntimeError('Number of tasks for {} should be {} but {} given'.format(self.name, self.num_tasks, y_true.shape[1]))
+
+        return y_true, y_pred
 
 
 def add_labels(feat, labels, idx):
