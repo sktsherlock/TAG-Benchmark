@@ -56,10 +56,22 @@ def compute_acc(pred, labels, evaluator):
         {"y_pred": pred.argmax(dim=-1, keepdim=True), "y_true": labels}
     )["acc"]
 
-def compute_rocauc(pred, labels, evaluator):
-    return evaluator.eval(
-        {"y_pred": pred.argmax(dim=-1, keepdim=True), "y_true": labels}
-    )["rocauc"]
+def compute_rocauc(pred, labels):
+    from sklearn.metrics import roc_auc_score
+    y_pred = pred.argmax(dim=-1, keepdim=True)
+    y_true = labels
+    rocauc_list = []
+
+    for i in range(y_true.shape[1]):
+        #AUC is only defined when there is at least one positive data.
+        if np.sum(y_true[:,i] == 1) > 0 and np.sum(y_true[:,i] == 0) > 0:
+            is_labeled = y_true[:,i] == y_true[:,i]
+            rocauc_list.append(roc_auc_score(y_true[is_labeled,i], y_pred[is_labeled,i]))
+
+    if len(rocauc_list) == 0:
+        raise RuntimeError('No positively labeled data available. Cannot compute ROC-AUC.')
+
+    return sum(rocauc_list)/len(rocauc_list)
 
 
 def add_labels(feat, labels, idx):
@@ -103,7 +115,7 @@ def train(model, graph, feat, labels, train_idx, optimizer, use_labels):
 
 @th.no_grad()
 def evaluate(
-    model, graph, feat, labels, train_idx, val_idx, test_idx, use_labels, evaluator, evaluator1
+    model, graph, feat, labels, train_idx, val_idx, test_idx, use_labels, evaluator
 ):
     model.eval()
 
@@ -119,9 +131,9 @@ def evaluate(
         compute_acc(pred[train_idx], labels[train_idx], evaluator),
         compute_acc(pred[val_idx], labels[val_idx], evaluator),
         compute_acc(pred[test_idx], labels[test_idx], evaluator),
-        compute_rocauc(pred[train_idx], labels[train_idx], evaluator1),
-        compute_rocauc(pred[val_idx], labels[val_idx], evaluator1),
-        compute_rocauc(pred[test_idx], labels[test_idx], evaluator1),
+        compute_rocauc(pred[train_idx], labels[train_idx]),
+        compute_rocauc(pred[val_idx], labels[val_idx]),
+        compute_rocauc(pred[test_idx], labels[test_idx]),
         train_loss,
         val_loss,
         test_loss,
@@ -129,7 +141,7 @@ def evaluate(
 
 
 def run(
-    args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, evaluator1, n_running
+    args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, n_running
 ):
     # define model and optimizer
     model = gen_model(args)
@@ -163,7 +175,7 @@ def run(
             model, graph, feat, labels, train_idx, optimizer, args.use_labels
         )
         acc = compute_acc(pred[train_idx], labels[train_idx], evaluator)
-        rocauc = compute_rocauc(pred[train_idx], labels[train_idx], evaluator1)
+        rocauc = compute_rocauc(pred[train_idx], labels[train_idx])
 
         (
             train_acc,
@@ -185,7 +197,6 @@ def run(
             test_idx,
             args.use_labels,
             evaluator,
-            evaluator1,
         )
         wandb.log({'Train_loss': train_loss, 'Val_loss': val_loss, 'Test_loss': test_loss})
         lr_scheduler.step(loss)
@@ -353,7 +364,6 @@ def main():
     # load data
     data = DglNodePropPredDataset(name="ogbn-arxiv")
     evaluator = Evaluator(name="ogbn-arxiv")
-    evaluator1 = Evaluator(name="ogbn-proteins")
 
     splitted_idx = data.get_idx_split()
     train_idx, val_idx, test_idx = (
@@ -395,7 +405,7 @@ def main():
 
     for i in range(args.n_runs):
         val_acc, test_acc, val_rocauc, test_rocauc = run(
-            args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, evaluator1, i
+            args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, i
         )
         wandb.log({'Val_Acc': val_acc, 'Test_Acc': test_acc, 'Val_RocAuc': val_rocauc, 'Test_RocAuc': test_rocauc})
         val_accs.append(val_acc)
