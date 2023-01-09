@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from matplotlib import pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
-from model.models import GCN
+from model.models import GIN
 from ogb.nodeproppred import DglNodePropPredDataset, Evaluator
 
 device = None
@@ -21,7 +21,7 @@ epsilon = 1 - math.log(2)
 
 def gen_model(args):
     if args.use_labels:
-        model = GCN(
+        model = GIN(
             in_feats + n_classes,
             args.n_hidden,
             n_classes,
@@ -32,7 +32,7 @@ def gen_model(args):
             args.input_drop,
         )
     else:
-        model = GCN(
+        model = GIN(
             in_feats,
             args.n_hidden,
             n_classes,
@@ -55,11 +55,6 @@ def compute_acc(pred, labels, evaluator):
     return evaluator.eval(
         {"y_pred": pred.argmax(dim=-1, keepdim=True), "y_true": labels}
     )["acc"]
-
-def compute_rocauc(pred, labels, evaluator):
-    return evaluator.eval(
-        {"y_pred": pred.argmax(dim=-1, keepdim=True), "y_true": labels}
-    )["rocauc"]
 
 
 def add_labels(feat, labels, idx):
@@ -119,9 +114,6 @@ def evaluate(
         compute_acc(pred[train_idx], labels[train_idx], evaluator),
         compute_acc(pred[val_idx], labels[val_idx], evaluator),
         compute_acc(pred[test_idx], labels[test_idx], evaluator),
-        compute_rocauc(pred[train_idx], labels[train_idx], evaluator),
-        compute_rocauc(pred[val_idx], labels[val_idx], evaluator),
-        compute_rocauc(pred[test_idx], labels[test_idx], evaluator),
         train_loss,
         val_loss,
         test_loss,
@@ -149,7 +141,7 @@ def run(
 
     # training loop
     total_time = 0
-    best_val_acc, final_test_acc, best_val_rocauc, final_test_rocauc, best_val_loss = 0, 0, 0, 0, float("inf")
+    best_val_acc, final_test_acc, best_val_loss = 0, 0, float("inf")
 
     accs, train_accs, val_accs, test_accs = [], [], [], []
     losses, train_losses, val_losses, test_losses = [], [], [], []
@@ -163,15 +155,11 @@ def run(
             model, graph, feat, labels, train_idx, optimizer, args.use_labels
         )
         acc = compute_acc(pred[train_idx], labels[train_idx], evaluator)
-        rocauc = compute_rocauc(pred[train_idx], labels[train_idx], evaluator)
 
         (
             train_acc,
             val_acc,
             test_acc,
-            train_rocauc,
-            val_rocauc,
-            test_rocauc,
             train_loss,
             val_loss,
             test_loss,
@@ -196,17 +184,13 @@ def run(
             best_val_loss = val_loss
             best_val_acc = val_acc
             final_test_acc = test_acc
-            best_val_rocauc = val_rocauc
-            final_test_rocauc = test_rocauc
-
 
         if epoch % args.log_every == 0:
             print(
                 f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}\n"
                 f"Loss: {loss.item():.4f}, Acc: {acc:.4f}\n"
                 f"Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n"
-                f"Train/Val/Test/Best val/Final test acc: {train_acc:.4f}/{val_acc:.4f}/{test_acc:.4f}/{best_val_acc:.4f}/{final_test_acc:.4f}\n"
-                f"Train/Val/Test/Best val/Final test rocauc: {train_rocauc:.4f}/{val_rocauc:.4f}/{test_rocauc:.4f}/{best_val_rocauc:.4f}/{final_test_rocauc:.4f}"
+                f"Train/Val/Test/Best val/Final test acc: {train_acc:.4f}/{val_acc:.4f}/{test_acc:.4f}/{best_val_acc:.4f}/{final_test_acc:.4f}"
             )
 
         for l, e in zip(
@@ -256,7 +240,7 @@ def run(
         plt.grid(which="minor", color="orange", linestyle="dotted")
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f"gcn_acc_{n_running}.png")
+        plt.savefig(f"gin_acc_{n_running}.png")
 
         fig = plt.figure(figsize=(24, 24))
         ax = fig.gca()
@@ -275,9 +259,9 @@ def run(
         plt.grid(which="minor", color="orange", linestyle="dotted")
         plt.legend()
         plt.tight_layout()
-        plt.savefig(f"gcn_loss_{n_running}.png")
+        plt.savefig(f"gin_loss_{n_running}.png")
 
-    return best_val_acc, final_test_acc, best_val_rocauc, final_test_rocauc
+    return best_val_acc, final_test_acc
 
 
 def count_parameters(args):
@@ -291,7 +275,7 @@ def main():
     global device, in_feats, n_classes
 
     argparser = argparse.ArgumentParser(
-        "GCN on OGBN-Arxiv",
+        "GIN on OGBN-Arxiv",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     argparser.add_argument(
@@ -388,30 +372,22 @@ def main():
     # run
     val_accs = []
     test_accs = []
-    val_rocaucs = []
-    test_rocaucs = []
 
     for i in range(args.n_runs):
-        val_acc, test_acc, val_rocauc, test_rocauc = run(
+        val_acc, test_acc = run(
             args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, i
         )
-        wandb.log({'Val_Acc': val_acc, 'Test_Acc': test_acc, 'Val_RocAuc': val_rocauc, 'Test_RocAuc': test_rocauc})
+        wandb.log({'Val_Acc': val_acc, 'Test_Acc': test_acc})
         val_accs.append(val_acc)
         test_accs.append(test_acc)
-        val_rocaucs.append(val_rocauc)
-        test_rocaucs.append(test_rocauc)
 
     print(f"Runned {args.n_runs} times")
     print("Val Accs:", val_accs)
     print("Test Accs:", test_accs)
-    print("Val RocAucs:", val_rocaucs)
-    print("Test RocAucs:", test_rocaucs)
     print(f"Average val accuracy: {np.mean(val_accs)} ± {np.std(val_accs)}")
     print(f"Average test accuracy: {np.mean(test_accs)} ± {np.std(test_accs)}")
-    print(f"Average val rocauc: {np.mean(val_rocaucs)} ± {np.std(val_rocaucs)}")
-    print(f"Average test rocauc: {np.mean(test_rocaucs)} ± {np.std(test_rocaucs)}")
     print(f"Number of params: {count_parameters(args)}")
-    wandb.log({'Mean_Val_Acc': np.mean(val_accs), 'Mean_Test_Acc': np.mean(test_accs), 'Mean_Val_RocAuc': np.mean(val_rocaucs), 'Mean_Test_RocAuc': np.mean(test_rocaucs)})
+    wandb.log({'Mean_Val_Acc': np.mean(val_accs), 'Mean_Test_Acc': np.mean(test_accs)})
 
 
 if __name__ == "__main__":
