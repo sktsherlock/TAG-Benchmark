@@ -59,7 +59,7 @@ def compute_acc(pred, labels, evaluator):
 def compute_rocauc(pred, labels):
     from sklearn.metrics import roc_auc_score
     y_pred = pred
-    y_true = th.sparse.torch.eye(pred.shape[1]).index_select(0, th.tensor(labels))
+    y_true = th.sparse.torch.eye(pred.shape[1]).index_select(0, th.tensor(labels).to(device=pred.device))
     y_true, y_pred = _parse_and_check_input(y_pred, y_true)
     rocauc_list = []
     print(y_true.shape, y_pred.shape, y_true, y_pred)
