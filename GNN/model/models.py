@@ -474,8 +474,8 @@ class MLP(nn.Module):
 
 class GIN(nn.Module):
     """GIN model"""
-    def __init__(self, num_layers, num_mlp_layers, input_dim, hidden_dim,
-                 output_dim, final_dropout, learn_eps, graph_pooling_type,
+    def __init__(self, n_layers, num_mlp_layers, in_feats, n_hidden,
+                 n_classes, final_dropout, learn_eps, graph_pooling_type,
                  neighbor_pooling_type):
         """model parameters setting
 
@@ -503,34 +503,36 @@ class GIN(nn.Module):
 
         """
         super(GIN, self).__init__()
-        self.num_layers = num_layers
+        self.n_layers = n_layers
+        self.n_hidden = n_hidden
+        self.n_classes = n_classes
         self.learn_eps = learn_eps
 
         # List of MLPs
         self.ginlayers = torch.nn.ModuleList()
         self.batch_norms = torch.nn.ModuleList()
 
-        for layer in range(self.num_layers - 1):
+        for layer in range(self.n_layers - 1):
             if layer == 0:
-                mlp = MLP(num_mlp_layers, input_dim, hidden_dim, hidden_dim)
+                mlp = MLP(num_mlp_layers, in_feats, n_hidden, n_hidden)
             else:
-                mlp = MLP(num_mlp_layers, hidden_dim, hidden_dim, hidden_dim)
+                mlp = MLP(num_mlp_layers, n_hidden, n_hidden, n_hidden)
 
             self.ginlayers.append(
                 dglnn.GINConv(ApplyNodeFunc(mlp), neighbor_pooling_type, 0, self.learn_eps))
-            self.batch_norms.append(nn.BatchNorm1d(hidden_dim))
+            self.batch_norms.append(nn.BatchNorm1d(n_hidden))
 
         # Linear function for graph poolings of output of each layer
         # which maps the output of different layers into a prediction score
         self.linears_prediction = torch.nn.ModuleList()
 
-        for layer in range(num_layers):
+        for layer in range(n_layers):
             if layer == 0:
                 self.linears_prediction.append(
-                    nn.Linear(input_dim, output_dim))
+                    nn.Linear(in_feats, n_classes))
             else:
                 self.linears_prediction.append(
-                    nn.Linear(hidden_dim, output_dim))
+                    nn.Linear(n_hidden, n_classes))
 
         self.drop = nn.Dropout(final_dropout)
 
@@ -561,3 +563,61 @@ class GIN(nn.Module):
             score_over_layer += self.drop(self.linears_prediction[i](pooled_h))
 
         return score_over_layer
+
+
+class JKNet(nn.Module):
+    def __init__(self,
+                 in_dim,
+                 hid_dim,
+                 out_dim,
+                 num_layers=1,
+                 mode='cat',
+                 dropout=0.):
+        super(JKNet, self).__init__()
+
+        self.mode = mode
+        self.dropout = nn.Dropout(dropout)
+        self.layers = nn.ModuleList()
+        self.layers.append(dglnn.GraphConv(in_dim, hid_dim, activation=F.relu))
+        for _ in range(num_layers):
+            self.layers.append(dglnn.GraphConv(hid_dim, hid_dim, activation=F.relu))
+
+        if self.mode == 'cat':
+            hid_dim = hid_dim * (num_layers + 1)
+        elif self.mode == 'lstm':
+            self.lstm = nn.LSTM(hid_dim, (num_layers * hid_dim) // 2, bidirectional=True, batch_first=True)
+            self.attn = nn.Linear(2 * ((num_layers * hid_dim) // 2), 1)
+
+        self.output = nn.Linear(hid_dim, out_dim)
+        self.reset_params()
+
+    def reset_params(self):
+        self.output.reset_parameters()
+        for layers in self.layers:
+            layers.reset_parameters()
+        if self.mode == 'lstm':
+            self.lstm.reset_parameters()
+            self.attn.reset_parameters()
+
+    def forward(self, g, feats):
+        feat_lst = []
+        for layer in self.layers:
+            feats = self.dropout(layer(g, feats))
+            feat_lst.append(feats)
+
+        if self.mode == 'cat':
+            out = torch.cat(feat_lst, dim=-1)
+        elif self.mode == 'max':
+            out = torch.stack(feat_lst, dim=-1).max(dim=-1)[0]
+        else:
+            # lstm
+            x = torch.stack(feat_lst, dim=1)
+            alpha, _ = self.lstm(x)
+            alpha = self.attn(alpha).squeeze(-1)
+            alpha = torch.softmax(alpha, dim=-1).unsqueeze(-1)
+            out = (x * alpha).sum(dim=1)
+
+        g.ndata['h'] = out
+        g.update_all(fn.copy_u('h', 'm'), fn.sum('m', 'h'))
+
+        return self.output(g.ndata['h'])
