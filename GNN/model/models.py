@@ -567,10 +567,10 @@ class GIN(nn.Module):
 
 class JKNet(nn.Module):
     def __init__(self,
-                 in_dim,
-                 hid_dim,
-                 out_dim,
-                 num_layers=1,
+                 in_feats,
+                 n_hidden,
+                 n_classes,
+                 n_layers=1,
                  mode='cat',
                  dropout=0.):
         super(JKNet, self).__init__()
@@ -578,17 +578,19 @@ class JKNet(nn.Module):
         self.mode = mode
         self.dropout = nn.Dropout(dropout)
         self.layers = nn.ModuleList()
-        self.layers.append(dglnn.GraphConv(in_dim, hid_dim, activation=F.relu))
-        for _ in range(num_layers):
-            self.layers.append(dglnn.GraphConv(hid_dim, hid_dim, activation=F.relu))
+        self.layers.append(dglnn.GraphConv(in_feats, n_hidden, activation=F.relu))
+        for _ in range(n_layers):
+            self.layers.append(dglnn.GraphConv(n_hidden, n_hidden, activation=F.relu))
 
-        if self.mode == 'cat':
-            hid_dim = hid_dim * (num_layers + 1)
-        elif self.mode == 'lstm':
-            self.lstm = nn.LSTM(hid_dim, (num_layers * hid_dim) // 2, bidirectional=True, batch_first=True)
-            self.attn = nn.Linear(2 * ((num_layers * hid_dim) // 2), 1)
+        if self.mode == "lstm":
+            self.jump = dglnn.JumpingKnowledge(mode, n_hidden, n_layers)
+        else:
+            self.jump = dglnn.JumpingKnowledge(mode)
 
-        self.output = nn.Linear(hid_dim, out_dim)
+        if self.mode == "cat":
+            n_hidden = n_hidden * (n_layers + 1)
+
+        self.output = nn.Linear(n_hidden, n_classes)
         self.reset_params()
 
     def reset_params(self):
