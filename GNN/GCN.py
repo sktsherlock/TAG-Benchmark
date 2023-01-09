@@ -234,7 +234,7 @@ def run(
             l.append(e)
 
     print("*" * 50)
-    print(f"Best val acc: {best_val_acc}, Final test acc: {final_test_acc}")
+    print(f"Best val acc: {best_val_acc}, Final test acc: {final_test_acc}, Best val rocauc: {best_val_rocauc}, Final test rocauc: {final_test_rocauc}")
     print("*" * 50)
 
     if args.plot_curves:
