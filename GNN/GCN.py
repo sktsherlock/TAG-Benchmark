@@ -67,7 +67,7 @@ def compute_rocauc(pred, labels):
         #AUC is only defined when there is at least one positive data.
         if np.sum(y_true[:,i] == 1) > 0 and np.sum(y_true[:,i] == 0) > 0:
             is_labeled = y_true[:,i] == y_true[:,i]
-            rocauc_list.append(roc_auc_score(y_true[is_labeled,i], y_pred[is_labeled,i]))
+            rocauc_list.append(roc_auc_score(y_true[is_labeled,i], y_pred[is_labeled,i], multi_class='ovo'))
 
     if len(rocauc_list) == 0:
         raise RuntimeError('No positively labeled data available. Cannot compute ROC-AUC.')
