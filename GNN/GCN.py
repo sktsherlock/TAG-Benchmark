@@ -92,8 +92,6 @@ def _parse_and_check_input(y_pred, y_true):
         if not y_true.ndim == 2:
             raise RuntimeError('y_true and y_pred must to 2-dim arrray, {}-dim array given'.format(y_true.ndim))
 
-        if not y_true.shape[1] == self.num_tasks:
-            raise RuntimeError('Number of tasks for {} should be {} but {} given'.format(self.name, self.num_tasks, y_true.shape[1]))
 
         return y_true, y_pred
 
