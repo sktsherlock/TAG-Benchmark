@@ -103,7 +103,7 @@ def train(model, graph, feat, labels, train_idx, optimizer, use_labels):
 
 @th.no_grad()
 def evaluate(
-    model, graph, feat, labels, train_idx, val_idx, test_idx, use_labels, evaluator
+    model, graph, feat, labels, train_idx, val_idx, test_idx, use_labels, evaluator, evaluator1
 ):
     model.eval()
 
@@ -119,9 +119,9 @@ def evaluate(
         compute_acc(pred[train_idx], labels[train_idx], evaluator),
         compute_acc(pred[val_idx], labels[val_idx], evaluator),
         compute_acc(pred[test_idx], labels[test_idx], evaluator),
-        compute_rocauc(pred[train_idx], labels[train_idx], evaluator),
-        compute_rocauc(pred[val_idx], labels[val_idx], evaluator),
-        compute_rocauc(pred[test_idx], labels[test_idx], evaluator),
+        compute_rocauc(pred[train_idx], labels[train_idx], evaluator1),
+        compute_rocauc(pred[val_idx], labels[val_idx], evaluator1),
+        compute_rocauc(pred[test_idx], labels[test_idx], evaluator1),
         train_loss,
         val_loss,
         test_loss,
@@ -129,7 +129,7 @@ def evaluate(
 
 
 def run(
-    args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, n_running
+    args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, evaluator1, n_running
 ):
     # define model and optimizer
     model = gen_model(args)
@@ -163,7 +163,7 @@ def run(
             model, graph, feat, labels, train_idx, optimizer, args.use_labels
         )
         acc = compute_acc(pred[train_idx], labels[train_idx], evaluator)
-        rocauc = compute_rocauc(pred[train_idx], labels[train_idx], evaluator)
+        rocauc = compute_rocauc(pred[train_idx], labels[train_idx], evaluator1)
 
         (
             train_acc,
@@ -185,6 +185,7 @@ def run(
             test_idx,
             args.use_labels,
             evaluator,
+            evaluator1,
         )
         wandb.log({'Train_loss': train_loss, 'Val_loss': val_loss, 'Test_loss': test_loss})
         lr_scheduler.step(loss)
@@ -352,6 +353,7 @@ def main():
     # load data
     data = DglNodePropPredDataset(name="ogbn-arxiv")
     evaluator = Evaluator(name="ogbn-arxiv")
+    evaluator1 = Evaluator(name="ogbn-proteins")
 
     splitted_idx = data.get_idx_split()
     train_idx, val_idx, test_idx = (
@@ -393,7 +395,7 @@ def main():
 
     for i in range(args.n_runs):
         val_acc, test_acc, val_rocauc, test_rocauc = run(
-            args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, i
+            args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, evaluator1, i
         )
         wandb.log({'Val_Acc': val_acc, 'Test_Acc': test_acc, 'Val_RocAuc': val_rocauc, 'Test_RocAuc': test_rocauc})
         val_accs.append(val_acc)
