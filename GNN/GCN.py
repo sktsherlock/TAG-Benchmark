@@ -59,16 +59,15 @@ def compute_acc(pred, labels, evaluator):
 def compute_rocauc(pred, labels):
     from sklearn.metrics import roc_auc_score
     y_pred = pred
-    y_true = th.sparse.torch.eye(pred.shape[1]).index_select(0, th.tensor(labels).to(device=pred.device))
+    y_true = labels
     y_true, y_pred = _parse_and_check_input(y_pred, y_true)
     rocauc_list = []
-    print(y_true.shape, y_pred.shape, y_true, y_pred)
 
     for i in range(y_true.shape[1]):
         #AUC is only defined when there is at least one positive data.
         if np.sum(y_true[:,i] == 1) > 0 and np.sum(y_true[:,i] == 0) > 0:
             is_labeled = y_true[:,i] == y_true[:,i]
-            rocauc_list.append(roc_auc_score(y_true[is_labeled,i], y_pred[is_labeled,i], multi_class='ovo'))
+            rocauc_list.append(roc_auc_score(y_true[is_labeled,i], y_pred[is_labeled,i], multi_class='ovr'))
 
     if len(rocauc_list) == 0:
         raise RuntimeError('No positively labeled data available. Cannot compute ROC-AUC.')
@@ -138,7 +137,7 @@ def train(model, graph, feat, labels, train_idx, optimizer, use_labels):
 
 @th.no_grad()
 def evaluate(
-    model, graph, feat, labels, train_idx, val_idx, test_idx, use_labels, evaluator
+    model, graph, feat, labels, one_hot_labels, train_idx, val_idx, test_idx, use_labels, evaluator
 ):
     model.eval()
 
@@ -154,9 +153,9 @@ def evaluate(
         compute_acc(pred[train_idx], labels[train_idx], evaluator),
         compute_acc(pred[val_idx], labels[val_idx], evaluator),
         compute_acc(pred[test_idx], labels[test_idx], evaluator),
-        compute_rocauc(pred[train_idx], labels[train_idx]),
-        compute_rocauc(pred[val_idx], labels[val_idx]),
-        compute_rocauc(pred[test_idx], labels[test_idx]),
+        # compute_rocauc(pred[train_idx], one_hot_labels[train_idx]),
+        # compute_rocauc(pred[val_idx], one_hot_labels[val_idx]),
+        # compute_rocauc(pred[test_idx], one_hot_labels[test_idx]),
         train_loss,
         val_loss,
         test_loss,
@@ -164,7 +163,7 @@ def evaluate(
 
 
 def run(
-    args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, n_running
+    args, graph, feat, labels, one_hot_labels, train_idx, val_idx, test_idx, evaluator, n_running
 ):
     # define model and optimizer
     model = gen_model(args)
@@ -198,15 +197,15 @@ def run(
             model, graph, feat, labels, train_idx, optimizer, args.use_labels
         )
         acc = compute_acc(pred[train_idx], labels[train_idx], evaluator)
-        rocauc = compute_rocauc(pred[train_idx], labels[train_idx])
+        # rocauc = compute_rocauc(pred[train_idx], one_hot_labels[train_idx])
 
         (
             train_acc,
             val_acc,
             test_acc,
-            train_rocauc,
-            val_rocauc,
-            test_rocauc,
+            # train_rocauc,
+            # val_rocauc,
+            # test_rocauc,
             train_loss,
             val_loss,
             test_loss,
@@ -215,6 +214,7 @@ def run(
             graph,
             feat,
             labels,
+            one_hot_labels,
             train_idx,
             val_idx,
             test_idx,
@@ -231,8 +231,8 @@ def run(
             best_val_loss = val_loss
             best_val_acc = val_acc
             final_test_acc = test_acc
-            best_val_rocauc = val_rocauc
-            final_test_rocauc = test_rocauc
+            # best_val_rocauc = val_rocauc
+            # final_test_rocauc = test_rocauc
 
 
         if epoch % args.log_every == 0:
@@ -240,8 +240,7 @@ def run(
                 f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}\n"
                 f"Loss: {loss.item():.4f}, Acc: {acc:.4f}\n"
                 f"Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n"
-                f"Train/Val/Test/Best val/Final test acc: {train_acc:.4f}/{val_acc:.4f}/{test_acc:.4f}/{best_val_acc:.4f}/{final_test_acc:.4f}\n"
-                f"Train/Val/Test/Best val/Final test rocauc: {train_rocauc:.4f}/{val_rocauc:.4f}/{test_rocauc:.4f}/{best_val_rocauc:.4f}/{final_test_rocauc:.4f}"
+                f"Train/Val/Test/Best val/Final test acc: {train_acc:.4f}/{val_acc:.4f}/{test_acc:.4f}/{best_val_acc:.4f}/{final_test_acc:.4f}"
             )
 
         for l, e in zip(
@@ -269,7 +268,7 @@ def run(
             l.append(e)
 
     print("*" * 50)
-    print(f"Best val acc: {best_val_acc}, Final test acc: {final_test_acc}, Best val rocauc: {best_val_rocauc}, Final test rocauc: {final_test_rocauc}")
+    print(f"Best val acc: {best_val_acc}, Final test acc: {final_test_acc}")
     print("*" * 50)
 
     if args.plot_curves:
@@ -312,7 +311,7 @@ def run(
         plt.tight_layout()
         plt.savefig(f"gcn_loss_{n_running}.png")
 
-    return best_val_acc, final_test_acc, best_val_rocauc, final_test_rocauc
+    return best_val_acc, final_test_acc
 
 
 def count_parameters(args):
@@ -417,36 +416,31 @@ def main():
     train_idx = train_idx.to(device)
     val_idx = val_idx.to(device)
     test_idx = test_idx.to(device)
-    labels = labels.to(device)
+    labels1 = np.array(labels.squeeze().tolist())
     graph = graph.to(device)
+    one_hot_labels = th.sparse.torch.eye(40).index_select(0, th.tensor(labels1)).to(device)
+    labels = labels.to(device)
 
     # run
     val_accs = []
     test_accs = []
-    val_rocaucs = []
-    test_rocaucs = []
 
     for i in range(args.n_runs):
-        val_acc, test_acc, val_rocauc, test_rocauc = run(
-            args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, i
+        val_acc, test_acc = run(
+            args, graph, feat, labels, one_hot_labels, train_idx, val_idx, test_idx, evaluator, i
         )
-        wandb.log({'Val_Acc': val_acc, 'Test_Acc': test_acc, 'Val_RocAuc': val_rocauc, 'Test_RocAuc': test_rocauc})
+        wandb.log({'Val_Acc': val_acc, 'Test_Acc': test_acc})
         val_accs.append(val_acc)
         test_accs.append(test_acc)
-        val_rocaucs.append(val_rocauc)
-        test_rocaucs.append(test_rocauc)
+
 
     print(f"Runned {args.n_runs} times")
     print("Val Accs:", val_accs)
     print("Test Accs:", test_accs)
-    print("Val RocAucs:", val_rocaucs)
-    print("Test RocAucs:", test_rocaucs)
     print(f"Average val accuracy: {np.mean(val_accs)} ± {np.std(val_accs)}")
     print(f"Average test accuracy: {np.mean(test_accs)} ± {np.std(test_accs)}")
-    print(f"Average val rocauc: {np.mean(val_rocaucs)} ± {np.std(val_rocaucs)}")
-    print(f"Average test rocauc: {np.mean(test_rocaucs)} ± {np.std(test_rocaucs)}")
     print(f"Number of params: {count_parameters(args)}")
-    wandb.log({'Mean_Val_Acc': np.mean(val_accs), 'Mean_Test_Acc': np.mean(test_accs), 'Mean_Val_RocAuc': np.mean(val_rocaucs), 'Mean_Test_RocAuc': np.mean(test_rocaucs)})
+    wandb.log({'Mean_Val_Acc': np.mean(val_accs), 'Mean_Test_Acc': np.mean(test_accs)})
 
 
 if __name__ == "__main__":
