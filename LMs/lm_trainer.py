@@ -131,11 +131,12 @@ class LMTrainer():
         self.trainer.train()
 
         if cf.local_rank <= 0:
+            print('save the language models')
             model.save_pretrained(cf.out_dir)
         else:
             print('Dont save the model in the local_rank:', cf.local_rank)
 
-        self.log(f'LM saved to {cf.lm.ckpt}')
+        self.log(f'LM saved to {cf.out_dir}')
 
     def eval_and_save(self):
         def get_metric(split):
