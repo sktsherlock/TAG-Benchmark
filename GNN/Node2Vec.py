@@ -2,7 +2,7 @@ import time
 
 from model.models import Node2vecModel
 from model.utils import load_graph, parse_arguments
-
+import wandb
 from dgl.sampling import node2vec_random_walk
 
 
@@ -51,6 +51,8 @@ def train_node2vec(graph, eval_set, args):
 if __name__ == "__main__":
 
     args = parse_arguments()
+    wandb.config = args
+    wandb.init(config=args, reinit=True)
     graph, eval_set = load_graph(args.dataset)
 
     if args.task == "train":

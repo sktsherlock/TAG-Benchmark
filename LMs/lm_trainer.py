@@ -131,7 +131,7 @@ class LMTrainer():
         self.trainer.train()
 
         if cf.local_rank <= 0:
-            th.save(self.model.state_dict(), uf.init_path(cf.lm.ckpt))
+            model.save_pretrained(cf.out_dir)
         else:
             print('Dont save the model in the local_rank:', cf.local_rank)
 
