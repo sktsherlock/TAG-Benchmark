@@ -60,7 +60,7 @@ class BertConfig(LMConfig):
                 hidden_dim=128,
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 18, 24: 12, 32: 160},
-                    inf={12: 150, 16: 200, 24: 10, 32: 400},
+                    inf={12: 150, 16: 200, 24: 10, 32: 800},
                 ),
                 prt_lm={  # Initial LM configs
                     'arxiv': SN(
