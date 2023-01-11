@@ -1,10 +1,10 @@
 import numpy as np
 import os.path as osp
 import os
-from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 import argparse
 from ogb.nodeproppred import DglNodePropPredDataset
+from tsnecuda import TSNE
 
 def check_dir(file_name=None):
     dir_name = osp.dirname(file_name)
@@ -18,7 +18,7 @@ def plot_embedding(args, labels):
         raise ValueError('No embedding path')
     check_dir(figure_path)
 
-    embeddings = np.load(osp.join(embedding_path, "emb.npy"))
+    embeddings = np.load(osp.join(embedding_path, "emb.npy" ))
     tsne = TSNE(init='pca', random_state=0)
 
     tsne_features = tsne.fit_transform(embeddings)
