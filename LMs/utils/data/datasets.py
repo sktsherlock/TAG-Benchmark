@@ -210,7 +210,7 @@ class SeqCLDataset(th.utils.data.Dataset):
         item = self.d.get_tokens(node_id)
         neighbours = self.d.neighbours[node_id]
         k = np.random.choice(neighbours, 1)
-        item = self.d.get_NB_tokens(item, k[0])
+        item = self.d.get_NB_tokens(item, k[0]) #! 采样2个一阶邻居； 或者从二阶中采样一个；
         return item
 
     def __len__(self):
