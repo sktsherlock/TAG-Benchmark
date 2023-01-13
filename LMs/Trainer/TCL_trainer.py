@@ -226,7 +226,11 @@ class TCLTrainer():
         self.trainer.train()
 
         if cf.local_rank <= 0:
-            PLM.save_pretrained(cf.out_dir)
+            if cf.cache_dir is not None:
+                print(f'Save the finnal cl model in {cf.cache_dir}')
+                PLM.save_pretrained(cf.cache_dir)
+            else:
+                PLM.save_pretrained(cf.out_dir)
         else:
             print('Dont save the model in the local_rank:', cf.local_rank)
 
