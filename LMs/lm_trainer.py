@@ -131,8 +131,12 @@ class LMTrainer():
         self.trainer.train()
 
         if cf.local_rank <= 0:
-            print('save the language models')
-            model.save_pretrained(cf.out_dir)
+            if cf.cache_dir is not None:
+                print(f'save the language models in {cf.cache_dir}')
+                model.save_pretrained(cf.cache_dir)
+            else:
+                print(f'save the language models in {cf.out_dir}')
+                model.save_pretrained(cf.out_dir)
         else:
             print('Dont save the model in the local_rank:', cf.local_rank)
 
