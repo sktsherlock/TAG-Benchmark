@@ -1,6 +1,6 @@
 import torch
 from collections import defaultdict
-
+import wandb
 printable_method={'transgnn','gat'}
 
 def create_print_dict(args):
@@ -31,7 +31,7 @@ class Logger(object):
         assert run >= 0 and run < len(self.results)
         self.results[run].append(result)
 
-    def print_statistics(self, run=None, mode='max_acc'):
+    def print_statistics(self, run=None, mode='min_val_loss'):
         if run is not None:
             result = 100 * torch.tensor(self.results[run])
             argmax = result[:, 1].argmax().item()
@@ -47,6 +47,7 @@ class Logger(object):
             print(f'Chosen epoch: {ind+1}')
             print(f'Final Train: {result[ind, 0]:.2f}')
             print(f'Final Test: {result[ind, 2]:.2f}')
+            wandb.log({'Final Train Acc': f'{result[ind, 0]:.4f}', 'Final Val Acc': f'{result[ind, 1]:.4f}', 'Final Test Acc': f'{result[ind, 2]:.4f}'})
             self.test=result[ind, 2]
         else:
             result = 100 * torch.tensor(self.results)

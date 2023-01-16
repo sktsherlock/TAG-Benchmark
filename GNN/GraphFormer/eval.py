@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from sklearn.metrics import roc_auc_score, f1_score
+import wandb
 
 def eval_f1(y_true, y_pred):
     acc_list = []
@@ -114,5 +115,6 @@ def evaluate_cpu(model, dataset, split_idx, eval_func, criterion, args, result=N
         out = F.log_softmax(out, dim=1)
         valid_loss = criterion(
             out[split_idx['valid']], dataset.label.squeeze(1)[split_idx['valid']])
+    wandb.log({'train_acc': train_acc, 'valid_acc': valid_acc, 'test_acc':test_acc, 'valid_loss':valid_loss})
 
     return train_acc, valid_acc, test_acc, valid_loss, out

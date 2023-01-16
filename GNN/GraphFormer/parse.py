@@ -75,7 +75,7 @@ def parser_add_main_args(parser):
     parser.add_argument('--data_dir', type=str, default='../data/')
     parser.add_argument('--device', type=int, default=0,
                         help='which gpu to use if any (default: 0)')
-    parser.add_argument('--seed', type=int, default=42)
+    parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--epochs', type=int, default=500)
     parser.add_argument('--eval_step', type=int,
                         default=1, help='how often to print')
@@ -141,6 +141,9 @@ def parser_add_main_args(parser):
                         help='jumping knowledge type')
     parser.add_argument('--num_mlp_layers', type=int, default=1,
                         help='number of mlp layers in h2gcn')
+
+    # NEW Settings for benchmark
+    parser.add_argument('--use_PLM', type=str, default=None, help="Use LM embedding as feature")
 
 
 

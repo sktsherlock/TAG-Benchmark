@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch_geometric.utils import to_undirected, remove_self_loops, add_self_loops, subgraph, k_hop_subgraph
 from torch_scatter import scatter
-
+import wandb
 from logger import Logger
 from dataset import load_dataset
 from data_utils import load_fixed_splits, adj_mul, to_sparse_tensor
@@ -30,9 +30,11 @@ def fix_seed(seed):
 parser = argparse.ArgumentParser(description='General Training Pipeline')
 parser_add_main_args(parser)
 args = parser.parse_args()
+wandb.config = args
+wandb.init(config=args, reinit=True)
 print(args)
 
-fix_seed(args.seed)
+# fix_seed(args.seed)
 
 if args.cpu:
     device = torch.device("cpu")
@@ -58,13 +60,18 @@ else:
 n = dataset.graph['num_nodes']
 # infer the number of classes for non one-hot and one-hot labels
 c = max(dataset.label.max().item() + 1, dataset.label.shape[1])
-d = dataset.graph['node_feat'].shape[1]
+
 
 # whether or not to symmetrize
 if not args.directed and args.dataset != 'ogbn-proteins':
     dataset.graph['edge_index'] = to_undirected(dataset.graph['edge_index'])
 
 edge_index, x = dataset.graph['edge_index'], dataset.graph['node_feat']
+if args.use_PLM:
+    x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32)).to(device)
+else:
+    x = dataset.graph['node_feat']
+d = x.shape[1]
 
 print(f"num nodes {n} | num edges {edge_index.size(1)} | num classes {c} | num node feats {d}")
 
@@ -104,7 +111,9 @@ if args.dataset in ('yelp-chi', 'deezer-europe', 'twitch-e', 'fb100', 'ogbn-prot
         true_label = dataset.label
 
 ### Training loop ###
+train_start = time.time()
 for run in range(args.runs):
+    fix_seed(args.seed + run)
     if args.dataset in ['cora', 'citeseer', 'pubmed'] and args.protocol == 'semi':
         split_idx = split_idx_lst[0]
     else:
@@ -116,7 +125,7 @@ for run in range(args.runs):
     best_val = float('-inf')
     num_batch = train_idx.size(0) // args.batch_size + 1
 
-    train_start = time.time()
+
 
     for epoch in range(args.epochs):
         model.to(device)
@@ -166,6 +175,7 @@ for run in range(args.runs):
                   f'Test: {100 * result[2]:.2f}%')
     logger.print_statistics(run)
 
-train_time = time.time() - train_start
+train_time = (time.time() - train_start) / args.runs
 results = logger.print_statistics()
 print(train_time)
+wandb.log({'Train Time': train_time})
