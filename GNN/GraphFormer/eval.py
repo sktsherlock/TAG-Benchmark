@@ -90,13 +90,14 @@ def evaluate_cpu(model, dataset, split_idx, eval_func, criterion, args, x, resul
     model.eval()
 
     model.to(torch.device("cpu"))
+    feat = x.to(torch.device("cpu"))
     dataset.label = dataset.label.to(torch.device("cpu"))
     adjs_ = dataset.graph['adjs']
     adjs = []
     adjs.append(adjs_[0])
     for k in range(args.rb_order - 1):
         adjs.append(adjs_[k + 1])
-    out, _ = model(x, adjs)
+    out, _ = model(feat, adjs)
 
     train_acc = eval_func(
         dataset.label[split_idx['train']], out[split_idx['train']])
