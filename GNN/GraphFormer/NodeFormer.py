@@ -160,7 +160,7 @@ for run in range(args.runs):
                 scheduler.step()
 
         if epoch % 9 == 0:
-            result = evaluate_cpu(model, dataset, split_idx, eval_func, criterion, args, x)
+            result = evaluate_cpu(model, dataset, split_idx, eval_func, criterion, args)
             logger.add_result(run, result[:-1])
 
             if result[1] > best_val:
