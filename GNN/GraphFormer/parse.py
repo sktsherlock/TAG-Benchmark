@@ -80,7 +80,7 @@ def parser_add_main_args(parser):
     parser.add_argument('--eval_step', type=int,
                         default=1, help='how often to print')
     parser.add_argument('--cpu', action='store_true')
-    parser.add_argument('--runs', type=int, default=1,
+    parser.add_argument('--runs', type=int, default=5,
                         help='number of distinct runs')
     parser.add_argument('--train_prop', type=float, default=.5,
                         help='training label proportion')
@@ -107,11 +107,11 @@ def parser_add_main_args(parser):
     parser.add_argument('--num_heads', type=int, default=4)
     parser.add_argument('--M', type=int,
                         default=30, help='number of random features')
-    parser.add_argument('--use_gumbel', action='store_true', help='use gumbel softmax for message passing')
-    parser.add_argument('--use_residual', action='store_true', help='use residual link for each GNN layer')
-    parser.add_argument('--use_bn', action='store_true', help='use layernorm')
-    parser.add_argument('--use_act', action='store_true', help='use non-linearity for each layer')
-    parser.add_argument('--use_jk', action='store_true', help='concat the layer-wise results in the final layer')
+    parser.add_argument('--use_gumbel', type=bool, default=True, help='use gumbel softmax for message passing')
+    parser.add_argument('--use_residual', type=bool, default=True, help='use residual link for each GNN layer')
+    parser.add_argument('--use_bn', type=bool, default=True, help='use layernorm')
+    parser.add_argument('--use_act', type=bool, default=True, help='use non-linearity for each layer')
+    parser.add_argument('--use_jk', type=bool, default=True, help='concat the layer-wise results in the final layer')
     parser.add_argument('--K', type=int, default=10, help='num of samples for gumbel softmax sampling')
     parser.add_argument('--tau', type=float, default=0.25, help='temperature for gumbel softmax')
     parser.add_argument('--lamda', type=float, default=0.1, help='weight for edge reg loss')
