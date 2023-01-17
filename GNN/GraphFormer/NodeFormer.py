@@ -68,7 +68,7 @@ if not args.directed and args.dataset != 'ogbn-proteins':
 
 edge_index, x = dataset.graph['edge_index'], dataset.graph['node_feat']
 if args.use_PLM:
-    x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32)).to(device)
+    x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32))
 else:
     x = dataset.graph['node_feat']
 d = x.shape[1]
@@ -160,7 +160,7 @@ for run in range(args.runs):
                 scheduler.step()
 
         if epoch % 9 == 0:
-            result = evaluate_cpu(model, dataset, split_idx, eval_func, criterion, args)
+            result = evaluate_cpu(model, dataset, split_idx, eval_func, criterion, args, feat=x)
             logger.add_result(run, result[:-1])
 
             if result[1] > best_val:

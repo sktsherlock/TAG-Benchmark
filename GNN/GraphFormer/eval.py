@@ -86,21 +86,17 @@ def evaluate(model, dataset, split_idx, eval_func, criterion, args):
 
 
 @torch.no_grad()
-def evaluate_cpu(model, dataset, split_idx, eval_func, criterion, args, result=None):
+def evaluate_cpu(model, dataset, split_idx, eval_func, criterion, args, feat=None, result=None):
     model.eval()
 
     model.to(torch.device("cpu"))
     dataset.label = dataset.label.to(torch.device("cpu"))
-    if args.use_PLM:
-        x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32))
-    else:
-        x = dataset.graph['node_feat']
     adjs_ = dataset.graph['adjs']
     adjs = []
     adjs.append(adjs_[0])
     for k in range(args.rb_order - 1):
         adjs.append(adjs_[k + 1])
-    out, _ = model(x, adjs)
+    out, _ = model(feat, adjs)
 
     train_acc = eval_func(
         dataset.label[split_idx['train']], out[split_idx['train']])
