@@ -31,7 +31,7 @@ class Logger(object):
         assert run >= 0 and run < len(self.results)
         self.results[run].append(result)
 
-    def print_statistics(self, run=None, mode='min_val_loss'):
+    def print_statistics(self, run=None, mode='max_acc'):
         if run is not None:
             result = 100 * torch.tensor(self.results[run])
             argmax = result[:, 1].argmax().item()
@@ -47,7 +47,7 @@ class Logger(object):
             print(f'Chosen epoch: {ind+1}')
             print(f'Final Train: {result[ind, 0]:.2f}')
             print(f'Final Test: {result[ind, 2]:.2f}')
-            wandb.log({'Final Train Acc': f'{result[ind, 0]:.4f}', 'Final Val Acc': f'{result[ind, 1]:.4f}', 'Final Test Acc': f'{result[ind, 2]:.4f}'})
+
             self.test=result[ind, 2]
         else:
             result = 100 * torch.tensor(self.results)
@@ -73,11 +73,16 @@ class Logger(object):
             r = best_result[:, 1]
             print(f'Highest Test: {r.mean():.2f} ± {r.std():.2f}')
             r = best_result[:, 2]
+            val = r
             print(f'Highest Valid: {r.mean():.2f} ± {r.std():.2f}')
             r = best_result[:, 3]
+            train = r
             print(f'  Final Train: {r.mean():.2f} ± {r.std():.2f}')
             r = best_result[:, 4]
+            test =  r
             print(f'   Final Test: {r.mean():.2f} ± {r.std():.2f}')
+            wandb.log({'Mean Train Acc': f'{train.mean():.4f}', 'Mean Val Acc': f'{val.mean():.4f}',
+                       'Mean Test Acc': f'{test.mean():.4f}'})
 
             self.test=r.mean()
             return
