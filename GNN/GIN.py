@@ -28,7 +28,7 @@ def gen_model(args):
             args.n_layers,
             args.num_mlp_layers,
             args.input_drop,
-            args.learn_eps,
+            args.learning_eps,
             args.neighbor_pooling_type,
         )
     else:
@@ -39,7 +39,7 @@ def gen_model(args):
             args.n_layers,
             args.num_mlp_layers,
             args.input_drop,
-            args.learn_eps,
+            args.learning_eps,
             args.neighbor_pooling_type,
         )
     return model
