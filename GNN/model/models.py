@@ -549,7 +549,7 @@ class GIN(nn.Module):
             h = F.relu(h)
             hidden_rep.append(h)
 
-        z = [torch.cat(x, dim=1) for x in hidden_rep]
+        z = torch.cat(hidden_rep, dim=1)
 
         return z
 
