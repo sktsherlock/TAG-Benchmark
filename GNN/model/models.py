@@ -476,8 +476,8 @@ class MLP(nn.Module):
 
 class GIN(nn.Module):
     """GIN model"""
-    def __init__(self, n_layers, num_mlp_layers, in_feats, n_hidden,
-                 n_classes, final_dropout, learn_eps, graph_pooling_type,
+    def __init__(self, in_feats, n_hidden, n_classes, n_layers, num_mlp_layers,
+                 input_dropout, learn_eps,
                  neighbor_pooling_type):
         """model parameters setting
 
@@ -536,20 +536,12 @@ class GIN(nn.Module):
                 self.linears_prediction.append(
                     nn.Linear(n_hidden, n_classes))
 
-        self.drop = nn.Dropout(final_dropout)
-
-        if graph_pooling_type == 'sum':
-            self.pool = dglnn.SumPooling()
-        elif graph_pooling_type == 'mean':
-            self.pool = dglnn.AvgPooling()
-        elif graph_pooling_type == 'max':
-            self.pool = dglnn.MaxPooling()
-        else:
-            raise NotImplementedError
+        self.input_drop = nn.Dropout(input_dropout)
 
     def forward(self, g, h):
+        h = self.input_drop(h)
         # list of hidden representation at each layer (including input)
-        hidden_rep = [h]
+        hidden_rep = []
 
         for i in range(self.num_layers - 1):
             h = self.ginlayers[i](g, h)
@@ -557,14 +549,9 @@ class GIN(nn.Module):
             h = F.relu(h)
             hidden_rep.append(h)
 
-        score_over_layer = 0
+        z = [torch.cat(x, dim=1) for x in hidden_rep]
 
-        # perform pooling over all nodes in each graph in every layer
-        for i, h in enumerate(hidden_rep):
-            pooled_h = self.pool(g, h)
-            score_over_layer += self.drop(self.linears_prediction[i](pooled_h))
-
-        return score_over_layer
+        return z
 
 
 class JKNet(nn.Module):

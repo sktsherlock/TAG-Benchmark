@@ -26,10 +26,10 @@ def gen_model(args):
             args.n_hidden,
             n_classes,
             args.n_layers,
-            F.relu,
-            args.dropout,
-            args.use_linear,
+            args.num_mlp_layers,
             args.input_drop,
+            args.learn_eps,
+            args.neighbor_pooling_type,
         )
     else:
         model = GIN(
@@ -297,9 +297,6 @@ def main():
         help="Use labels in the training set as input features.",
     )
     argparser.add_argument(
-        "--use-linear", type=bool, default=True, help="Use linear layer."
-    )
-    argparser.add_argument(
         "--lr", type=float, default=0.005, help="learning rate"
     )
     argparser.add_argument(
@@ -309,10 +306,14 @@ def main():
         "--n-hidden", type=int, default=256, help="number of hidden units"
     )
     argparser.add_argument(
-        "--dropout", type=float, default=0.5, help="dropout rate"
+        "--input-drop", type=float, default=0.1, help="input drop rate"
     )
     argparser.add_argument(
-        "--input-drop", type=float, default=0.1, help="input drop rate"
+        "--learning-eps", type=bool, default=True, help="If True, learn epsilon to distinguish center nodes from neighbors;"
+                                                        "If False, aggregate neighbors and center nodes altogether."
+    )
+    argparser.add_argument(
+        "--neighbor-pooling-type", type=str, default='mean', help="how to aggregate neighbors (sum, mean, or max)"
     )
     argparser.add_argument("--wd", type=float, default=0, help="weight decay")
     argparser.add_argument(
