@@ -543,7 +543,7 @@ class GIN(nn.Module):
         # list of hidden representation at each layer (including input)
         hidden_rep = []
 
-        for i in range(self.num_layers - 1):
+        for i in range(self.n_layers - 1):
             h = self.ginlayers[i](g, h)
             h = self.batch_norms[i](h)
             h = F.relu(h)
