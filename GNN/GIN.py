@@ -37,10 +37,10 @@ def gen_model(args):
             args.n_hidden,
             n_classes,
             args.n_layers,
-            F.relu,
-            args.dropout,
-            args.use_linear,
+            args.num_mlp_layers,
             args.input_drop,
+            args.learn_eps,
+            args.neighbor_pooling_type,
         )
     return model
 
@@ -301,6 +301,9 @@ def main():
     )
     argparser.add_argument(
         "--n-layers", type=int, default=3, help="number of layers"
+    )
+    argparser.add_argument(
+        "--num-mlp-layers", type=int, default=2, help="number of mlp layers"
     )
     argparser.add_argument(
         "--n-hidden", type=int, default=256, help="number of hidden units"
