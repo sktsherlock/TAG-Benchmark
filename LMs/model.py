@@ -112,7 +112,10 @@ class CLModel(PreTrainedModel):
         hidden_dim = PLM.config.hidden_size
         self.text_encoder = PLM
 
-        self.Aggregate = torch.nn.Parameter(torch.Tensor(hidden_dim, hidden_dim))
+        self.Aggregate = torch.nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm1d(hidden_dim))
 
         self.project = torch.nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
