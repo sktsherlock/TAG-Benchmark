@@ -223,7 +223,7 @@ class TCLTrainer():
             args=training_args,
             train_dataset=self.train_data,
         )
-        #self.trainer.train()
+        self.trainer.train()
 
         if cf.local_rank <= 0:
             if cf.cache_dir is not None:
