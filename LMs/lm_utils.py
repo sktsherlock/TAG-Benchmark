@@ -200,6 +200,8 @@ def get_lm_trainer(model, name=None):
         from Trainer.TCL_trainer import TCLTrainer as LMTrainer
     elif name == 'INF':
         from Trainer.Inf_trainer import LmInfTrainer as LMTrainer
+    elif name == 'CLF':
+        from Trainer.CLF_trainer import CLFTrainer as LMTrainer
     else:
         from lm_trainer import LMTrainer as LMTrainer
     return LMTrainer

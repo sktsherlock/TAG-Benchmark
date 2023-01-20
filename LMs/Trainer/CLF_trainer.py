@@ -17,7 +17,7 @@ METRICS = {  # metric -> metric_path
 }
 
 
-class TCLTrainer():
+class CLFTrainer():
     def __init__(self, cf):
         self.cf = cf
         # logging.set_verbosity_warning()
