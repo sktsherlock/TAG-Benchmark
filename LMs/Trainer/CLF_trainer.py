@@ -49,7 +49,11 @@ class TCLTrainer():
                 PLM,
                 dropout=cf.cla_dropout,
             )
-        CL_model.load_state_dict(th.load(ckpt := self.cf.cl_dir, map_location='cpu'))
+        if self.cf.cl_dir is not None:
+            CL_model.load_state_dict(th.load(ckpt := self.cf.cl_dir, map_location='cpu'))
+        else:
+            raise ValueError('The CLF code need input the cl_dir.')
+
 
         self.model = CLFModel(
             CL_model, cf.data.n_labels,
