@@ -223,13 +223,13 @@ class TCLTrainer():
             args=training_args,
             train_dataset=self.train_data,
         )
-        self.trainer.train()
+        #self.trainer.train()
 
         if cf.local_rank <= 0:
             if cf.cache_dir is not None:
                 print(f'Save the finnal cl model in {cf.cache_dir}')
                 PLM.save_pretrained(cf.cache_dir)
-                ckpt = f'{cf.cache_dir}{self.model}.ckpt'
+                ckpt = f'{cf.cache_dir}{cf.model}.ckpt'
                 th.save(self.model.state_dict(), uf.init_path(ckpt))
             else:
                 PLM.save_pretrained(cf.out_dir)
