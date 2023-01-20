@@ -143,6 +143,46 @@ class CLModel(PreTrainedModel):
 
         return center_contrast_embeddings, toplogy_contrast_embeddings
 
+class CLFModel(PreTrainedModel):
+    def __init__(self, model, n_labels, loss_func, dropout=0.0, alpha=0.5):
+        super().__init__(model.config)
+        self.dropout = nn.Dropout(dropout)
+        #! 从model中加载PLM与Aggregate
+        self.text_encoder = model.text_encoder
+        self.Aggregate = model.Aggregate
+        self.alpha = alpha # for mixup
+        hidden_dim = self.text_encoder.config.hidden_size
+        self.loss_func =  loss_func
+
+        self.classifier = nn.Linear(hidden_dim, n_labels, bias=True)
+        self.MLP = torch.nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_dim, hidden_dim))
+
+    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, node_id=None,
+                nb_input_ids=None, nb_attention_mask=None, nb_token_type_ids=None, labels=None):
+        # Getting Center Node text features and its neighbours feature
+        center_node_outputs = self.text_encoder(
+            input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, output_hidden_states=True
+        )
+        center_node_emb = self.dropout(center_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
+
+        toplogy_node_outputs = self.text_encoder(
+            input_ids=nb_input_ids, attention_mask=nb_attention_mask, token_type_ids=nb_token_type_ids, output_hidden_states=True
+        )
+
+        toplogy_emb = self.dropout(toplogy_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
+        toplogy_emb = self.Aggregate(toplogy_emb) #! To Update
+
+        text_embedding = (1 - self.alpha) * toplogy_emb + self.alpha * center_node_emb # mixup
+        text_embedding = self.MLP(text_embedding)
+        logits = self.classifier(text_embedding)
+        if labels.shape[-1] == 1:
+            labels = labels.squeeze()
+        loss = self.loss_func(logits, labels)
+        return TokenClassifierOutput(loss=loss, logits=logits)
+
 class CL_Dis_Model(PreTrainedModel):
     def __init__(self, PLM, dropout=0.0):
         super().__init__(PLM.config)

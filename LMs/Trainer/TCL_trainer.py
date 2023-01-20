@@ -229,8 +229,10 @@ class TCLTrainer():
             if cf.cache_dir is not None:
                 print(f'Save the finnal cl model in {cf.cache_dir}')
                 PLM.save_pretrained(cf.cache_dir)
+                th.save(self.model.state_dict(), uf.init_path(cf.cache_dir))
             else:
                 PLM.save_pretrained(cf.out_dir)
+                th.save(self.model.state_dict(), uf.init_path(cf.lm.ckpt))
         else:
             print('Dont save the model in the local_rank:', cf.local_rank)
 

@@ -216,6 +216,21 @@ class SeqCLDataset(th.utils.data.Dataset):
     def __len__(self):
         return self.d.n_nodes
 
+class CLFDataset(th.utils.data.Dataset):
+    def __init__(self, data: Sequence):
+        super().__init__()
+        self.d = data
+
+    def __getitem__(self, node_id):
+        item = self.d.get_tokens(node_id)
+        item['labels'] = self.d.y_gold(node_id)
+        neighbours = self.d.neighbours[node_id]
+        k = np.random.choice(neighbours, 1)
+        item = self.d.get_NB_tokens(item, k[0]) #! 采样2个一阶邻居； 或者从二阶中采样一个；
+        return item
+
+    def __len__(self):
+        return self.d.n_nodes
 
 class NP_Dataset(th.utils.data.Dataset):  # Map style
     def __init__(self, data: Sequence):
