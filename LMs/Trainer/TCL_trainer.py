@@ -229,7 +229,8 @@ class TCLTrainer():
             if cf.cache_dir is not None:
                 print(f'Save the finnal cl model in {cf.cache_dir}')
                 PLM.save_pretrained(cf.cache_dir)
-                th.save(self.model.state_dict(), uf.init_path(cf.cache_dir))
+                ckpt = f'{cf.cache_dir}{self.model}.ckpt'
+                th.save(self.model.state_dict(), uf.init_path(ckpt))
             else:
                 PLM.save_pretrained(cf.out_dir)
                 th.save(self.model.state_dict(), uf.init_path(cf.lm.ckpt))
