@@ -83,7 +83,11 @@ class CLFTrainer():
 
         training_args = TrainingArguments(
             output_dir=cf.out_dir,
+            evaluation_strategy='steps',
+            eval_steps=eval_steps,
+            save_strategy='steps',
             learning_rate=cf.lr, weight_decay=cf.weight_decay,
+            load_best_model_at_end=True,
             gradient_accumulation_steps=cf.grad_acc_steps,
             save_total_limit=None,
             report_to='wandb' if cf.wandb_on else None,
