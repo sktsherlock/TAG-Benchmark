@@ -7,22 +7,6 @@ from utils.function import init_random_state
 from torch_geometric.nn import GINConv, global_add_pool
 
 
-def compute_loss(logits, labels, loss_func, is_gold=None, pl_weight=0.5, is_augmented=False):
-    """
-    Combine two types of losses: (1-α)*MLE (CE loss on gold) + α*Pl_loss (CE loss on pseudo labels)
-    """
-    import torch as th
-
-    if is_augmented and ((n_pseudo := sum(~is_gold)) > 0):
-        deal_nan = lambda x: 0 if th.isnan(x) else x
-        mle_loss = deal_nan(loss_func(logits[is_gold], labels[is_gold]))
-        pl_loss = deal_nan(loss_func(logits[~is_gold], labels[~is_gold]))
-        loss = pl_weight * pl_loss + (1 - pl_weight) * mle_loss
-    else:
-        loss = loss_func(logits, labels)
-    return loss
-
-
 class TNPClassifier(PreTrainedModel):
     def __init__(self, model, n_labels, loss_func, dropout=0.0, seed=0, cla_bias=True):
         super().__init__(model.config)
@@ -43,7 +27,6 @@ class TNPClassifier(PreTrainedModel):
             labels = labels.squeeze()
         loss = self.loss_func(logits, labels)
         return TokenClassifierOutput(loss=loss, logits=logits)
-
 
 class BertClassifier(PreTrainedModel):
     def __init__(self, model, n_labels, loss_func, pseudo_label_weight=1, dropout=0.0, seed=0, cla_bias=True,
@@ -260,43 +243,3 @@ def infonce(anchor, sample, tau=0.2):
     loss = log_prob * pos_mask
     loss = loss.sum(dim=1) / pos_mask.sum(dim=1)
     return -loss.mean()
-
-
-def make_gin_conv(input_dim, out_dim):
-    return GINConv(nn.Sequential(nn.Linear(input_dim, out_dim), nn.ReLU(), nn.Linear(out_dim, out_dim)))
-
-
-class GConv(nn.Module):
-    """
-    GIN convolution module.
-    """
-
-    def __init__(self, input_dim, hidden_dim, num_layers):
-        super(GConv, self).__init__()
-        self.layers = nn.ModuleList()
-        self.batch_norms = nn.ModuleList()
-
-        for i in range(num_layers):
-            if i == 0:
-                self.layers.append(make_gin_conv(input_dim, hidden_dim))
-            else:
-                self.layers.append(make_gin_conv(hidden_dim, hidden_dim))
-            self.batch_norms.append(nn.BatchNorm1d(hidden_dim))
-
-        project_dim = hidden_dim * num_layers
-        self.project = torch.nn.Sequential(
-            nn.Linear(project_dim, project_dim),
-            nn.ReLU(inplace=True),
-            nn.Linear(project_dim, project_dim))
-
-    def forward(self, x, edge_index, batch):
-        z = x
-        zs = []
-        for conv, bn in zip(self.layers, self.batch_norms):
-            z = conv(z, edge_index)
-            z = F.relu(z)
-            z = bn(z)
-            zs.append(z)
-        gs = [global_add_pool(z, batch) for z in zs]
-        z, g = [torch.cat(x, dim=1) for x in [zs, gs]]
-        return z, g

@@ -16,6 +16,7 @@ from copy import deepcopy
 from torch_sparse import SparseTensor
 from torch_geometric.utils import to_undirected, dropout_adj
 from utils.data.OGB.arxiv import _tokenize_ogb_arxiv_datasets
+from utils.data.Amazon.Amazon_data import _tokenize_amazon_datasets
 
 def tokenize_text(cf):
     # = Tokenization on FSequence
@@ -69,6 +70,8 @@ def tokenize_graph(cf):
                     _tokenize_ogb_arxiv_datasets(d, g_info.labels)
                 else:
                     raise NotImplementedError
+            elif d.md['type'] == 'amazon':
+                _tokenize_amazon_datasets(d, g_info.labels)
             else:
                 raise NotImplementedError
             print(f'Tokenization finished on LOCAL_RANK #{cf.local_rank}')
@@ -90,6 +93,13 @@ def load_ogb_graph_structure_only(cf):
     labels = labels.squeeze().numpy()
     return g, labels, split_idx
 
+def load_amazon_graph_structure_only(cf):
+    import dgl
+    import random
+    from dgl.data.utils import _get_dgl_url, generate_mask_tensor
+    g = dgl.load_graphs("/home/data/yh/Data/Amazon-Books-Children.pt")[0][0]
+    labels = g.ndata['label'].squeeze().numpy()
+    return g, labels
 
 def load_TAG_info(cf):
     d = cf.data
@@ -99,12 +109,15 @@ def load_TAG_info(cf):
             # 根据data中的type来实现不同的图数据加载代码
             if d.md['type'] == 'ogb':
                 g, labels, split_idx = load_ogb_graph_structure_only(cf)
+                # Process and save supervision
+                splits = {**{f'{_}_x': split_idx[_].numpy() for _ in ['train', 'valid', 'test']}, 'labels': labels}
+                # g, splits = _subset_graph(g, cf, splits)
+                g_info = SN(splits=splits, labels=labels, n_nodes=g.num_nodes())
+            elif d.md['type'] == 'amazon':
+                g, labels = load_amazon_graph_structure_only(cf)
+                g_info = SN(labels=labels, n_nodes=g.num_nodes())
             else:
-                raise NotImplementedError # Todo
-            # Process and save supervision
-            splits = {**{f'{_}_x': split_idx[_].numpy() for _ in ['train', 'valid', 'test']}, 'labels': labels}
-            # g, splits = _subset_graph(g, cf, splits)
-            g_info = SN(splits=splits, labels=labels, n_nodes=g.num_nodes())
+                raise NotImplementedError #
             d.save_g_info(g_info)
             del g
         else:

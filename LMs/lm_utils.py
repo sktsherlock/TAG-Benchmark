@@ -53,10 +53,10 @@ class LMConfig(ModelConfig):
         """
 
         self._path_init()
-        self.wandb_init()
+        #self.wandb_init()
         self.logger = Logger(self)
         self.log = self.logger.log
-        self.wandb_log = self.logger.wandb_log
+        #self.wandb_log = self.logger.wandb_log
         self.log(self)
         self._exp_init()
         return self

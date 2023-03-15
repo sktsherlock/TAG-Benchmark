@@ -68,6 +68,7 @@ DB_PATH = f'{LM_PROJ_DIR}exp_db/'
 # ! Data Settings
 DATA_PATH = f'{MNT_DIR}data/'
 OGB_ROOT = f'{MNT_DIR}data/ogb/'
+AMAZON_ROOT = f'{MNT_DIR}data/amazon/'
 
 DATA_INFO = {
     'arxiv': {
@@ -81,12 +82,22 @@ DATA_INFO = {
         'data_root': f'{OGB_ROOT}ogbn_arxiv/',  # Default ogb download target path
         'raw_text_url': 'https://snap.stanford.edu/ogb/data/misc/ogbn_arxiv/titleabs.tsv.gz',
     },
+    'Children': {
+        'type': 'amazon',
+        'train_ratio': 0,  # Default (public) split
+        'n_labels': 40,
+        'n_nodes': 116811,
+        'amazon_name': 'Amazon-Children',
+        'raw_data_path': AMAZON_ROOT,  # Place to save raw data
+        'max_length': 512,  # Place to save raw data
+        'data_root': f'{AMAZON_ROOT}amazon_children/',  # Default ogb download target path
+    },
 }
 
 get_d_info = lambda x: DATA_INFO[x.split('_')[0]]
 
 DATASETS = list(DATA_INFO.keys())
-DEFAULT_DATASET = 'arxiv_TA'
+DEFAULT_DATASET = 'Children_TB'#'arxiv_TA'
 DEFAULT_D_INFO = get_d_info(DEFAULT_DATASET)
 
 METRIC = 'acc'

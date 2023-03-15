@@ -57,7 +57,7 @@ class Sequence():
         # ! Load sequence graph info which is shared by GNN and LMs
         cf = self.cf
         self.gi = g_info = load_TAG_info(cf)
-        self.__dict__.update(g_info.splits)
+        self.__dict__.update(g_info.splits) if cf.data.md['type'] == 'ogb' else self.__dict__
         self.n_nodes = g_info.n_nodes
         self.ndata.update({_: getattr(g_info, _) for _ in ['labels']})
         # ! LM phase

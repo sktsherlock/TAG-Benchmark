@@ -522,6 +522,10 @@ def main():
 
         metric = evaluate.load("accuracy")
 
+
+
+
+
         def compute_metrics(eval_preds):
             preds, labels = eval_preds
             # preds have the same shape as the labels, after the argmax(-1) has been calculated
@@ -532,8 +536,7 @@ def main():
             labels = labels[mask]
             preds = preds[mask]
             return metric.compute(predictions=preds, references=labels)
-
-    # Data collator
+ # Data collator
     # This one will take care of randomly masking the tokens.
     pad_to_multiple_of_8 = data_args.line_by_line and training_args.fp16 and not data_args.pad_to_max_length
     data_collator = DataCollatorForLanguageModeling(
