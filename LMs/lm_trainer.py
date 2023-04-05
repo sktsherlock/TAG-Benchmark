@@ -1,10 +1,12 @@
 from datasets import load_metric
-from transformers import AutoModel, EvalPrediction, TrainingArguments, Trainer, AutoTokenizer
+from transformers import AutoModel, EvalPrediction, TrainingArguments, Trainer, AutoTokenizer,BertModel
 import utils as uf
 from model import *
 from utils.data.datasets import *
 import torch as th
-
+from torch.utils.data import random_split
+import os
+os.environ["WANDB_DISABLED"] = "False"
 METRICS = {  # metric -> metric_path
     'accuracy': 'hf_accuracy.py',
     'f1score': 'hf_f1.py',
@@ -31,20 +33,42 @@ class LMTrainer():
         self.d = d = Sequence(cf := self.cf).init()
         gold_data = SeqGraphDataset(self.d)
         subset_data = lambda sub_idx: th.utils.data.Subset(gold_data, sub_idx)
-        self.datasets = {_: subset_data(getattr(d, f'{_}_x'))
-                         for _ in ['train', 'valid', 'test']}
+        if self.d.md['type'] == 'ogb':
+            self.datasets = {_: subset_data(getattr(d, f'{_}_x'))
+                             for _ in ['train', 'valid', 'test']}
+            train_steps = len(d.train_x) // cf.eq_batch_size + 1
+        elif self.d.md['type'] == 'amazon':
+            torch.manual_seed(0)
+            train_dataset, test = random_split(
+                dataset=range(self.d.n_nodes),
+                lengths=[93449, 23362],
+                generator=torch.Generator().manual_seed(0)
+            )
+            train, valid = random_split(
+                dataset=train_dataset,
+                lengths=[58406, 35043],
+                generator=torch.Generator().manual_seed(0)
+            )
+            self.datasets = {'train': subset_data(train),
+                             'valid': subset_data(valid),
+                             'test': subset_data(test),
+                             }
+            train_steps = len(train) // cf.eq_batch_size + 1
+        else:
+            raise('Not implement!')
+
         self.metrics = {m: load_metric(m_path) for m, m_path in METRICS.items()}
 
         # Finetune on dowstream tasks
         self.train_data = self.datasets['train']
-        train_steps = len(d.train_x) // cf.eq_batch_size + 1
+
         warmup_steps = int(cf.warmup_epochs * train_steps)
         eval_steps = cf.eval_patience // cf.eq_batch_size
 
         # ! Load bert and build classifier
         print(cf.pretrain_path)
-        model = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(
-            f'{cf.pretrain_path}')
+        #！For Debug
+        model = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(f'{cf.pretrain_path}')
         if cf.model == 'Distilbert':
             self.model = DistilBertClassifier(
                 model, cf.data.n_labels,

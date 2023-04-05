@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import torch as th
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer,BertTokenizer
 import utils.function as uf
 from utils.settings import *
 from tqdm import tqdm
@@ -17,6 +17,7 @@ def _tokenize_amazon_datasets(d, labels):
         text = pd.read_json(osp.join(d.data_root, f'{d.amazon_name}.json'))
         text.set_index(['node_id'], inplace=True)
         text = text['text']
+    #! For debug
     tokenizer = AutoTokenizer.from_pretrained(d.hf_model)
     tokenized = tokenizer(text.tolist(), padding='max_length', truncation=True, max_length=512,
                           return_token_type_ids=True).data

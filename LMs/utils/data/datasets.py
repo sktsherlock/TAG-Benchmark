@@ -50,7 +50,7 @@ class Sequence():
             'token_type_ids': SN(shape=(self.md['n_nodes'], self.md['max_length']), type=bool)
         }
         for k, info in self.info.items():
-            info.path = f'{self._token_folder}/{k}.npy'
+            info.path = f'{self._token_folder}{k}.npy'
         return
 
     def init(self):
@@ -64,7 +64,7 @@ class Sequence():
         tokenize_graph(self.cf)
         self._load_data_fields()
         self.device = cf.device  # if cf.local_rank<0 else th.device(cf.local_rank)
-        self.neighbours = self.get_neighbours()
+        #self.neighbours = self.get_neighbours()
 
         return self
 
@@ -123,7 +123,7 @@ class Sequence():
         for k in self.info:
             i = self.info[k]
             try:
-                self.ndata[k] = np.load(i.path)  # np.memmap(i.path, mode='r', dtype=i.type, shape=i.shape)
+                self.ndata[k] = np.load(i.path, allow_pickle=True)  # np.memmap(i.path, mode='r', dtype=i.type, shape=i.shape)
             except:
                 raise ValueError(f'Shape not match {i.shape}')
 

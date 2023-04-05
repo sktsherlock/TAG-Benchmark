@@ -43,7 +43,7 @@ class LMConfig(ModelConfig):
         self.epochs = 4
         self.verbose = 1
         self.device = None
-        self.wandb_on = False
+        self.wandb_on = True
         self.birth_time = uf.get_cur_time(t_format='%m_%d-%H_%M_%S')
         self._wandb = None
 
@@ -53,10 +53,10 @@ class LMConfig(ModelConfig):
         """
 
         self._path_init()
-        #self.wandb_init()
+        self.wandb_init()
         self.logger = Logger(self)
         self.log = self.logger.log
-        #self.wandb_log = self.logger.wandb_log
+        self.wandb_log = self.logger.wandb_log
         self.log(self)
         self._exp_init()
         return self
