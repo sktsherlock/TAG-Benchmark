@@ -169,7 +169,9 @@ class TCLTrainer():
         train_steps = len(d.train_x) // cf.eq_batch_size + 1
         warmup_steps = int(cf.warmup_epochs * train_steps)
         # ! Load Model for NP with no trainer
-        PLM = AutoModel.from_pretrained(cf.hf_model)
+        #PLM = AutoModel.from_pretrained(cf.hf_model)
+        PLM = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(
+            f'{cf.pretrain_path}')
         if cf.model == 'Distilbert':
             self.model = CL_Dis_Model(
                 PLM,
