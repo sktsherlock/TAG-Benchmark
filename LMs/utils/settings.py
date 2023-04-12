@@ -50,7 +50,7 @@ PROJ_DIR = osp.abspath(osp.dirname(__file__)).split('LMs')[0]
 LM_PROJ_DIR = osp.join(PROJ_DIR, 'LMs/')
 
 # Mount paths: kept in cloud and shared cross containers
-MS_USER = 'v-haoyan1'
+MS_USER = 'v-wzhuang'
 MNT_ROOT = f'/mnt/{MS_USER}/'
 # Mount path: to be shared
 MOUNTED = osp.exists(MNT_ROOT)
@@ -97,7 +97,7 @@ DATA_INFO = {
 get_d_info = lambda x: DATA_INFO[x.split('_')[0]]
 
 DATASETS = list(DATA_INFO.keys())
-DEFAULT_DATASET = 'Children_TB'#'arxiv_TA'
+DEFAULT_DATASET =  'arxiv_T' #'Children_TB'#'arxiv_TA'
 DEFAULT_D_INFO = get_d_info(DEFAULT_DATASET)
 
 METRIC = 'acc'

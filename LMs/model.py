@@ -34,11 +34,7 @@ class BertClassifier(PreTrainedModel):
         super().__init__(model.config)
         self.bert_encoder, self.loss_func = model, loss_func
         self.dropout = nn.Dropout(dropout)
-        self.feat_shrink = feat_shrink
         hidden_dim = model.config.hidden_size
-        if feat_shrink:
-            self.feat_shrink_layer = nn.Linear(model.config.hidden_size, int(feat_shrink), bias=cla_bias)
-            hidden_dim = int(feat_shrink)
         self.classifier = nn.Linear(hidden_dim, n_labels, bias=cla_bias)
         init_random_state(seed)
         self.pl_weight = pseudo_label_weight
@@ -49,8 +45,6 @@ class BertClassifier(PreTrainedModel):
         emb = self.dropout(outputs['hidden_states'][-1])  # outputs[0]=last hidden state
         # Use CLS Emb as sentence emb.
         cls_token_emb = emb.permute(1, 0, 2)[0]
-        if self.feat_shrink:
-            cls_token_emb = self.feat_shrink_layer(cls_token_emb)
         logits = self.classifier(cls_token_emb)
         if labels.shape[-1] == 1:
             labels = labels.squeeze()

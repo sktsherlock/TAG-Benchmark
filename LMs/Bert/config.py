@@ -55,9 +55,9 @@ class BertConfig(LMConfig):
             ),
         'TinyBert':
             SN(
-                hf_model='prajjwal1/bert-tiny',
+                hf_model='prajjwal1/bert-tiny', #huggingface name
                 father_model = 'Bert',
-                hidden_dim=128,
+                hidden_dim=128, #Small 128/ Base 768/ Large 1024
                 max_bsz=SN(  # Batch size for different device
                     train={12: 8, 16: 18, 24: 160, 32: 160},
                     inf={12: 150, 16: 200, 24: 10, 32: 800},
@@ -65,13 +65,9 @@ class BertConfig(LMConfig):
                 prt_lm={  # Initial LM configs
                     'arxiv': SN(
                         model='FtV1',
-                        cmd='--att_dropout=0.1 --cla_dropout=0.4 --dropout=0.3 --epochs=4 --eq_batch_size=36 --eval_patience=50000 --label_smoothing_factor=0.3 --load_best_model_at_end=T --lr=2e-05 --warmup_epochs=0.6',
-                        max_n_gpus=4,
                     ),
                     'products': SN(
                         model='FtV1',
-                        cmd='--lr=2e-05 --eq_batch_size=144 --weight_decay=0.01 --dropout=0.1 --att_dropout=0.1 --cla_dropout=0.1 --cla_bias=T --epochs=2 --warmup_epochs=0.2 --eval_patience=50000',
-                        max_n_gpus=8,
                     )
                 },
             ),

@@ -94,7 +94,6 @@ class LMTrainer():
                 dropout=cf.cla_dropout,
                 loss_func=th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction),
                 cla_bias=cf.cla_bias == 'T',
-                feat_shrink=cf.feat_shrink
             )
         if cf.local_rank <= 0:
             trainable_params = sum(

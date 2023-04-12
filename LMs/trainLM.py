@@ -17,3 +17,8 @@ if __name__ == "__main__":
     trainer.train()
     # trainer.train_notrainer()
     trainer.eval_and_save()
+
+# !传参数
+# 传数据
+# 传模型
+# 训练与测试
