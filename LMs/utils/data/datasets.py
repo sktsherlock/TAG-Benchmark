@@ -19,14 +19,13 @@ class Sequence():
         self.hf_model = cf.lm_md.hf_model
         self.father_model = cf.lm_md.father_model
         self.device = None
-        self.lm_emb_dim = self.cf.lm_md.hidden_dim if not self.cf.feat_shrink else int(self.cf.feat_shrink)
+        self.lm_emb_dim = self.cf.lm_md.hidden_dim
         self.name, process_mode = (_ := cf.dataset.split('_'))[0], _[1]  # e.g. name of "arxiv_TA" is "arxiv"
         self.process_mode = process_mode
         self.md = info_dict = DATA_INFO[self.name]
 
         self.n_labels = info_dict['n_labels']
         self.__dict__.update(info_dict)
-        self.subset_ratio = 1 if len(_) == 2 else float(_[2])
         self.cut_off = info_dict['cut_off'] if 'cut_off' in info_dict else 512
         self.ndata = {}
 
@@ -53,7 +52,7 @@ class Sequence():
             info.path = f'{self._token_folder}{k}.npy'
         return
 
-    def init(self):
+    def init(self, dpk=False):
         # ! Load sequence graph info which is shared by GNN and LMs
         cf = self.cf
         self.gi = g_info = load_TAG_info(cf) # g graph
@@ -65,6 +64,8 @@ class Sequence():
         self._load_data_fields()
         self.device = cf.device  # if cf.local_rank<0 else th.device(cf.local_rank)
         self.neighbours = self.get_neighbours()
+        if dpk:
+            self.dpk = np.load('/mnt/v-wzhuang/TAG-Benchmark/data/Deepwalk/arxiv/deepwalk_feat.npy')
 
         return self
 
@@ -161,6 +162,7 @@ class Sequence():
         item = {}
         item['attention_mask'] = _load('attention_mask')
         item['input_ids'] = th.IntTensor(np.array(self['input_ids'][node_id]).astype(np.int32))
+        # item['dpk'] = (np.array(self.dpk[node_id]))
         if self.hf_model not in ['distilbert-base-uncased', 'roberta-base']:
             item['token_type_ids'] = _load('token_type_ids')
         return item
@@ -183,6 +185,15 @@ class Sequence():
             item['nb_token_type_ids'] = _load('token_type_ids')
         return item
 
+    def get_DPK_tokens(self, node_id):
+        _load = lambda k: th.IntTensor(np.array(self.ndata[k][node_id]))
+        item = {}
+        item['attention_mask'] = _load('attention_mask')
+        item['input_ids'] = th.IntTensor(np.array(self['input_ids'][node_id]).astype(np.int32))
+        item['dpk'] = (np.array(self.dpk[node_id]))
+        if self.hf_model not in ['distilbert-base-uncased', 'roberta-base']:
+            item['token_type_ids'] = _load('token_type_ids')
+        return item
 
 class SeqGraphDataset(th.utils.data.Dataset):  # Map style
     def __init__(self, data: Sequence, mode=None):
@@ -211,6 +222,18 @@ class SeqCLDataset(th.utils.data.Dataset):
         neighbours = self.d.neighbours[node_id]
         k = np.random.choice(neighbours, 1)
         item = self.d.get_NB_tokens(item, k[0]) #! 采样2个一阶邻居； 或者从二阶中采样一个；
+        return item
+
+    def __len__(self):
+        return self.d.n_nodes
+
+class Seq_DK_Dataset(th.utils.data.Dataset):
+    def __init__(self, data: Sequence):
+        super().__init__()
+        self.d = data
+
+    def __getitem__(self, node_id):
+        item = self.d.get_DPK_tokens(node_id)
         return item
 
     def __len__(self):

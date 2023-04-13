@@ -277,6 +277,7 @@ def _tokenize_TRP_ogb_arxiv_datasets(d, labels):
                 Document_c.append(corpus[j[0]])
                 label.append(4)
             else:
+
                 # this is A->D->C->B
                 Document_a.append(' '.join(corpus[i].split(' ')[0:128]))
                 j = np.random.choice(neighbours_1[i], 1)
