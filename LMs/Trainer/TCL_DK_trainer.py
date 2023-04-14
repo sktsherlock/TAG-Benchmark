@@ -69,7 +69,7 @@ class TCL_DK_Trainer():
     def train_trainer(self):
         # ! Prepare data
         self.d = d = Sequence(cf := self.cf).init(dpk=True)
-        self.train_data = Seq_DK_Dataset(self.d)
+        self.train_data = DK_CL_Dataset(self.d)
 
         # Finetune on dowstream tasks
         train_steps = len(d.train_x) // cf.eq_batch_size + 1
