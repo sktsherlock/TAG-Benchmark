@@ -89,11 +89,6 @@ class CLModel(PreTrainedModel):
         hidden_dim = PLM.config.hidden_size
         self.text_encoder = PLM
 
-        self.Aggregate = torch.nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(inplace=True),
-            nn.BatchNorm1d(hidden_dim))
-
         self.project = torch.nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(inplace=True),
@@ -112,7 +107,7 @@ class CLModel(PreTrainedModel):
         )
 
         toplogy_emb = self.dropout(toplogy_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
-        toplogy_emb = self.Aggregate(toplogy_emb) #! To Update
+        # toplogy_emb = self.Aggregate(toplogy_emb) #! To Update
         # 10; 20->sum mean max -> 10 ->MLP -> batch id; 1-10; 20 *128 -> 20 * 128; 10 * 128;
 
         center_contrast_embeddings = self.project(center_node_emb)
