@@ -140,6 +140,7 @@ class LMConfig(ModelConfig):
         parser.add_argument("-inf_dir", "--inference_dir", default=None, type=str)
         parser.add_argument("-cache", "--cache_dir", default=None, type=str)
         parser.add_argument("-cl", "--cl_dir", default=None, type=str)
+        parser.add_argument("-fz", "--freeze", default=None, help='freeze control whether to freeze the lm model, its number means how many layers do not freezed.', type=int)
         return parser
 
     @property

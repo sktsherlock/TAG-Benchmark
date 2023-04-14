@@ -69,19 +69,25 @@ class LMTrainer():
         print(cf.pretrain_path)
         #！For Debug
         model = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(f'{cf.pretrain_path}')
+        #! Freeze the model.encoder layer if cf.freeze is not None
+        if cf.freeze is not None:
+            for param in model.parameters():
+                param.requires_grad = False
+            if cf.local_rank <= 0:
+                trainable_params = sum(
+                    p.numel() for p in model.parameters() if p.requires_grad
+                )
+                assert trainable_params == 0
+            for param in model.encoder.layer[-cf.freeze:].parameters():
+                param.requires_grad = True
+            if cf.local_rank <= 0:
+                trainable_params = sum(
+                    p.numel() for p in model.parameters() if p.requires_grad
+                )
+                print(f" Pass the freeze layer, the LM Encoder  parameters are {trainable_params}")
+
         if cf.model == 'Distilbert':
             self.model = DistilBertClassifier(
-                model, cf.data.n_labels,
-                dropout=cf.cla_dropout,
-                loss_func=th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction),
-                cla_bias=cf.cla_bias == 'T',
-                feat_shrink=cf.feat_shrink
-            )
-        elif cf.model == 'GPT2':
-            tokenizer = AutoTokenizer.from_pretrained(cf.hf_model)
-            tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-            model.resize_token_embeddings(len(tokenizer))
-            self.model = GPTClassifier(
                 model, cf.data.n_labels,
                 dropout=cf.cla_dropout,
                 loss_func=th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction),

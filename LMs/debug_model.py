@@ -61,3 +61,11 @@ print(f" bert Model parameters are {trainable_params}")
 AutoModel.from_pretrained('/home/data/yh/debug/') |                                | trainable_params: 4385920 = 之前的
 cls头被去掉了 
 """
+encoder = AutoModel.from_pretrained('prajjwal1/bert-tiny')
+print(encoder.config)
+trainable_params = sum(
+    p.numel() for p in encoder.parameters() if p.requires_grad
+)
+print(f" LM Model full learning parameters are {trainable_params}")
+
+
