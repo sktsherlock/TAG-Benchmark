@@ -202,7 +202,6 @@ class TCLTrainer():
         #PLM = AutoModel.from_pretrained(cf.hf_model)
         PLM = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(
             f'{cf.pretrain_path}')
-        if cf.model == 'Distilbert':
 
         self.model = CLModel(
                 PLM,
