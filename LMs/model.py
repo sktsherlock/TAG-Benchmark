@@ -82,39 +82,6 @@ class DistilBertClassifier(PreTrainedModel):
         return TokenClassifierOutput(loss=loss, logits=logits)
 
 
-class CLModel(PreTrainedModel):
-    def __init__(self, PLM, dropout=0.0):
-        super().__init__(PLM.config)
-        self.dropout = nn.Dropout(dropout)
-        hidden_dim = PLM.config.hidden_size
-        self.text_encoder = PLM
-
-        self.project = torch.nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(inplace=True),
-            nn.Linear(hidden_dim, hidden_dim))
-
-    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, node_id=None,
-                nb_input_ids=None, nb_attention_mask=None, nb_token_type_ids=None):
-        # Getting Center Node text features and its neighbours feature
-        center_node_outputs = self.text_encoder(
-            input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, output_hidden_states=True
-        )
-        center_node_emb = self.dropout(center_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
-
-        toplogy_node_outputs = self.text_encoder(
-            input_ids=nb_input_ids, attention_mask=nb_attention_mask, token_type_ids=nb_token_type_ids, output_hidden_states=True
-        )
-
-        toplogy_emb = self.dropout(toplogy_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
-        # toplogy_emb = self.Aggregate(toplogy_emb) #! To Update
-        # 10; 20->sum mean max -> 10 ->MLP -> batch id; 1-10; 20 *128 -> 20 * 128; 10 * 128;
-
-        center_contrast_embeddings = self.project(center_node_emb)
-        toplogy_contrast_embeddings = self.project(toplogy_emb)
-
-        return center_contrast_embeddings, toplogy_contrast_embeddings
-
 class CLFModel(PreTrainedModel):
     def __init__(self, model, n_labels, loss_func, dropout=0.0, alpha=0.5):
         super().__init__(model.config)

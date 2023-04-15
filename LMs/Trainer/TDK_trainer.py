@@ -25,7 +25,7 @@ class CustomTrainer(Trainer):
         return  loss
 
 class CL_DK_Model(PreTrainedModel):
-    def __init__(self, PLM, dropout=0.0):
+    def __init__(self, PLM, dropout=0.0, cl_dim=128):
         super().__init__(PLM.config)
         self.dropout = nn.Dropout(dropout)
         hidden_dim = PLM.config.hidden_size
@@ -34,33 +34,9 @@ class CL_DK_Model(PreTrainedModel):
         self.project = torch.nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(inplace=True),
-            nn.Linear(hidden_dim, 128))
+            nn.Linear(hidden_dim, cl_dim))
 
-    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, node_id=None, dpk=None):
-        # Getting Center Node text features and its neighbours feature
-        center_node_outputs = self.text_encoder(
-            input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, output_hidden_states=True
-        )
-        center_node_emb = self.dropout(center_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
-
-
-        center_contrast_embeddings = self.project(center_node_emb)
-
-        return center_contrast_embeddings, dpk
-
-class CL_DK_Dis_Model(PreTrainedModel):
-    def __init__(self, PLM, dropout=0.0):
-        super().__init__(PLM.config)
-        self.dropout = nn.Dropout(dropout)
-        hidden_dim = PLM.config.hidden_size
-        self.text_encoder = PLM
-
-        self.project = torch.nn.Sequential(
-            nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU(inplace=True),
-            nn.Linear(hidden_dim, 128))
-
-    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, node_id=None, dpk=None):
+    def forward(self, input_ids=None, attention_mask=None, dpk=None):
         # Getting Center Node text features and its neighbours feature
         center_node_outputs = self.text_encoder(
             input_ids=input_ids, attention_mask=attention_mask, output_hidden_states=True
@@ -92,13 +68,7 @@ class TDK_Trainer():
         #PLM = AutoModel.from_pretrained(cf.hf_model)
         PLM = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(
             f'{cf.pretrain_path}')
-        if cf.model == 'Distilbert':
-            self.model = CL_DK_Dis_Model(
-                PLM,
-                dropout=cf.cla_dropout,
-            )
-        else:
-            self.model = CL_DK_Model(
+        self.model = CL_DK_Model(
                 PLM,
                 dropout=cf.cla_dropout,
             )
@@ -110,9 +80,6 @@ class TDK_Trainer():
         if cf.model == 'Distilbert':
             self.model.config.dropout = cf.dropout
             self.model.config.attention_dropout = cf.att_dropout
-        elif cf.model == 'GPT2':
-            self.model.config.attn_pdrop = cf.att_dropout
-            self.model.config.embd_pdrop = cf.dropout
         else:
             self.model.config.hidden_dropout_prob = cf.dropout
             self.model.config.attention_probs_dropout_prob = cf.att_dropout

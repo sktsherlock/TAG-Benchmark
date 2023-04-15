@@ -129,6 +129,7 @@ class LMConfig(ModelConfig):
         parser.add_argument("-cla_bias", "--cla_bias", default='T', help='Classification model bias')
         parser.add_argument("-wmp", "--warmup_epochs", default=0.2, type=float) #0.5 1.0 0.75
         parser.add_argument("-ef", "--eval_patience", default=50000, type=int)
+        parser.add_argument("-cl", "--cl_dim", default=128, type=int, help='The dimension of the contrastive space')
         parser.add_argument("-lsf", "--label_smoothing_factor", default=0.1, type=float)
         parser.add_argument("-ce", "--ce_reduction", default='mean')
         # parser.add_argument("-feat_shrink", "--feat_shrink", default=None, type=str)

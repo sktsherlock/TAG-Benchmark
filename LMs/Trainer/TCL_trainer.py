@@ -16,6 +16,36 @@ METRICS = {  # metric -> metric_path
 
 }
 
+class CLModel(PreTrainedModel):
+    def __init__(self, PLM, dropout=0.0, cl_dim=128):
+        super().__init__(PLM.config)
+        self.dropout = nn.Dropout(dropout)
+        hidden_dim = PLM.config.hidden_size
+        self.text_encoder = PLM
+
+        self.project = torch.nn.Sequential(
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_dim, cl_dim))
+
+    def forward(self, input_ids=None, attention_mask=None, nb_input_ids=None, nb_attention_mask=None):
+        # Getting Center Node text features and its neighbours feature
+        center_node_outputs = self.text_encoder(
+            input_ids=input_ids, attention_mask=attention_mask, output_hidden_states=True
+        )
+        center_node_emb = self.dropout(center_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
+
+        toplogy_node_outputs = self.text_encoder(
+            input_ids=nb_input_ids, attention_mask=nb_attention_mask, output_hidden_states=True
+        )
+
+        toplogy_emb = self.dropout(toplogy_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
+
+        center_contrast_embeddings = self.project(center_node_emb)
+        toplogy_contrast_embeddings = self.project(toplogy_emb)
+
+        return center_contrast_embeddings, toplogy_contrast_embeddings
+
 class CustomTrainer(Trainer):
     def compute_loss(self, model, inputs):
         # forward pass
@@ -173,14 +203,11 @@ class TCLTrainer():
         PLM = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(
             f'{cf.pretrain_path}')
         if cf.model == 'Distilbert':
-            self.model = CL_Dis_Model(
+
+        self.model = CLModel(
                 PLM,
                 dropout=cf.cla_dropout,
-            )
-        else:
-            self.model = CLModel(
-                PLM,
-                dropout=cf.cla_dropout,
+                cl_dim=cf.cl_dim,
             )
         if cf.local_rank <= 0:
             trainable_params = sum(
