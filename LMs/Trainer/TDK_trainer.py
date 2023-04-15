@@ -39,7 +39,7 @@ class CL_DK_Model(PreTrainedModel):
     def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, node_id=None, dpk=None):
         # Getting Center Node text features and its neighbours feature
         center_node_outputs = self.text_encoder(
-            input_ids=input_ids, attention_mask=attention_mask, output_hidden_states=True
+            input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, output_hidden_states=True
         )
         center_node_emb = self.dropout(center_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
 
@@ -48,7 +48,7 @@ class CL_DK_Model(PreTrainedModel):
 
         return center_contrast_embeddings, dpk
 
-class Multi_Model(PreTrainedModel):
+class CL_DK_Dis_Model(PreTrainedModel):
     def __init__(self, PLM, dropout=0.0):
         super().__init__(PLM.config)
         self.dropout = nn.Dropout(dropout)
@@ -60,25 +60,15 @@ class Multi_Model(PreTrainedModel):
             nn.ReLU(inplace=True),
             nn.Linear(hidden_dim, 128))
 
-    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, node_id=None,
-                nb_input_ids=None, nb_attention_mask=None, nb_token_type_ids=None, dpk=None):
+    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, node_id=None, dpk=None):
         # Getting Center Node text features and its neighbours feature
         center_node_outputs = self.text_encoder(
-            input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, output_hidden_states=True
+            input_ids=input_ids, attention_mask=attention_mask, output_hidden_states=True
         )
         center_node_emb = self.dropout(center_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
-
-        toplogy_node_outputs = self.text_encoder(
-            input_ids=nb_input_ids, attention_mask=nb_attention_mask, token_type_ids=nb_token_type_ids, output_hidden_states=True
-        )
-
-        toplogy_emb = self.dropout(toplogy_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
-
-
         center_contrast_embeddings = self.project(center_node_emb)
-        toplogy_contrast_embeddings = self.project(toplogy_emb)
 
-        return center_contrast_embeddings, toplogy_contrast_embeddings, dpk
+        return center_contrast_embeddings, dpk
 
 class TDK_Trainer():
     def __init__(self, cf):
@@ -103,7 +93,7 @@ class TDK_Trainer():
         PLM = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(
             f'{cf.pretrain_path}')
         if cf.model == 'Distilbert':
-            self.model = CL_DK_Model(
+            self.model = CL_DK_Dis_Model(
                 PLM,
                 dropout=cf.cla_dropout,
             )
