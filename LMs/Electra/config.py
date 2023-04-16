@@ -17,7 +17,7 @@ class ElectraConfig(LMConfig):
                 father_model='Electra',
                 hidden_dim=256,
                 max_bsz=SN(  # Batch size for different device
-                    train={12: 8, 16: 40, 24: 9, 32: 80, 40: 18, 70: 48},
+                    train={12: 8, 16: 40, 24: 9, 32: 100, 40: 18, 70: 48},
                     inf={12: 150, 16: 350, 24: 150, 32: 700, 40: 300, 70: 560},
                 ),
                 prt_lm={  # Initial LM configs
