@@ -17,7 +17,7 @@ class Distilbert(LMConfig):
                 hidden_dim=768,
                 father_model='Distilbert',
                 max_bsz=SN(  # Batch size for different device
-                    train={12: 8, 16: 12, 24: 60, 32: 80},
+                    train={12: 8, 16: 12, 24: 60, 32: 100},
                     inf={12: 150, 16: 200, 24: 300, 32: 512},
                 ),
                 prt_lm={  # Initial LM configs
