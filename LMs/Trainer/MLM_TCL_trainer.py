@@ -1,10 +1,11 @@
 import wandb
 from datasets import load_metric
-from transformers import AutoModel, EvalPrediction, TrainingArguments, Trainer, AutoTokenizer
+from transformers import AutoModel, EvalPrediction, TrainingArguments, Trainer, AutoTokenizer, DataCollatorForLanguageModeling
 import utils as uf
 from model import *
 from utils.data.datasets import *
 import torch as th
+from datasets import load_dataset
 
 METRICS = {  # metric -> metric_path
     'accuracy': 'hf_accuracy.py',
@@ -203,23 +204,6 @@ class TCLTrainer():
         PLM = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(
             f'{cf.pretrain_path}')
 
-        #! Freeze the model.encoder layer if cf.freeze is not None
-        if cf.freeze is not None:
-            for param in PLM.parameters():
-                param.requires_grad = False
-            if cf.local_rank <= 0:
-                trainable_params = sum(
-                    p.numel() for p in PLM.parameters() if p.requires_grad
-                )
-                assert trainable_params == 0
-            for param in PLM.encoder.layer[-cf.freeze:].parameters():
-                param.requires_grad = True
-            if cf.local_rank <= 0:
-                trainable_params = sum(
-                    p.numel() for p in PLM.parameters() if p.requires_grad
-                )
-                print(f" Pass the freeze layer, the LM Encoder  parameters are {trainable_params}")
-
         self.model = CLModel(
                 PLM,
                 dropout=cf.cla_dropout,
@@ -245,6 +229,46 @@ class TCLTrainer():
             cf.grad_acc_steps = cf.grad_steps
             cf.batch_size = cf.per_device_bsz
 
+        #! Datacollator
+        data_files = {}
+        data_files['train'] = osp.join(d.data_root, 'ogbn-arxiv.txt')
+        raw_datasets = load_dataset(
+            'text',
+            data_files=data_files,
+            cache_dir=cf.cache_dir,
+        )
+        tokenizer = AutoTokenizer.from_pretrained(cf.d.hf_model)
+
+        data_collator = DataCollatorForLanguageModeling(
+            tokenizer=tokenizer,
+            mlm_probability=cf.mlm_probability,
+        )
+
+        def tokenize_function(examples):
+            # Remove empty lines
+            examples[text_column_name] = [
+                line for line in examples[text_column_name] if len(line) > 0 and not line.isspace()
+            ]
+            return tokenizer(
+                examples[text_column_name],
+                padding='max_length',
+                truncation=True,
+                max_length=512,
+                return_special_tokens_mask=True,
+            )
+
+        column_names = raw_datasets["train"].column_names
+        text_column_name = "text" if "text" in column_names else column_names[0]
+        tokenized_datasets = raw_datasets.map(
+            tokenize_function,
+            batched=True,
+            remove_columns=[text_column_name],
+            load_from_cache_file= True,
+            desc="Running tokenizer on dataset line_by_line",
+        )
+
+        train_dataset = tokenized_datasets["train"]
+
         training_args = TrainingArguments(
             output_dir=cf.out_dir,
             learning_rate=cf.lr, weight_decay=cf.weight_decay,
@@ -267,6 +291,7 @@ class TCLTrainer():
             model=self.model,
             args=training_args,
             train_dataset=self.train_data,
+            data_collator=data_collator,
         )
         self.trainer.train()
 

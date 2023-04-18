@@ -65,9 +65,25 @@ class TDK_Trainer():
         train_steps = len(d.train_x) // cf.eq_batch_size + 1
         warmup_steps = int(cf.warmup_epochs * train_steps)
         # ! Load Model for NP with no trainer
-        #PLM = AutoModel.from_pretrained(cf.hf_model)
         PLM = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(
             f'{cf.pretrain_path}')
+        #! Freeze the model.encoder layer if cf.freeze is not None
+        if cf.freeze is not None:
+            for param in PLM.parameters():
+                param.requires_grad = False
+            if cf.local_rank <= 0:
+                trainable_params = sum(
+                    p.numel() for p in PLM.parameters() if p.requires_grad
+                )
+                assert trainable_params == 0
+            for param in PLM.encoder.layer[-cf.freeze:].parameters():
+                param.requires_grad = True
+            if cf.local_rank <= 0:
+                trainable_params = sum(
+                    p.numel() for p in PLM.parameters() if p.requires_grad
+                )
+                print(f" Pass the freeze layer, the LM Encoder  parameters are {trainable_params}")
+
         self.model = CL_DK_Model(
                 PLM,
                 dropout=cf.cla_dropout,
