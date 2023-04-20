@@ -76,7 +76,6 @@ def tokenize_graph(cf):
                 raise NotImplementedError
             print(f'Tokenization finished on LOCAL_RANK #{cf.local_rank}')
         else:
-            # If not main worker (i.e. Local_rank!=0), wait until data is processed and load
             print(f'Waiting for tokenization on LOCAL_RANK #{cf.local_rank}')
             while not d.is_processed('token'):
                 time.sleep(2)  # Check if processed every 2 seconds

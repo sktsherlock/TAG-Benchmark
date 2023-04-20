@@ -142,6 +142,11 @@ class LMConfig(ModelConfig):
         parser.add_argument("-cache", "--cache_dir", default=None, type=str)
         parser.add_argument("-cl", "--cl_dir", default=None, type=str)
         parser.add_argument("-fz", "--freeze", default=None, help='freeze control whether to freeze the lm model, its number means how many layers do not freezed.', type=int)
+        #! Add the lora factors
+        parser.add_argument("-lora", "--apply_lora", default=False, type=bool, help='Whether to apply LoRA or not.')
+        parser.add_argument("-lora_a", "--lora_alpha", default=None, type=int, help='LoRA alpha.')
+        parser.add_argument("--lora_r", default=None, type=int, help='LoRA r.')
+        parser.add_argument("--lora_path", default=None, type=str, help='The file path of LoRA parameters.')
         return parser
 
     @property

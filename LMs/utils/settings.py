@@ -85,19 +85,18 @@ DATA_INFO = {
     'Children': {
         'type': 'amazon',
         'train_ratio': 0,  # Default (public) split
-        'n_labels': 40,
-        'n_nodes': 116811,
+        'n_labels': 24,
+        'n_nodes': 125447,
         'amazon_name': 'Amazon-Children',
-        'raw_data_path': AMAZON_ROOT,  # Place to save raw data
         'max_length': 512,  # Place to save raw data
-        'data_root': f'{AMAZON_ROOT}amazon_children/',  # Default ogb download target path
+        'data_root': f'{AMAZON_ROOT}Books/Children/',  # Default ogb download target path
     },
 }
 
 get_d_info = lambda x: DATA_INFO[x.split('_')[0]]
 
 DATASETS = list(DATA_INFO.keys())
-DEFAULT_DATASET =  'arxiv_T' #'Children_TB'#'arxiv_TA'
+DEFAULT_DATASET =  'Children_DT' #'Children_TB'#'arxiv_TA'
 DEFAULT_D_INFO = get_d_info(DEFAULT_DATASET)
 
-METRIC = 'acc'
+
