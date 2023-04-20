@@ -58,7 +58,6 @@ class LMConfig(ModelConfig):
         self.log = self.logger.log
         self.wandb_log = self.logger.wandb_log
         self.log(self)
-        self._exp_init()
         return self
 
     para_prefix = {'dataset': '',
@@ -89,12 +88,6 @@ class LMConfig(ModelConfig):
                   ckpt=f'{lm_folder}/{model}.ckpt',
                   result=f'{lm_folder}/{model}.result')
 
-    def _exp_init(self):
-        super()._exp_init()  # will initialize the data
-        # ! Batch_size Setting
-        max_bsz = self.md.max_bsz
-        self.batch_size, self.grad_acc_steps = uf.calc_bsz_grad_acc(self.eq_batch_size, max_bsz.train, SV_INFO)
-        self.inf_batch_size = uf.get_max_batch_size(SV_INFO.gpu_mem, max_bsz.inf)
 
     def _data_args_init(self):
         # Dataset

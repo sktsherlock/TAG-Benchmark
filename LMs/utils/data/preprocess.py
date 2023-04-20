@@ -18,31 +18,6 @@ from torch_geometric.utils import to_undirected, dropout_adj
 from utils.data.OGB.arxiv import _tokenize_ogb_arxiv_datasets
 from utils.data.Amazon.Amazon_data import _tokenize_amazon_datasets
 
-def tokenize_text(cf):
-    # = Tokenization on FSequence
-    full_dict = deepcopy(cf.model_conf)
-    full_dict['dataset'] = '_'.join(full_dict['dataset'].split('_')[:2])
-    full_cf = cf.__class__(SN(**full_dict)).init()
-    d = full_cf.data
-    if not d.is_processed('token'):
-        if cf.local_rank <= 0:
-            # ! Load full-graph
-            print(f'Processing data on LOCAL_RANK #{cf.local_rank}...')
-            g_info = load_TAG_info(full_cf)
-            print(f'Loaded graph structure, start tokenization...')
-            _tokenize_ogb_arxiv_datasets(d, g_info.labels)
-            print(f'Tokenization finished on LOCAL_RANK #{cf.local_rank}')
-        else:
-            # If not main worker (i.e. Local_rank!=0), wait until data is processed and load
-            print(f'Waiting for tokenization on LOCAL_RANK #{cf.local_rank}')
-            while not d.is_processed('token'):
-                time.sleep(2)  # Check if processed every 2 seconds
-            print(f'Detected processed data, LOCAL_RANK #{cf.local_rank} start loading!')
-            time.sleep(5)  # Wait for file write for 5 seconds
-    else:
-        cf.log(f'Found processed {cf.dataset}.')
-
-
 def plot_length_distribution(node_text, tokenizer, g):
     sampled_ids = np.random.permutation(g.nodes())[:10000]
     get_text = lambda n: node_text.iloc[n]['text'].tolist()
@@ -51,7 +26,6 @@ def plot_length_distribution(node_text, tokenizer, g):
     pd.Series([len(_) for _ in tokenized]).hist(bins=20)
     import matplotlib.pyplot as plt
     plt.show()
-
 
 def tokenize_graph(cf):
     # = Tokenization on Full Graph
