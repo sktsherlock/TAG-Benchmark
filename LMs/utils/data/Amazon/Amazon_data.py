@@ -7,19 +7,21 @@ from utils.settings import *
 from tqdm import tqdm
 from utils.function.os_utils import mkdir_p
 
-def _tokenize_amazon_datasets(d):
+def _tokenize_amazon_datasets(d, labels):
     #! 创建目录
-    if not osp.exists(osp.join(d.data_root, f'{d.amazon_name}.json')):
+    if not osp.exists(osp.join(d.data_root, f'{d.amazon_name}.csv')):
         mkdir_p(d.data_root)
         raise{'Please input'}
     #! Tokenize the data
     else:
-        text = pd.read_json(osp.join(d.data_root, f'{d.amazon_name}.json'))
-        text.set_index(['node_id'], inplace=True)
+        text = pd.read_csv(osp.join(d.data_root, f'{d.amazon_name}.csv'))
+        # text['len'] = text.apply(lambda x: len(x['text'].split(' ')), axis=1)
+        # text['len'].describe()
         text = text['text']
+        # Look at
     #! For debug
     tokenizer = AutoTokenizer.from_pretrained(d.hf_model)
-    tokenized = tokenizer(text.tolist(), padding='max_length', truncation=True, max_length=512,
+    tokenized = tokenizer(text.tolist(), padding='max_length', truncation=True, max_length=d.max_length,
                           return_token_type_ids=True).data
     mkdir_p(d._token_folder)
     for k in tokenized:

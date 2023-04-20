@@ -18,6 +18,7 @@ from torch_geometric.utils import to_undirected, dropout_adj
 from utils.data.OGB.arxiv import _tokenize_ogb_arxiv_datasets
 from utils.data.Amazon.Amazon_data import _tokenize_amazon_datasets
 
+
 def plot_length_distribution(node_text, tokenizer, g):
     sampled_ids = np.random.permutation(g.nodes())[:10000]
     get_text = lambda n: node_text.iloc[n]['text'].tolist()
@@ -26,6 +27,7 @@ def plot_length_distribution(node_text, tokenizer, g):
     pd.Series([len(_) for _ in tokenized]).hist(bins=20)
     import matplotlib.pyplot as plt
     plt.show()
+
 
 def tokenize_graph(cf):
     # = Tokenization on Full Graph
@@ -50,6 +52,7 @@ def tokenize_graph(cf):
                 raise NotImplementedError
             print(f'Tokenization finished on LOCAL_RANK #{cf.local_rank}')
         else:
+            # If not main worker (i.e. Local_rank!=0), wait until data is processed and load
             print(f'Waiting for tokenization on LOCAL_RANK #{cf.local_rank}')
             while not d.is_processed('token'):
                 time.sleep(2)  # Check if processed every 2 seconds
@@ -57,6 +60,20 @@ def tokenize_graph(cf):
             time.sleep(5)  # Wait for file write for 5 seconds
     else:
         cf.log(f'Found processed {cf.dataset}.')
+
+def split_graph(nodes_num, train_ratio, val_ratio):
+
+    np.random.seed(42)
+    indices = np.random.permutation(nodes_num)
+    train_size = int(nodes_num * train_ratio)
+    val_size = int(nodes_num * val_ratio)
+
+    train_ids = indices[:train_size]
+    val_ids = indices[train_size:train_size+val_size]
+    test_ids = indices[train_size+val_size:]
+
+    return train_ids, val_ids, test_ids
+
 
 def load_ogb_graph_structure_only(cf):
     from ogb.nodeproppred import DglNodePropPredDataset
@@ -70,9 +87,10 @@ def load_amazon_graph_structure_only(cf):
     import dgl
     import random
     from dgl.data.utils import _get_dgl_url, generate_mask_tensor
-    g = dgl.load_graphs("/home/data/yh/Data/Amazon-Books-Children.pt")[0][0]
-    labels = g.ndata['label'].squeeze().numpy()
-    return g, labels
+    g = dgl.load_graphs(f"{cf.data.data_root}{cf.data.amazon_name}.pt")[0][0]
+    labels = g.ndata['label'].numpy()
+    split_idx = split_graph(g.num_nodes(), 0.6, 0.2)
+    return g, labels, split_idx
 
 def load_TAG_info(cf):
     d = cf.data
@@ -87,8 +105,9 @@ def load_TAG_info(cf):
                 # g, splits = _subset_graph(g, cf, splits)
                 g_info = SN(splits=splits, labels=labels, n_nodes=g.num_nodes())
             elif d.md['type'] == 'amazon':
-                g, labels = load_amazon_graph_structure_only(cf)
-                g_info = SN(labels=labels, n_nodes=g.num_nodes())
+                g, labels, split_idx = load_amazon_graph_structure_only(cf)
+                splits = {'train_x': split_idx[0], 'valid_x': split_idx[1], 'test_x': split_idx[2]}
+                g_info = SN(splits=splits, labels=labels, n_nodes=g.num_nodes())
             else:
                 raise NotImplementedError #
             d.save_g_info(g_info)

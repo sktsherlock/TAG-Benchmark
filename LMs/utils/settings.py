@@ -88,7 +88,7 @@ DATA_INFO = {
         'n_labels': 24,
         'n_nodes': 125447,
         'amazon_name': 'Books-Children',
-        'max_length': 512,  # Place to save raw data
+        'max_length': 256,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Books/Children/',  # Default ogb download target path
     },
 }
