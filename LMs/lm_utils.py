@@ -58,6 +58,7 @@ class LMConfig(ModelConfig):
         self.log = self.logger.log
         self.wandb_log = self.logger.wandb_log
         self.log(self)
+        self._exp_init()
         return self
 
     para_prefix = {'dataset': '',
@@ -88,6 +89,8 @@ class LMConfig(ModelConfig):
                   ckpt=f'{lm_folder}/{model}.ckpt',
                   result=f'{lm_folder}/{model}.result')
 
+    def _exp_init(self):
+        super()._exp_init()  # will initialize the data
 
     def _data_args_init(self):
         # Dataset
