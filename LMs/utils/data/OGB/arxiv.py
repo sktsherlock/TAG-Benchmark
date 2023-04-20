@@ -77,7 +77,7 @@ def _tokenize_ogb_arxiv_datasets(d, labels):
         }
         # Merge title and abstract
         data['text'] = data.apply(text_func[d.process_mode], axis=1)
-        data['text'] = data.apply(lambda x: ' '.join(x['text'].split(' ')[:d.cut_off]), axis=1)
+        data['text'] = data.apply(lambda x: ' '.join(x['text'].split(' ')[:d.max_length]), axis=1)
         data['len'] = data.apply(lambda x: len(x['text'].split(' ')), axis=1)
 
         return data['text'], data['len']

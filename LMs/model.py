@@ -28,20 +28,19 @@ class TNPClassifier(PreTrainedModel):
         loss = self.loss_func(logits, labels)
         return TokenClassifierOutput(loss=loss, logits=logits)
 
+
 class BertClassifier(PreTrainedModel):
-    def __init__(self, model, n_labels, loss_func, pseudo_label_weight=1, dropout=0.0, seed=0, cla_bias=True,
-                 feat_shrink=''):
+    def __init__(self, model, n_labels, loss_func, dropout=0.0, seed=0, cla_bias=True):
         super().__init__(model.config)
         self.bert_encoder, self.loss_func = model, loss_func
         self.dropout = nn.Dropout(dropout)
         hidden_dim = model.config.hidden_size
         self.classifier = nn.Linear(hidden_dim, n_labels, bias=cla_bias)
         init_random_state(seed)
-        self.pl_weight = pseudo_label_weight
 
-    def forward(self, input_ids=None, attention_mask=None, token_type_ids=None, labels=None):
+    def forward(self, input_ids=None, attention_mask=None, labels=None):
         # Extract outputs from the model
-        outputs = self.bert_encoder(input_ids, attention_mask, token_type_ids, output_hidden_states=True)
+        outputs = self.bert_encoder(input_ids, attention_mask, output_hidden_states=True)
         emb = self.dropout(outputs['hidden_states'][-1])  # outputs[0]=last hidden state
         # Use CLS Emb as sentence emb.
         cls_token_emb = emb.permute(1, 0, 2)[0]
@@ -86,12 +85,12 @@ class CLFModel(PreTrainedModel):
     def __init__(self, model, n_labels, loss_func, dropout=0.0, alpha=0.5):
         super().__init__(model.config)
         self.dropout = nn.Dropout(dropout)
-        #! 从model中加载PLM与Aggregate
+        # ! 从model中加载PLM与Aggregate
         self.text_encoder = model.text_encoder
         self.Aggregate = model.Aggregate
-        self.alpha = alpha # for mixup
+        self.alpha = alpha  # for mixup
         hidden_dim = self.text_encoder.config.hidden_size
-        self.loss_func =  loss_func
+        self.loss_func = loss_func
 
         self.classifier = nn.Linear(hidden_dim, n_labels, bias=True)
         self.MLP = torch.nn.Sequential(
@@ -108,19 +107,21 @@ class CLFModel(PreTrainedModel):
         center_node_emb = self.dropout(center_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
 
         toplogy_node_outputs = self.text_encoder(
-            input_ids=nb_input_ids, attention_mask=nb_attention_mask, token_type_ids=nb_token_type_ids, output_hidden_states=True
+            input_ids=nb_input_ids, attention_mask=nb_attention_mask, token_type_ids=nb_token_type_ids,
+            output_hidden_states=True
         )
 
         toplogy_emb = self.dropout(toplogy_node_outputs['hidden_states'][-1]).permute(1, 0, 2)[0]
-        toplogy_emb = self.Aggregate(toplogy_emb) #! To Update
+        toplogy_emb = self.Aggregate(toplogy_emb)  # ! To Update
 
-        text_embedding = (1 - self.alpha) * toplogy_emb + self.alpha * center_node_emb # mixup
+        text_embedding = (1 - self.alpha) * toplogy_emb + self.alpha * center_node_emb  # mixup
         text_embedding = self.MLP(text_embedding)
         logits = self.classifier(text_embedding)
         if labels.shape[-1] == 1:
             labels = labels.squeeze()
         loss = self.loss_func(logits, labels)
         return TokenClassifierOutput(loss=loss, logits=logits)
+
 
 class CL_Dis_Model(PreTrainedModel):
     def __init__(self, PLM, dropout=0.0):
@@ -153,6 +154,7 @@ class CL_Dis_Model(PreTrainedModel):
 
         return center_contrast_embeddings, toplogy_contrast_embeddings
 
+
 class BertEmbInfModel(PreTrainedModel):
     def __init__(self, model):
         super().__init__(model.config)
@@ -161,11 +163,13 @@ class BertEmbInfModel(PreTrainedModel):
     @torch.no_grad()
     def forward(self, input_ids=None, attention_mask=None, token_type_ids=None):
         # Extract outputs from the model
-        outputs = self.bert_encoder(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids, output_hidden_states=True)
+        outputs = self.bert_encoder(input_ids=input_ids, attention_mask=attention_mask, token_type_ids=token_type_ids,
+                                    output_hidden_states=True)
         emb = outputs['hidden_states'][-1]  # Last layer
         # Use CLS Emb as sentence emb.
         node_cls_emb = emb.permute(1, 0, 2)[0]
         return TokenClassifierOutput(logits=node_cls_emb)
+
 
 class DistillBertEmbInfModel(PreTrainedModel):
     def __init__(self, model):
@@ -180,6 +184,7 @@ class DistillBertEmbInfModel(PreTrainedModel):
         # Use CLS Emb as sentence emb.
         node_cls_emb = emb.permute(1, 0, 2)[0]
         return TokenClassifierOutput(logits=node_cls_emb)
+
 
 def _similarity(h1: torch.Tensor, h2: torch.Tensor):
     h1 = F.normalize(h1)

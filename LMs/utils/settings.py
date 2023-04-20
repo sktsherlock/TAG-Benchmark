@@ -91,12 +91,21 @@ DATA_INFO = {
         'max_length': 256,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Books/Children/',  # Default ogb download target path
     },
+    'History': {
+        'type': 'amazon',
+        'train_ratio': 0,  # Default (public) split
+        'n_labels': 13,
+        'n_nodes': 41551,
+        'amazon_name': 'Books-History',
+        'max_length': 256,  # Place to save raw data
+        'data_root': f'{AMAZON_ROOT}Books/History/',  # Default ogb download target path
+    },
 }
 
 get_d_info = lambda x: DATA_INFO[x.split('_')[0]]
 
 DATASETS = list(DATA_INFO.keys())
-DEFAULT_DATASET =  'Children_DT' #'Children_TB'#'arxiv_TA'
+DEFAULT_DATASET =  'History_DT' #'Children_TB'#'arxiv_TA'
 DEFAULT_D_INFO = get_d_info(DEFAULT_DATASET)
 
 

@@ -56,7 +56,7 @@ class Sequence():
         # ! Load sequence graph info which is shared by GNN and LMs
         cf = self.cf
         self.gi = g_info = load_TAG_info(cf) # g graph
-        self.__dict__.update(g_info.splits) if cf.data.md['type'] == 'ogb' else self.__dict__
+        self.__dict__.update(g_info.splits)
         self.n_nodes = g_info.n_nodes
         self.ndata.update({_: getattr(g_info, _) for _ in ['labels']})
         # ! LM phase
@@ -65,7 +65,7 @@ class Sequence():
         self.device = cf.device  # if cf.local_rank<0 else th.device(cf.local_rank)
         self.neighbours = self.get_neighbours()
         if dpk:
-            self.dpk = np.load('/mnt/v-wzhuang/TAG-Benchmark/data/Deepwalk/arxiv/deepwalk_feat.npy')
+            self.dpk = np.load(f'{self.data_root}deepwalk_feat.npy')
 
         return self
 
@@ -151,9 +151,16 @@ class Sequence():
         return self.ndata[k]
 
     def get_neighbours(self):
-        dataset = DglNodePropPredDataset('ogbn-arxiv', root=self.raw_data_path)
-        g, _ = dataset[0]
-        g = dgl.to_bidirected(g)
+        if self.md['type'] == 'amazon':
+            g = dgl.load_graphs(f"{self.data_root}{self.amazon_name}.pt")[0][0]
+            g = dgl.to_bidirected(g)
+        elif self.md['type'] == 'ogb':
+            dataset = DglNodePropPredDataset('ogbn-arxiv', root=self.raw_data_path)
+            g, _ = dataset[0]
+            g = dgl.to_bidirected(g)
+        else:
+            raise ValueError('Not implement!!')
+
         neighbours_1 = list(g.adjacency_matrix_scipy().tolil().rows)
         return neighbours_1
 

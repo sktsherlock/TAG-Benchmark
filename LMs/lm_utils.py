@@ -24,7 +24,6 @@ class LMConfig(ModelConfig):
         self.att_dropout = 0.1
         self.cla_dropout = 0.1
         self.cla_bias = 'T'
-        self.grad_acc_steps = 2
         self.load_best_model_at_end = 'T'
 
         self.save_folder = ''
@@ -116,8 +115,8 @@ class LMConfig(ModelConfig):
                             help='name of the model, such as Bert, TinyBert, Deberta, Distilbert, Electra, RoBerta.')
         parser.add_argument("-lr", "--lr", default=0.002, type=float, help='LM model learning rate') #2e-05
         parser.add_argument("-bsz", "--eq_batch_size", default=36, type=int) #
-        parser.add_argument("-per_bsz", "--per_device_bsz", default=None, type=int) #
-        parser.add_argument("-gra", "--grad_steps", default=None, type=int) #梯度累积 18 bsz;
+        parser.add_argument("-per_bsz", "--per_device_bsz", default=36, type=int) #
+        parser.add_argument("-gra", "--grad_steps", default=1, type=int) #梯度累积 18 bsz;
         parser.add_argument("-wd", "--weight_decay", default=0.01)
         parser.add_argument("-do", "--dropout", default=0.1, type=float)
         parser.add_argument("-atdo", "--att_dropout", default=0.1, type=float)
