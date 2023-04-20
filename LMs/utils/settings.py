@@ -92,7 +92,7 @@ DATA_INFO = {
         'data_root': f'{AMAZON_ROOT}Books/Children/',  # Default ogb download target path
     },
 }
-DGLError('File /mnt/v-wzhuang/TAG-Benchmark/data/amazon/Books/Children/Amazon-Children.pt does not exist.')
+
 get_d_info = lambda x: DATA_INFO[x.split('_')[0]]
 
 DATASETS = list(DATA_INFO.keys())
