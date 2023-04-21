@@ -113,16 +113,16 @@ class LMConfig(ModelConfig):
         parser.add_argument("--seed", default=0, type=int)
         parser.add_argument("-m", "--model", default='TinyBert',
                             help='name of the model, such as Bert, TinyBert, Deberta, Distilbert, Electra, RoBerta.')
-        parser.add_argument("-lr", "--lr", default=0.002, type=float, help='LM model learning rate') #2e-05
-        parser.add_argument("-bsz", "--eq_batch_size", default=36, type=int) #
-        parser.add_argument("-per_bsz", "--per_device_bsz", default=36, type=int) #
-        parser.add_argument("-gra", "--grad_steps", default=1, type=int) #梯度累积 18 bsz;
+        parser.add_argument("-lr", "--lr", default=0.002, type=float, help='LM model learning rate')  # 2e-05
+        parser.add_argument("-bsz", "--eq_batch_size", default=36, type=int)  #
+        parser.add_argument("-per_bsz", "--per_device_bsz", default=36, type=int)  #
+        parser.add_argument("-gra", "--grad_steps", default=1, type=int)  # 梯度累积 18 bsz;
         parser.add_argument("-wd", "--weight_decay", default=0.01)
         parser.add_argument("-do", "--dropout", default=0.1, type=float)
         parser.add_argument("-atdo", "--att_dropout", default=0.1, type=float)
         parser.add_argument("-cla", "--cla_dropout", default=0.1, type=float)
         parser.add_argument("-cla_bias", "--cla_bias", default='T', help='Classification model bias')
-        parser.add_argument("-wmp", "--warmup_epochs", default=0.2, type=float) #0.5 1.0 0.75
+        parser.add_argument("-wmp", "--warmup_epochs", default=0.2, type=float)  # 0.5 1.0 0.75
         parser.add_argument("-ef", "--eval_patience", default=50000, type=int)
         parser.add_argument("-CLD", "--cl_dim", default=128, type=int, help='The dimension of the contrastive space')
         parser.add_argument("-lsf", "--label_smoothing_factor", default=0.1, type=float)
@@ -131,17 +131,14 @@ class LMConfig(ModelConfig):
         parser.add_argument("-wid", "--wandb_id", default=None, type=str)
         parser.add_argument("--device", default=None, type=str)
         parser.add_argument("--wandb_on", default=False, type=bool)
-        parser.add_argument("-prt", "--pretrain_path", default=None, type=str) #本地模型的路径
+        parser.add_argument("-prt", "--pretrain_path", default=None, type=str)  # 本地模型的路径
         parser.add_argument("-prtMode", "--PrtMode", default=None, type=str)
         parser.add_argument("-inf_dir", "--inference_dir", default=None, type=str)
         parser.add_argument("-cache", "--cache_dir", default=None, type=str)
         parser.add_argument("-cl", "--cl_dir", default=None, type=str)
-        parser.add_argument("-fz", "--freeze", default=None, help='freeze control whether to freeze the lm model, its number means how many layers do not freezed.', type=int)
-        #! Add the lora factors
-        parser.add_argument("-lora", "--apply_lora", default=False, type=bool, help='Whether to apply LoRA or not.')
-        parser.add_argument("-lora_a", "--lora_alpha", default=None, type=int, help='LoRA alpha.')
-        parser.add_argument("--lora_r", default=None, type=int, help='LoRA r.')
-        parser.add_argument("--lora_path", default=None, type=str, help='The file path of LoRA parameters.')
+        parser.add_argument("-fz", "--freeze", default=None,
+                            help='freeze control whether to freeze the lm model, its number means how many layers do not freezed.',
+                            type=int)
         return parser
 
     @property
@@ -210,8 +207,6 @@ def get_lm_trainer(model, name=None):
     else:
         from lm_trainer import LMTrainer as LMTrainer
     return LMTrainer
-
-
 
 
 def get_lm_config(model):
