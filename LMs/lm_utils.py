@@ -198,8 +198,6 @@ def get_lm_trainer(model, name=None):
         from Trainer.TCL_trainer import TCLTrainer as LMTrainer
     elif name == 'INF':
         from Trainer.Inf_trainer import LmInfTrainer as LMTrainer
-    elif name == 'CLF':
-        from Trainer.CLF_trainer import CLFTrainer as LMTrainer
     elif name == 'TDK':
         from Trainer.TDK_trainer import TDK_Trainer as LMTrainer
     elif name == 'CL_DK':
