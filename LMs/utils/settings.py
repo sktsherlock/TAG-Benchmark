@@ -86,7 +86,7 @@ DATA_INFO = {
         'type': 'amazon',
         'train_ratio': 0,  # Default (public) split
         'n_labels': 24,
-        'n_nodes': 125447,
+        'n_nodes': 76875,
         'amazon_name': 'Books-Children',
         'max_length': 256,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Books/Children/',  # Default ogb download target path
@@ -99,6 +99,15 @@ DATA_INFO = {
         'amazon_name': 'Books-History',
         'max_length': 256,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Books/History/',  # Default ogb download target path
+    },
+    'Computers': {
+        'type': 'amazon',
+        'train_ratio': 0,  # Default (public) split
+        'n_labels': 16,
+        'n_nodes': 85302,
+        'amazon_name': 'Electronics-Computers',
+        'max_length': 128,  # Place to save raw data
+        'data_root': f'{AMAZON_ROOT}Electronics/Computers/',  # Default ogb download target path
     },
 }
 

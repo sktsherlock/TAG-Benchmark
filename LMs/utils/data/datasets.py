@@ -58,6 +58,7 @@ class Sequence():
         self.gi = g_info = load_TAG_info(cf) # g graph
         self.__dict__.update(g_info.splits)
         self.n_nodes = g_info.n_nodes
+
         self.ndata.update({_: getattr(g_info, _) for _ in ['labels']})
         # ! LM phase
         tokenize_graph(self.cf)
