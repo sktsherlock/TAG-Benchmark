@@ -96,7 +96,7 @@ class LMTrainer():
             report_to='wandb' if cf.wandb_on else None,
             per_device_train_batch_size=cf.per_device_bsz,
             per_device_eval_batch_size=cf.per_device_bsz * 6 if cf.hf_model in {'distilbert-base-uncased',
-                                                                            'google/electra-base-discriminator'} else cf.per_device_bsz * 10,
+                                                                            'google/electra-base-discriminator'} else cf.per_eval_bsz,
             warmup_steps=warmup_steps,
             disable_tqdm=False,
             dataloader_drop_last=True,
