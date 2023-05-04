@@ -117,6 +117,7 @@ class LMConfig(ModelConfig):
         parser.add_argument("-bsz", "--eq_batch_size", default=36, type=int)  #
         parser.add_argument("-per_bsz", "--per_device_bsz", default=36, type=int)  #
         parser.add_argument("-per_eval", "--per_eval_bsz", default=360, type=int)  #
+        parser.add_argument("-per_infer", "--inf_batch_size", default=400, type=int)  #
         parser.add_argument("-gra", "--grad_steps", default=1, type=int)  # 梯度累积 18 bsz;
         parser.add_argument("-wd", "--weight_decay", default=0.01)
         parser.add_argument("-do", "--dropout", default=0.1, type=float)
