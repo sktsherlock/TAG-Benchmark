@@ -54,17 +54,13 @@ class GraphSAGE(nn.Module):
                  activation,
                  dropout,
                  aggregator_type,
-                 use_linear=False,
                  input_drop=0.0):
         super(GraphSAGE, self).__init__()
         self.n_layers = n_layers
         self.n_hidden = n_hidden
         self.n_classes = n_classes
-        self.use_linear = use_linear
 
         self.layers = nn.ModuleList()
-        if use_linear:
-            self.linear = nn.ModuleList()
         self.norms = nn.ModuleList()
 
         # input layer
@@ -73,8 +69,6 @@ class GraphSAGE(nn.Module):
             out_hidden = n_hidden if i < n_layers - 1 else n_classes
 
             self.layers.append(dglnn.SAGEConv(in_hidden, out_hidden, aggregator_type))
-            if use_linear:
-                self.linear.append(nn.Linear(in_hidden, out_hidden, bias=False))
             if i < n_layers - 1:
                 self.norms.append(nn.BatchNorm1d(out_hidden))
 
@@ -88,11 +82,7 @@ class GraphSAGE(nn.Module):
 
         for l, layer in enumerate(self.layers):
             conv = layer(graph, h)
-            if self.use_linear:
-                linear = self.linear[l](h)
-                h = conv + linear
-            else:
-                h = conv
+            h = conv
 
             if l != len(self.layers) - 1:
                 h = self.norms[l](h)

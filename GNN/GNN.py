@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from matplotlib import pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
-from model.GNN_library import GIN, GCN
+from model.GNN_library import GIN, GCN, GAT, GIN, GraphSAGE
 from model.GNN_arg import args_init
 from model.Dataloader import load_data
 from ogb.nodeproppred import DglNodePropPredDataset
@@ -41,6 +41,31 @@ def gen_model(args):
             args.n_layers,
             F.relu,
             args.dropout,
+            args.input_drop,
+        )
+    elif args.model_name == 'GAT':
+        model = GAT(
+            in_feats,
+            n_classes,
+            args.n_hidden,
+            args.n_layers,
+            args.n_heads,
+            F.relu,
+            args.dropout,
+            args.input_drop,
+            args.attn_drop,
+            args.edge_drop,
+            not args.no_attn_dst,
+        )
+    elif args.model_name == 'SAGE':
+        model = GraphSAGE(
+            in_feats,
+            args.n_hidden,
+            n_classes,
+            args.n_layers,
+            F.relu,
+            args.dropout,
+            args.aggregator_type,
             args.input_drop,
         )
     else:
