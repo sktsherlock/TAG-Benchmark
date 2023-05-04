@@ -58,7 +58,7 @@ def compute_acc(pred, labels):
     """
     Compute the accuracy of prediction given the labels.
     """
-    return (th.argmax(pred, dim=1) == labels).float().sum() / len(pred)
+    return ((th.argmax(pred, dim=1) == labels).float().sum() / len(pred) ).item()
 
 
 
