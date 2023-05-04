@@ -71,14 +71,9 @@ def adjust_learning_rate(optimizer, lr, epoch):
 def train(model, graph, feat, labels, train_idx, optimizer):
     model.train()
 
-    mask_rate = 0.5
-    mask = th.rand(train_idx.shape) < mask_rate
-
-    train_pred_idx = train_idx[mask]
-
     optimizer.zero_grad()
     pred = model(graph, feat)
-    loss = cross_entropy(pred[train_pred_idx], labels[train_pred_idx])
+    loss = cross_entropy(pred[train_idx], labels[train_idx])
     loss.backward()
     optimizer.step()
 
@@ -92,7 +87,6 @@ def evaluate(
     model.eval()
     with th.no_grad():
         pred = model(graph, feat)
-    train_loss = cross_entropy(pred[train_idx], labels[train_idx])
     val_loss = cross_entropy(pred[val_idx], labels[val_idx])
     test_loss = cross_entropy(pred[test_idx], labels[test_idx])
 
@@ -100,7 +94,6 @@ def evaluate(
         compute_acc(pred[train_idx], labels[train_idx]),
         compute_acc(pred[val_idx], labels[val_idx]),
         compute_acc(pred[test_idx], labels[test_idx]),
-        train_loss,
         val_loss,
         test_loss,
     )
@@ -146,7 +139,6 @@ def run(
             train_acc,
             val_acc,
             test_acc,
-            train_loss,
             val_loss,
             test_loss,
         ) = evaluate(
@@ -157,9 +149,8 @@ def run(
             train_idx,
             val_idx,
             test_idx,
-
         )
-        wandb.log({'Train_loss': train_loss, 'Val_loss': val_loss, 'Test_loss': test_loss})
+        wandb.log({'Train_loss': loss, 'Val_loss': val_loss, 'Test_loss': test_loss})
         lr_scheduler.step(loss)
 
         toc = time.time()
@@ -174,77 +165,14 @@ def run(
             print(
                 f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}\n"
                 f"Loss: {loss.item():.4f}, Acc: {acc:.4f}\n"
-                f"Train/Val/Test loss: {train_loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n"
+                f"Train/Val/Test loss: {loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n"
                 f"Train/Val/Test/Best val/Final test acc: {train_acc:.4f}/{val_acc:.4f}/{test_acc:.4f}/{best_val_acc:.4f}/{final_test_acc:.4f}"
             )
 
-        for l, e in zip(
-            [
-                accs,
-                train_accs,
-                val_accs,
-                test_accs,
-                losses,
-                train_losses,
-                val_losses,
-                test_losses,
-            ],
-            [
-                acc,
-                train_acc,
-                val_acc,
-                test_acc,
-                loss,
-                train_loss,
-                val_loss,
-                test_loss,
-            ],
-        ):
-            l.append(e)
 
     print("*" * 50)
     print(f"Best val acc: {best_val_acc}, Final test acc: {final_test_acc}")
     print("*" * 50)
-
-    if args.plot_curves:
-        fig = plt.figure(figsize=(24, 24))
-        ax = fig.gca()
-        ax.set_xticks(np.arange(0, args.n_epochs, 100))
-        ax.set_yticks(np.linspace(0, 1.0, 101))
-        ax.tick_params(labeltop=True, labelright=True)
-        for y, label in zip(
-            [accs, train_accs, val_accs, test_accs],
-            ["acc", "train acc", "val acc", "test acc"],
-        ):
-            plt.plot(range(args.n_epochs), y, label=label)
-        ax.xaxis.set_major_locator(MultipleLocator(100))
-        ax.xaxis.set_minor_locator(AutoMinorLocator(1))
-        ax.yaxis.set_major_locator(MultipleLocator(0.01))
-        ax.yaxis.set_minor_locator(AutoMinorLocator(2))
-        plt.grid(which="major", color="red", linestyle="dotted")
-        plt.grid(which="minor", color="orange", linestyle="dotted")
-        plt.legend()
-        plt.tight_layout()
-        plt.savefig(f"gin_acc_{n_running}.png")
-
-        fig = plt.figure(figsize=(24, 24))
-        ax = fig.gca()
-        ax.set_xticks(np.arange(0, args.n_epochs, 100))
-        ax.tick_params(labeltop=True, labelright=True)
-        for y, label in zip(
-            [losses, train_losses, val_losses, test_losses],
-            ["loss", "train loss", "val loss", "test loss"],
-        ):
-            plt.plot(range(args.n_epochs), y, label=label)
-        ax.xaxis.set_major_locator(MultipleLocator(100))
-        ax.xaxis.set_minor_locator(AutoMinorLocator(1))
-        ax.yaxis.set_major_locator(MultipleLocator(0.1))
-        ax.yaxis.set_minor_locator(AutoMinorLocator(5))
-        plt.grid(which="major", color="red", linestyle="dotted")
-        plt.grid(which="minor", color="orange", linestyle="dotted")
-        plt.legend()
-        plt.tight_layout()
-        plt.savefig(f"gin_loss_{n_running}.png")
 
     return best_val_acc, final_test_acc
 
