@@ -11,8 +11,10 @@ import torch.nn.functional as F
 import torch.optim as optim
 from matplotlib import pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
-from model.models import GIN, GCN
-from ogb.nodeproppred import DglNodePropPredDataset, Evaluator
+from model.GNN_library import GIN, GCN
+from model.GNN_arg import args_init
+from model.Dataloader import load_data
+from ogb.nodeproppred import DglNodePropPredDataset
 
 device = None
 in_feats, n_classes = None, None
@@ -20,9 +22,8 @@ epsilon = 1 - math.log(2)
 
 
 def gen_model(args):
-
-
-    model = GIN(
+    if args.name == 'GIN':
+        model = GIN(
             in_feats,
             args.n_hidden,
             n_classes,
@@ -31,20 +32,33 @@ def gen_model(args):
             args.input_drop,
             args.learning_eps,
             args.neighbor_pooling_type,
+            )
+    elif args.name == 'GCN':
+        model = GCN(
+            in_feats,
+            args.n_hidden,
+            n_classes,
+            args.n_layers,
+            F.relu,
+            args.dropout,
+            args.input_drop,
         )
+    else:
+        raise ValueError('Not implement!')
     return model
 
 
 def cross_entropy(x, labels):
-    y = F.cross_entropy(x, labels[:, 0], reduction="none")
+    y = F.cross_entropy(x, labels[:, 0], reduction="mean", label_smoothing=0.1)
     y = th.log(epsilon + y) - math.log(epsilon)
     return th.mean(y)
 
 
-def compute_acc(pred, labels, evaluator):
-    return evaluator.eval(
-        {"y_pred": pred.argmax(dim=-1, keepdim=True), "y_true": labels}
-    )["acc"]
+def compute_acc(pred, labels):
+    """
+    Compute the accuracy of prediction given the labels.
+    """
+    return (th.argmax(pred, dim=1) == labels).float().sum() / len(pred)
 
 
 
@@ -73,19 +87,19 @@ def train(model, graph, feat, labels, train_idx, optimizer):
 
 @th.no_grad()
 def evaluate(
-    model, graph, feat, labels, train_idx, val_idx, test_idx, evaluator
+    model, graph, feat, labels, train_idx, val_idx, test_idx
 ):
     model.eval()
-
-    pred = model(graph, feat)
+    with th.no_grad():
+        pred = model(graph, feat)
     train_loss = cross_entropy(pred[train_idx], labels[train_idx])
     val_loss = cross_entropy(pred[val_idx], labels[val_idx])
     test_loss = cross_entropy(pred[test_idx], labels[test_idx])
 
     return (
-        compute_acc(pred[train_idx], labels[train_idx], evaluator),
-        compute_acc(pred[val_idx], labels[val_idx], evaluator),
-        compute_acc(pred[test_idx], labels[test_idx], evaluator),
+        compute_acc(pred[train_idx], labels[train_idx]),
+        compute_acc(pred[val_idx], labels[val_idx]),
+        compute_acc(pred[test_idx], labels[test_idx]),
         train_loss,
         val_loss,
         test_loss,
@@ -93,7 +107,7 @@ def evaluate(
 
 
 def run(
-    args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, n_running
+    args, graph, feat, labels, train_idx, val_idx, test_idx, n_running
 ):
     # define model and optimizer
     model = gen_model(args)
@@ -126,7 +140,7 @@ def run(
         loss, pred = train(
             model, graph, feat, labels, train_idx, optimizer
         )
-        acc = compute_acc(pred[train_idx], labels[train_idx], evaluator)
+        acc = compute_acc(pred[train_idx], labels[train_idx])
 
         (
             train_acc,
@@ -143,7 +157,7 @@ def run(
             train_idx,
             val_idx,
             test_idx,
-            evaluator,
+
         )
         wandb.log({'Train_loss': train_loss, 'Val_loss': val_loss, 'Test_loss': test_loss})
         lr_scheduler.step(loss)
@@ -244,55 +258,7 @@ def count_parameters(args):
 
 def main():
     global device, in_feats, n_classes
-
-    argparser = argparse.ArgumentParser(
-        "GIN on OGBN-Arxiv",
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-    )
-    argparser.add_argument(
-        "--cpu",
-        action="store_true",
-        help="CPU mode. This option overrides --gpu.",
-    )
-    argparser.add_argument("--gpu", type=int, default=0, help="GPU device ID.")
-    argparser.add_argument(
-        "--n-runs", type=int, default=10, help="running times"
-    )
-    argparser.add_argument(
-        "--n-epochs", type=int, default=1000, help="number of epochs"
-    )
-    argparser.add_argument(
-        "--lr", type=float, default=0.005, help="learning rate"
-    )
-    argparser.add_argument(
-        "--n-layers", type=int, default=3, help="number of layers"
-    )
-    argparser.add_argument(
-        "--num-mlp-layers", type=int, default=2, help="number of mlp layers"
-    )
-    argparser.add_argument(
-        "--n-hidden", type=int, default=256, help="number of hidden units"
-    )
-    argparser.add_argument(
-        "--input-drop", type=float, default=0.1, help="input drop rate"
-    )
-    argparser.add_argument(
-        "--learning-eps", type=bool, default=True, help="If True, learn epsilon to distinguish center nodes from neighbors;"
-                                                        "If False, aggregate neighbors and center nodes altogether."
-    )
-    argparser.add_argument(
-        "--neighbor-pooling-type", type=str, default='mean', help="how to aggregate neighbors (sum, mean, or max)"
-    )
-    argparser.add_argument("--wd", type=float, default=0, help="weight decay")
-    argparser.add_argument(
-        "--log-every", type=int, default=20, help="log every LOG_EVERY epochs"
-    )
-    argparser.add_argument(
-        "--plot-curves", action="store_true", help="plot learning curves"
-    )
-    argparser.add_argument(
-        "--use_PLM", type=str, default=None, help="Use LM embedding as feature"
-    )
+    argparser = args_init()
     args = argparser.parse_args()
     wandb.config = args
     wandb.init(config=args, reinit=True)
@@ -302,17 +268,9 @@ def main():
     else:
         device = th.device("cuda:%d" % args.gpu)
 
-    # load data
-    data = DglNodePropPredDataset(name="ogbn-arxiv")
-    evaluator = Evaluator(name="ogbn-arxiv")
-
-    splitted_idx = data.get_idx_split()
-    train_idx, val_idx, test_idx = (
-        splitted_idx["train"],
-        splitted_idx["valid"],
-        splitted_idx["test"],
-    )
-    graph, labels = data[0]
+    # ! load data
+    data = load_data(name=args.data_name)
+    graph, labels, train_idx, val_idx, test_idx = data
 
     # add reverse edges
     srcs, dsts = graph.all_edges()
@@ -344,7 +302,7 @@ def main():
 
     for i in range(args.n_runs):
         val_acc, test_acc = run(
-            args, graph, feat, labels, train_idx, val_idx, test_idx, evaluator, i
+            args, graph, feat, labels, train_idx, val_idx, test_idx, i
         )
         wandb.log({'Val_Acc': val_acc, 'Test_Acc': test_acc})
         val_accs.append(val_acc)
