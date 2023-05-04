@@ -49,7 +49,7 @@ def gen_model(args):
 
 
 def cross_entropy(x, labels):
-    y = F.cross_entropy(x, labels[:, 0], reduction="mean", label_smoothing=0.1)
+    y = F.cross_entropy(x, labels, reduction="mean", label_smoothing=0.1)
     y = th.log(epsilon + y) - math.log(epsilon)
     return th.mean(y)
 
