@@ -50,6 +50,9 @@ def args_init():
         "--model_name", type=str, default='GCN', help="Which GNN be implemented"
     )
     argparser.add_argument(
+        "--dropout", type=float, default=0.5, help="dropout rate"
+    )
+    argparser.add_argument(
         "--data_name", type=str, default='ogbn-arxiv', help="The datasets to be implemented."
     )
     return argparser
