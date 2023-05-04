@@ -105,7 +105,10 @@ def run(
     # define model and optimizer
     model = gen_model(args)
     model = model.to(device)
-
+    TRAIN_NUMBERS = sum(
+        [np.prod(p.size()) for p in model.parameters() if p.requires_grad]
+    )
+    print(f"Number of params: {TRAIN_NUMBERS}")
     optimizer = optim.AdamW(
         model.parameters(), lr=args.lr, weight_decay=args.wd
     )
@@ -122,8 +125,6 @@ def run(
     total_time = 0
     best_val_acc, final_test_acc, best_val_loss = 0, 0, float("inf")
 
-    accs, train_accs, val_accs, test_accs = [], [], [], []
-    losses, train_losses, val_losses, test_losses = [], [], [], []
 
     for epoch in range(1, args.n_epochs + 1):
         tic = time.time()

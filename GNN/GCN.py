@@ -168,7 +168,10 @@ def run(
     # define model and optimizer
     model = gen_model(args)
     model = model.to(device)
-
+    TRAIN_NUMBERS = sum(
+        [np.prod(p.size()) for p in model.parameters() if p.requires_grad]
+    )
+    print(f"Number of params: {TRAIN_NUMBERS}")
     optimizer = optim.AdamW(
         model.parameters(), lr=args.lr, weight_decay=args.wd
     )
