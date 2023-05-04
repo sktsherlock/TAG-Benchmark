@@ -22,7 +22,7 @@ epsilon = 1 - math.log(2)
 
 
 def gen_model(args):
-    if args.name == 'GIN':
+    if args.model_name == 'GIN':
         model = GIN(
             in_feats,
             args.n_hidden,
@@ -33,7 +33,7 @@ def gen_model(args):
             args.learning_eps,
             args.neighbor_pooling_type,
             )
-    elif args.name == 'GCN':
+    elif args.model_name == 'GCN':
         model = GCN(
             in_feats,
             args.n_hidden,
