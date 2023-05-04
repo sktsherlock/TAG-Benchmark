@@ -25,13 +25,14 @@ def load_data(name):
             splitted_idx["test"],
         )
         graph, labels = data[0]
+        labels = labels[:, 0]
     elif name == 'amazon-children':
         graph = dgl.load_graphs('/mnt/v-wzhuang/Amazon/Books/Amazon-Books-Children.pt')[0][0]
-        labels = graph.ndata['label'].numpy()
+        labels = graph.ndata['label']
         train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), 0.6, 0.2)
     elif name == 'amazon-history':
         graph = dgl.load_graphs('/mnt/v-wzhuang/Amazon/Books/Amazon-Books-History.pt')[0][0]
-        labels = graph.ndata['label'].numpy()
+        labels = graph.ndata['label']
         train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), 0.6, 0.2)
     else:
         raise ValueError('Not implemetned')
