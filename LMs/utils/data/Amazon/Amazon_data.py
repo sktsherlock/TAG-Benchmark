@@ -9,15 +9,13 @@ from utils.function.os_utils import mkdir_p
 
 def _tokenize_amazon_datasets(d, labels):
     #! 创建目录
-    if not osp.exists(osp.join(d.data_root, f'{d.amazon_name}.csv')):
+    if not osp.exists(osp.join(d.data_root, f'{d.amazon_name}.txt')):
         mkdir_p(d.data_root)
         raise{'Please input'}
     #! Tokenize the data
     else:
-        text = pd.read_csv(osp.join(d.data_root, f'{d.amazon_name}.csv'))
-        # text['len'] = text.apply(lambda x: len(x['text'].split(' ')), axis=1)
-        # text['len'].describe()
-        text = text['text']
+        text = pd.read_csv(osp.join(d.data_root, f'{d.amazon_name}.txt'))
+        text = text[0]
         # Look at
     #! For debug
     tokenizer = AutoTokenizer.from_pretrained(d.hf_model)
