@@ -223,7 +223,7 @@ def main():
         device = th.device("cuda:%d" % args.gpu)
 
     # ! load data
-    data = load_data(name=args.data_name)
+    data = load_data(name=args.data_name, train_ratio=args.train_ratio, val_ratio=args.val_ratio)
     graph, labels, train_idx, val_idx, test_idx = data
 
     # add reverse edges

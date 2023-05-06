@@ -16,7 +16,7 @@ def split_graph(nodes_num, train_ratio, val_ratio):
 
     return train_ids, val_ids, test_ids
 
-def load_data(name):
+def load_data(name, train_ratio=0.6, val_ratio=0.2):
     if name == 'ogbn-arxiv':
         data = DglNodePropPredDataset(name=name)
         splitted_idx = data.get_idx_split()
@@ -44,7 +44,7 @@ def load_data(name):
     elif name == 'amazon-fitness':
         graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Sports/Fitness/Sports-Fitness.pt')[0][0]
         labels = graph.ndata['label']
-        train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), 0.6, 0.2)
+        train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), train_ratio, val_ratio)
         train_idx = th.tensor(train_idx)
         val_idx = th.tensor(val_idx)
         test_idx = th.tensor(test_idx)
