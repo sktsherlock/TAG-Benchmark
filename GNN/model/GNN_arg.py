@@ -74,9 +74,9 @@ def args_init():
     )
     #! Split datasets
     argparser.add_argument(
-        "--train_ratio", type=int, default=0.6, help="training ratio"
+        "--train_ratio", type=float, default=0.6, help="training ratio"
     )
     argparser.add_argument(
-        "--val_ratio", type=int, default=0.2, help="training ratio"
+        "--val_ratio", type=float, default=0.2, help="training ratio"
     )
     return argparser
