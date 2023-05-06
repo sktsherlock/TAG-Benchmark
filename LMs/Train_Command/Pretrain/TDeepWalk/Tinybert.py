@@ -18,3 +18,7 @@ import pandas as pd
 
 df = pd.read_csv('/mnt/v-wzhuang/Amazon/Sports_and_Outdoors/Sports_Fitness_Final.csv', usecols=['text'])  # 读取'text'这一列
 df.to_csv('Sports-Fitness.txt', index=False, header=False)  # 将'text'这一列写入txt文件中
+
+"""
+CUDA_VISIBLE_DEVICES=0 /usr/bin/env python sweep/dist_runner.py LMs/trainLM.py --att_dropout=0.1 --cla_dropout=0.1 --dataset=Fitness_T --dropout=0.1 --epochs=4 --eq_batch_size=80 --per_device_bsz=80 --eval_patience=50000 --label_smoothing_factor=0.1 --lr=0.0002 --model=TinyBert --warmup_epochs=1 --gpus=0  
+"""

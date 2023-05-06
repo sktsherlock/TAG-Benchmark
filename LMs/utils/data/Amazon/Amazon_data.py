@@ -14,7 +14,7 @@ def _tokenize_amazon_datasets(d, labels):
         raise{'Please input'}
     #! Tokenize the data
     else:
-        text = pd.read_csv(osp.join(d.data_root, f'{d.amazon_name}.txt'))
+        text = pd.read_csv(osp.join(d.data_root, f'{d.amazon_name}.txt'), header=None, sep='\t')
         text = text[0]
         # Look at
     #! For debug

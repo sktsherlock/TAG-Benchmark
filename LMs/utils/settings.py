@@ -126,4 +126,6 @@ DATASETS = list(DATA_INFO.keys())
 DEFAULT_DATASET =  'History_DT' #'Children_TB'#'arxiv_TA'
 DEFAULT_D_INFO = get_d_info(DEFAULT_DATASET)
 
+# Datasets Name
+# arxiv_TA/ Children_DT / History_DT/ Fitness_T / Computers_RS /
 
