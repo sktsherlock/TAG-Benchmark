@@ -41,6 +41,13 @@ def load_data(name):
         train_idx = th.tensor(train_idx)
         val_idx = th.tensor(val_idx)
         test_idx = th.tensor(test_idx)
+    elif name == 'amazon-fitness':
+        graph = dgl.load_graphs('/mnt/v-wzhuang/Amazon/Sports_and_Outdoors/Amazon-Sports-Fitness.pt')[0][0]
+        labels = graph.ndata['label']
+        train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), 0.6, 0.2)
+        train_idx = th.tensor(train_idx)
+        val_idx = th.tensor(val_idx)
+        test_idx = th.tensor(test_idx)
     else:
         raise ValueError('Not implemetned')
     return graph, labels, train_idx, val_idx, test_idx
