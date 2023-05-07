@@ -118,6 +118,15 @@ DATA_INFO = {
         'max_length': 64,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Sports/Fitness/',
     },
+    'Photo': {
+        'type': 'amazon',
+        'train_ratio': 0,  # Default (public) split
+        'n_labels': 12,
+        'n_nodes': 48362,
+        'amazon_name': 'Electronics-Photo',
+        'max_length': 64,  # Place to save raw data
+        'data_root': f'{AMAZON_ROOT}Electronics/Photo/',
+    },
 }
 
 get_d_info = lambda x: DATA_INFO[x.split('_')[0]]
@@ -127,5 +136,5 @@ DEFAULT_DATASET =  'History_DT' #'Children_TB'#'arxiv_TA'
 DEFAULT_D_INFO = get_d_info(DEFAULT_DATASET)
 
 # Datasets Name
-# arxiv_TA/ Children_DT / History_DT/ Fitness_T / Computers_RS /
+# arxiv_TA/ Children_DT / History_DT/ Fitness_T / Computers_RS / Photo_RS
 
