@@ -124,7 +124,7 @@ DATA_INFO = {
         'n_labels': 12,
         'n_nodes': 48362,
         'amazon_name': 'Electronics-Photo',
-        'max_length': 64,  # Place to save raw data
+        'max_length': 512,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Electronics/Photo/',
     },
 }
