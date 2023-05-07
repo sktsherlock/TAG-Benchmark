@@ -74,6 +74,17 @@ def split_graph(nodes_num, train_ratio, val_ratio):
 
     return train_ids, val_ids, test_ids
 
+def split_time(g, train_year=2016, val_year=2017):
+    np.random.seed(42)
+    year = list(np.array(g.ndata['year']))
+    indices = np.arange(g.num_nodes())
+    # 1999-2014 train
+    train_ids = indices[:year.index(train_year)]
+    val_ids = indices[year.index(train_year):year.index(val_year)]
+    test_ids = indices[year.index(val_year):]
+
+    return train_ids, val_ids, test_ids
+
 
 def load_ogb_graph_structure_only(cf):
     from ogb.nodeproppred import DglNodePropPredDataset
@@ -85,11 +96,16 @@ def load_ogb_graph_structure_only(cf):
 
 def load_amazon_graph_structure_only(cf):
     import dgl
-    import random
-    from dgl.data.utils import _get_dgl_url, generate_mask_tensor
     g = dgl.load_graphs(f"{cf.data.data_root}{cf.data.amazon_name}.pt")[0][0]
     labels = g.ndata['label'].numpy()
-    split_idx = split_graph(g.num_nodes(), cf.train_ratio, cf.val_ratio)
+    if cf.splits == 'random':
+        split_idx = split_graph(g.num_nodes(), cf.train_ratio, cf.val_ratio)
+    elif cf.splits == 'time':
+        split_idx = split_time(g.num_nodes(), cf.train_ratio, cf.val_ratio)
+    else:
+        raise ValueError('Please check the split datasets way')
+
+
     return g, labels, split_idx
 
 def load_TAG_info(cf):

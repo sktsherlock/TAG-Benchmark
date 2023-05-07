@@ -143,6 +143,7 @@ class LMConfig(ModelConfig):
                             type=int)
         parser.add_argument("--train_ratio", default=0.6, type=float)
         parser.add_argument("--val_ratio", default=0.2, type=float)
+        parser.add_argument("--splits", default='random', type=str, help="The split datasets way")
         return parser
 
     @property
