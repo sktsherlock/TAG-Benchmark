@@ -89,7 +89,7 @@ def load_amazon_graph_structure_only(cf):
     from dgl.data.utils import _get_dgl_url, generate_mask_tensor
     g = dgl.load_graphs(f"{cf.data.data_root}{cf.data.amazon_name}.pt")[0][0]
     labels = g.ndata['label'].numpy()
-    split_idx = split_graph(g.num_nodes(), 0.6, 0.2)
+    split_idx = split_graph(g.num_nodes(), cf.train_ratio, cf.val_ratio)
     return g, labels, split_idx
 
 def load_TAG_info(cf):

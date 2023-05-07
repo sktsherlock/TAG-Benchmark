@@ -141,6 +141,8 @@ class LMConfig(ModelConfig):
         parser.add_argument("-fz", "--freeze", default=None,
                             help='freeze control whether to freeze the lm model, its number means how many layers do not freezed.',
                             type=int)
+        parser.add_argument("--train_ratio", default=0.6, type=float)
+        parser.add_argument("--val_ratio", default=0.2, type=float)
         return parser
 
     @property
