@@ -101,7 +101,7 @@ def load_amazon_graph_structure_only(cf):
     if cf.splits == 'random':
         split_idx = split_graph(g.num_nodes(), cf.train_ratio, cf.val_ratio)
     elif cf.splits == 'time':
-        split_idx = split_time(g, 2016, 2017)
+        split_idx = split_time(g, 2015, 2016)
     else:
         raise ValueError('Please check the split datasets way')
 
