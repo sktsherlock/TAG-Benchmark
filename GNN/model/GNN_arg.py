@@ -56,6 +56,10 @@ def args_init():
     # ! SAGE
     argparser.add_argument("--aggregator-type", type=str, default="mean",
                         help="Aggregator type: mean/gcn/pool/lstm")
+    #! JKNET
+    argparser.add_argument(
+        "--mode", type=str, default='cat', help="the mode of aggregate the feature, 'cat', 'lstm'"
+    )
     #! default
     argparser.add_argument(
         "--log-every", type=int, default=20, help="log every LOG_EVERY epochs"
