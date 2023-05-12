@@ -107,6 +107,10 @@ class ModelArguments:
         default="main",
         metadata={"help": "The specific model version to use (can be a branch name, tag name or commit id)."},
     )
+    freeze: int = field(
+        default=None,
+        metadata={"help": "If freeze=4, the last 4 encoders layer will be implemented for the mlm."}
+    )
     use_auth_token: bool = field(
         default=False,
         metadata={
@@ -385,6 +389,21 @@ def main():
             revision=model_args.model_revision,
             use_auth_token=True if model_args.use_auth_token else None,
         )
+        if model_args.freeze:
+            for param in model.parameters():
+                param.requires_grad = False
+            if training_args.local_rank <= 0:
+                trainable_params = sum(
+                    p.numel() for p in model.parameters() if p.requires_grad
+                )
+                assert trainable_params == 0
+            for param in model.encoder.layer[-model_args.freeze:].parameters():
+                param.requires_grad = True
+            if training_args.local_rank <= 0:
+                trainable_params = sum(
+                    p.numel() for p in model.parameters() if p.requires_grad
+                )
+                print(f" Pass the freeze layer, the LM Encoder  parameters are {trainable_params}")
     else:
         logger.info("Training new model from scratch")
         model = AutoModelForMaskedLM.from_config(config)
