@@ -111,7 +111,7 @@ def _tokenize_ogb_arxiv_datasets(d, labels):
                               return_token_type_ids=True).data
     else:
         tokenizer = AutoTokenizer.from_pretrained(d.hf_model)
-        tokenized = tokenizer(text.tolist(), padding='max_length', truncation=True, max_length=512,
+        tokenized = tokenizer(text.tolist(), padding='max_length', truncation=True, max_length=64,
                               return_token_type_ids=True).data
     mkdir_p(d._token_folder)
     for k in tokenized:
