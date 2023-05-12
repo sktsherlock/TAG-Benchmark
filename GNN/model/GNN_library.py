@@ -423,7 +423,7 @@ class MLP(nn.Module):
         self.num_layers = num_layers
         self.output_dim = output_dim
         self.input_drop = nn.Dropout(input_drop)
-        self.drop = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(dropout)
 
         if num_layers < 1:
             raise ValueError("number of layers should be positive!")
