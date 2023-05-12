@@ -76,9 +76,14 @@ def main():
     if args.dataset == 'ogbn-arxiv':
         text = pd.read_csv('/mnt/v-wzhuang/TAG-Benchmark/data/ogb/ogbn_arxiv/ogbn-arxiv.txt', sep='\t', header=None)
         text = text[0]
+    elif args.dataset == 'amazon-photo':
+        text = pd.read_csv('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Electronics/Photo/Electronics-Photo.txt', sep='\t', header=None)
+        text = text[0]
+    elif args.dataset == 'amazon-children':
+        text = pd.read_csv('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Books/Children/Books-Children.txt', sep='\t', header=None)
+        text = text[0]
     else:
-        pass
-
+        raise ValueError('Not implemented.')
     # Augmentation
     new_dataset = []
     for index, the_text in enumerate(text):
