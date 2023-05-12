@@ -448,6 +448,7 @@ class MLP(nn.Module):
             return self.linear(x)
         else:
             # If MLP
+            x = self.input_drop(x)
             h = x
             for i in range(self.num_layers - 1):
                 h = F.relu(self.batch_norms[i](self.linears[i](h)))

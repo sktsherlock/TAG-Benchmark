@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from matplotlib import pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
-from model.GNN_library import GIN, GCN, GAT, GIN, GraphSAGE, JKNet
+from model.GNN_library import GIN, GCN, GAT, GIN, GraphSAGE, JKNet, MLP
 from model.GNN_arg import args_init
 from model.Dataloader import load_data
 from ogb.nodeproppred import DglNodePropPredDataset
@@ -76,6 +76,13 @@ def gen_model(args):
             args.n_layers,
             args.mode,
             args.dropout,
+        )
+    elif args.model_name == 'MLP':
+        model = MLP(
+            args.n_layers,
+            in_feats,
+            args.n_hidden,
+            n_classes,
         )
     else:
         raise ValueError('Not implement!')
