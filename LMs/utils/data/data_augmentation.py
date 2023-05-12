@@ -15,7 +15,7 @@ def args_init():
     argparser.add_argument(
         "--dataset",
         type=str,
-        default='arxiv_TA',
+        default='ogbn-arxiv',
         help="Which dataset to be augmented",
     )
     argparser.add_argument("--path", type=str, default=None, required=True, help="Path to save the augmented-text")
@@ -67,7 +67,7 @@ def main():
     graph.remove_self_loop()
     graph = dgl.to_bidirected(graph)
     neighbours = list(graph.adjacency_matrix_scipy().tolil().rows) # 一阶邻居 获得
-    if args.dataset == 'arxiv':
+    if args.dataset == 'ogbn-arxiv':
         text = pd.read_csv('/mnt/v-wzhuang/TAG-Benchmark/data/ogb/ogbn_arxiv/ogbn-arxiv.txt', sep='\t', header=None)
         text = text[0]
     else:
