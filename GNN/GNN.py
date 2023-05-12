@@ -83,6 +83,8 @@ def gen_model(args):
             in_feats,
             args.n_hidden,
             n_classes,
+            args.input_drop,
+            args.dropout,
         )
     else:
         raise ValueError('Not implement!')

@@ -403,7 +403,7 @@ class ApplyNodeFunc(nn.Module):
 
 class MLP(nn.Module):
     """MLP with linear output"""
-    def __init__(self, num_layers, input_dim, hidden_dim, output_dim):
+    def __init__(self, num_layers, input_dim, hidden_dim, output_dim, input_drop=0.0, dropout=0.2):
         """MLP layers construction
 
         Paramters
@@ -422,6 +422,8 @@ class MLP(nn.Module):
         self.linear_or_not = True  # default is linear model
         self.num_layers = num_layers
         self.output_dim = output_dim
+        self.input_drop = nn.Dropout(input_drop)
+        self.drop = nn.Dropout(dropout)
 
         if num_layers < 1:
             raise ValueError("number of layers should be positive!")
@@ -452,6 +454,7 @@ class MLP(nn.Module):
             h = x
             for i in range(self.num_layers - 1):
                 h = F.relu(self.batch_norms[i](self.linears[i](h)))
+                h = self.dropout(h)
             return self.linears[-1](h)
 
 
