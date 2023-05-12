@@ -455,7 +455,7 @@ class MLP(nn.Module):
             for i in range(self.num_layers - 1):
                 h = F.relu(self.batch_norms[i](self.linears[i](h)))
                 h = self.dropout(h)
-            return self.linears[-1](h)
+            return torch.log_softmax(self.linears[-1](h), dim=-1)
 
 
 class GIN(nn.Module):
