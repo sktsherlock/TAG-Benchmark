@@ -3,9 +3,8 @@ import itertools
 import os
 from sklearn.metrics import roc_auc_score
 os.environ["DGLBACKEND"] = "pytorch"
-
-import dgl
-import dgl.data
+from dgl.nn import SAGEConv
+from model.GNN_library import GraphSAGE
 import numpy as np
 import scipy.sparse as sp
 import torch
@@ -50,22 +49,12 @@ device = torch.device(device)
 
 train_g = dgl.remove_edges(g, eids[:test_size]).to(device)
 #%%
-from dgl.nn import SAGEConv
+
 
 
 # ----------- 2. create model -------------- #
 # build a two-layer GraphSAGE model
-class GraphSAGE(nn.Module):
-    def __init__(self, in_feats, h_feats):
-        super(GraphSAGE, self).__init__()
-        self.conv1 = SAGEConv(in_feats, h_feats, "mean")
-        self.conv2 = SAGEConv(h_feats, h_feats, "mean")
 
-    def forward(self, g, in_feat):
-        h = self.conv1(g, in_feat)
-        h = F.relu(h)
-        h = self.conv2(g, h)
-        return h
 #%%
 train_pos_g = dgl.graph((train_pos_u, train_pos_v), num_nodes=g.num_nodes()).to(device)
 train_neg_g = dgl.graph((train_neg_u, train_neg_v), num_nodes=g.num_nodes()).to(device)
