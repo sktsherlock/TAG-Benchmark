@@ -1,7 +1,7 @@
 #%%
 import itertools
 import os
-
+from sklearn.metrics import roc_auc_score
 os.environ["DGLBACKEND"] = "pytorch"
 
 import dgl
@@ -140,7 +140,7 @@ for e in range(100):
         print("In epoch {}, loss: {}".format(e, loss))
 
 # ----------- 5. check results ------------------------ #
-from sklearn.metrics import roc_auc_score
+
 
 with torch.no_grad():
     pos_score = pred(test_pos_g, h)
