@@ -127,6 +127,15 @@ DATA_INFO = {
         'max_length': 512,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Electronics/Photo/',
     },
+    'Music': {
+        'type': 'amazon',
+        'train_ratio': 0,  # Default (public) split
+        'n_labels': 0,
+        'n_nodes': 4290,
+        'amazon_name': 'Digital-Music',
+        'max_length': 40,  # Place to save raw data
+        'data_root': f'{AMAZON_ROOT}Digital/Music/',
+    },
 }
 
 get_d_info = lambda x: DATA_INFO[x.split('_')[0]]
