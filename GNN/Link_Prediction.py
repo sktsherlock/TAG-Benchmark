@@ -13,7 +13,7 @@ import torch.nn.functional as F
 #%%
 import dgl
 
-g = dgl.load_graphs("/mnt/v-wzhuang/Amazon/Digital_Music/Amazon_Digital_Music.pt")[0][0]
+g = dgl.load_graphs("/mnt/v-wzhuang/Amazon/Books/Amazon-Books-History.pt")[0][0]
 g = dgl.to_bidirected(g)
 #%%
 # Split edge set for training and testing
@@ -22,7 +22,7 @@ np.random.seed(42)
 eids = np.arange(g.num_edges())
 eids = np.random.permutation(eids) # 打乱边顺序
 
-test_size = int(len(eids) * 0.1)
+test_size = int(len(eids) * 0.2)
 train_size = g.num_edges() - test_size
 test_pos_u, test_pos_v = u[eids[:test_size]], v[eids[:test_size]]
 train_pos_u, train_pos_v = u[eids[test_size:]], v[eids[test_size:]]
