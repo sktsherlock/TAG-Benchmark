@@ -14,7 +14,7 @@ import torch.nn.functional as F
 #%%
 import dgl
 
-g = dgl.load_graphs("/mnt/v-wzhuang/Amazon/Digital/Amazon_Digital_Music.pt")[0][0]
+g = dgl.load_graphs("/mnt/v-wzhuang/Amazon/Digital_Music/Amazon_Digital_Music.pt")[0][0]
 g = dgl.to_bidirected(g)
 #%%
 # Split edge set for training and testing
