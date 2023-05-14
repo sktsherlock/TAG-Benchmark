@@ -7,7 +7,7 @@ from utils.settings import *
 from tqdm import tqdm
 from utils.function.os_utils import mkdir_p
 
-def _tokenize_amazon_datasets(d, labels):
+def _tokenize_amazon_datasets(d):
     #! 创建目录
     if not osp.exists(osp.join(d.data_root, f'{d.amazon_name}.txt')):
         mkdir_p(d.data_root)

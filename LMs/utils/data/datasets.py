@@ -70,6 +70,15 @@ class Sequence():
 
         return self
 
+    def tokenize_init(self):
+        # ! Load sequence graph info which is shared by GNN and LMs
+        cf = self.cf
+        # ! LM phase
+        tokenize_graph(self.cf)
+        self._load_data_fields()
+        self.device = cf.device  # if cf.local_rank<0 else th.device(cf.local_rank)
+        return self
+
     def NP_init(self):
         from utils.data.preprocess import tokenize_NP_graph
         cf = self.cf

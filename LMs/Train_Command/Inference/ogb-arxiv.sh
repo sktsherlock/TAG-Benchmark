@@ -78,3 +78,6 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --mod
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Bert-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Photo/Bert/Large/' --dataset Photo_RS --inf_batch_size 300
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Photo/Electra/Large/' --dataset Photo_RS --inf_batch_size 300
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Deberta-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Photo/Deberta/Large/' --dataset Photo_RS --inf_batch_size 300
+
+#! Digital Muics for link prediction need the feature
+CUDA_VISIBLE_DEVICES=6,7 python Train_Command/inference_LM.py --model TinyBert --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Music/TinyBert/' --dataset Music_T --inf_batch_size 1000

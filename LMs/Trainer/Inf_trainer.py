@@ -22,7 +22,7 @@ class LmInfTrainer:
 
     @torch.no_grad()
     def inference_emb(self):
-        self.d = d = Sequence(cf := self.cf).init()
+        self.d = d = Sequence(cf := self.cf).tokenize_init()
         inference_dataset = SeqGraphDataset(self.d, mode='inference')
         # Save embedding and predictions
         self.model = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(

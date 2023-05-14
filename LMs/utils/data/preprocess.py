@@ -39,15 +39,14 @@ def tokenize_graph(cf):
         if cf.local_rank <= 0:
             # ! Load full-graph
             print(f'Processing data on LOCAL_RANK #{cf.local_rank}...')
-            g_info = load_TAG_info(full_cf)
             print(f'Loaded graph structure, start tokenization...')
             if d.md['type'] == 'ogb':
                 if d.ogb_name == 'ogbn-arxiv':
-                    _tokenize_ogb_arxiv_datasets(d, g_info.labels)
+                    _tokenize_ogb_arxiv_datasets(d)
                 else:
                     raise NotImplementedError
             elif d.md['type'] == 'amazon':
-                _tokenize_amazon_datasets(d, g_info.labels)
+                _tokenize_amazon_datasets(d)
             else:
                 raise NotImplementedError
             print(f'Tokenization finished on LOCAL_RANK #{cf.local_rank}')

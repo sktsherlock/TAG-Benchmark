@@ -47,7 +47,7 @@ def top_Augmentation(d, nums=1):
     return neighbours_1, neighbours_2, neighbours_3
 
 
-def _tokenize_ogb_arxiv_datasets(d, labels):
+def _tokenize_ogb_arxiv_datasets(d):
     def merge_by_ids(meta_data, node_ids, categories):
         meta_data.columns = ["ID", "Title", "Abstract"]
         # meta_data.drop([0, meta_data.shape[0] - 1], axis=0, inplace=True)  # Drop first and last in Arxiv full dataset processing
@@ -65,7 +65,7 @@ def _tokenize_ogb_arxiv_datasets(d, labels):
         categories.columns = ["ID", "category"]  # 指定ID 和 category列写进去
         paper_ids.columns = ["ID", "mag_id"]
         categories.columns = ["label_id", "category"]
-        paper_ids["label_id"] = labels
+
         return categories, paper_ids  # 返回类别和论文ID
 
     def process_raw_text_df(meta_data, node_ids, categories):
