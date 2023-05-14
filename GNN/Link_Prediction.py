@@ -78,7 +78,8 @@ class DotPredictor(nn.Module):
 feat = torch.from_numpy(np.load('/mnt/v-wzhuang/TAG/Finetune/Amazon/Music/TinyBert/emb.npy').astype(np.float32)).to(device)
 in_feats = feat.shape[1]
 
-model = GraphSAGE(in_feats, 16).to(device)
+model = GraphSAGE(in_feats, 16, n_classes=16, n_layers=2, activation= F.relu,
+                  dropout=0.2, aggregator_type='mean').to(device)
 # You can replace DotPredictor with MLPPredictor.
 # pred = MLPPredictor(16)
 pred = DotPredictor().to(device)
