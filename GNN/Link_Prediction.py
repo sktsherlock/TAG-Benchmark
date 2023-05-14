@@ -35,6 +35,7 @@ neg_u, neg_v = np.where(adj_neg != 0)
 
 #! 选择10000个作为负样本
 neg_eids = np.random.choice(len(neg_u), g.num_edges())
+print(neg_eids[0])
 test_neg_u, test_neg_v = (
     neg_u[neg_eids[:test_size]],
     neg_v[neg_eids[:test_size]],
