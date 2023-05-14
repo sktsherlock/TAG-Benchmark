@@ -119,7 +119,7 @@ optimizer = torch.optim.Adam(
 all_logits = []
 for e in range(100):
     # forward
-    h = model(train_g, feat)
+    h = model(train_g, feat).to(device)
     pos_score = pred(train_pos_g, h)
     neg_score = pred(train_neg_g, h)
     loss = compute_loss(pos_score, neg_score)
