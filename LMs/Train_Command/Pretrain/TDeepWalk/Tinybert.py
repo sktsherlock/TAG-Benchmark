@@ -22,3 +22,5 @@ df.to_csv('Sports-Fitness.txt', index=False, header=False)  # 将'text'这一列
 """
 CUDA_VISIBLE_DEVICES=0 /usr/bin/env python sweep/dist_runner.py LMs/trainLM.py --att_dropout=0.1 --cla_dropout=0.1 --dataset=Fitness_T --dropout=0.1 --epochs=4 --eq_batch_size=180 --per_device_bsz=180 --eval_patience=50000 --label_smoothing_factor=0.1 --lr=0.0002 --model=Deberta --warmup_epochs=1 --gpus=0  
 """
+df = pd.read_csv('Digital_Music.csv', usecols=['text'])
+df.to_csv('Digital-Music.txt', index=False, header=False)

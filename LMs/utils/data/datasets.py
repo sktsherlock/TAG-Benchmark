@@ -221,8 +221,6 @@ class SeqGraphDataset(th.utils.data.Dataset):  # Map style
         item = self.d.get_tokens(node_id)
         if self.mode is None:
             item['labels'] = self.d.y_gold(node_id)
-        neighbours = self.d.neighbours[node_id]
-        item['neighbours'] = self.d.get_tokens(neighbours[0])
         return item
 
     def __len__(self):
