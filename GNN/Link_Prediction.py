@@ -75,7 +75,7 @@ class DotPredictor(nn.Module):
             # u_dot_v returns a 1-element vector for each edge so you need to squeeze it.
             return g.edata["score"][:, 0]
 #%%
-feat = torch.from_numpy(np.load('/mnt/v-wzhuang/TAG/Finetune/Amazon/Music/TinyBert/emb.npy').astype(np.float32)).to(device)
+feat = torch.from_numpy(np.load('/mnt/v-wzhuang/TAG/Finetune/Amazon/History/TinyBert/emb.npy').astype(np.float32)).to(device)
 in_feats = feat.shape[1]
 
 model = GraphSAGE(in_feats, 16, n_classes=16, n_layers=2, activation= F.relu,
