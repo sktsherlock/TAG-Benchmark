@@ -35,7 +35,7 @@ neg_u, neg_v = np.where(adj_neg != 0)
 
 #! 选择10000个作为负样本
 neg_eids = np.random.choice(len(neg_u), g.num_edges())
-print(neg_eids[0])
+
 test_neg_u, test_neg_v = (
     neg_u[neg_eids[:test_size]],
     neg_v[neg_eids[:test_size]],
@@ -115,6 +115,12 @@ def compute_auc(pos_score, neg_score):
 optimizer = torch.optim.Adam(
     itertools.chain(model.parameters(), pred.parameters()), lr=0.01
 )
+
+with torch.no_grad():
+    h = model(train_g, feat).to(device)
+    pos_score = pred(test_pos_g, h)
+    neg_score = pred(test_neg_g, h)
+    print("AUC", compute_auc(pos_score, neg_score))
 
 # ----------- 4. training -------------------------------- #
 all_logits = []
