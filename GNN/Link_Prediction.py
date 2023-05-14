@@ -44,7 +44,7 @@ train_neg_u, train_neg_v = (
     neg_v[neg_eids[test_size:]],
 )
 #%%
-device = f'cuda:{0}' if torch.cuda.is_available() else 'cpu'
+device = f'cuda' if torch.cuda.is_available() else 'cpu'
 device = torch.device(device)
 
 train_g = dgl.remove_edges(g, eids[:test_size]).to(device)
@@ -103,10 +103,10 @@ def compute_loss(pos_score, neg_score):
 
 
 def compute_auc(pos_score, neg_score):
-    scores = torch.cat([pos_score, neg_score]).numpy()
+    scores = torch.cat([pos_score, neg_score]).cpu().numpy()
     labels = torch.cat(
         [torch.ones(pos_score.shape[0]), torch.zeros(neg_score.shape[0])]
-    ).numpy()
+    ).cpu().numpy()
     return roc_auc_score(labels, scores)
 #%%
 # ----------- 3. set up loss and optimizer -------------- #
