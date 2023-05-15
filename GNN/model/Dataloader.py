@@ -16,13 +16,37 @@ def split_graph(nodes_num, train_ratio, val_ratio):
 
     return train_ids, val_ids, test_ids
 
+# def split_time(g, train_year=2016, val_year=2017):
+#     year = list(np.array(g.ndata['year']))
+#     indices = np.arange(g.num_nodes())
+#     # 1999-2014 train
+#     train_ids = indices[:year.index(train_year)]
+#     val_ids = indices[year.index(train_year):year.index(val_year)]
+#     test_ids = indices[year.index(val_year):]
+#
+#     return train_ids, val_ids, test_ids
+
 def split_time(g, train_year=2016, val_year=2017):
+    np.random.seed(42)
     year = list(np.array(g.ndata['year']))
     indices = np.arange(g.num_nodes())
     # 1999-2014 train
-    train_ids = indices[:year.index(train_year)]
-    val_ids = indices[year.index(train_year):year.index(val_year)]
-    test_ids = indices[year.index(val_year):]
+    # Filter out nodes with label -1
+    valid_indices = [i for i in indices if g.ndata['label'][i] != -1]
+
+    # Filter out valid indices based on years
+    train_ids = [i for i in valid_indices if year[i] < train_year]
+    val_ids = [i for i in valid_indices if year[i] >= train_year and year[i] < val_year]
+    test_ids = [i for i in valid_indices if year[i] >= val_year]
+
+
+    train_length = len(train_ids)
+    val_length = len(val_ids)
+    test_length = len(test_ids)
+
+    print("Train set length:", train_length)
+    print("Validation set length:", val_length)
+    print("Test set length:", test_length)
 
     return train_ids, val_ids, test_ids
 
@@ -62,6 +86,13 @@ def load_data(name, train_ratio=0.6, val_ratio=0.2):
         graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Electronics/Photo/Electronics-Photo.pt')[0][0]
         labels = graph.ndata['label']
         train_idx, val_idx, test_idx = split_time(graph, 2015, 2016)
+        train_idx = th.tensor(train_idx)
+        val_idx = th.tensor(val_idx)
+        test_idx = th.tensor(test_idx)
+    elif name == 'dblp':
+        graph = dgl.load_graphs('/mnt/v-wzhuang/DBLP/Citation-V8.pt')[0][0]
+        labels = graph.ndata['label']
+        train_idx, val_idx, test_idx = split_time(graph, 2010, 2011)
         train_idx = th.tensor(train_idx)
         val_idx = th.tensor(val_idx)
         test_idx = th.tensor(test_idx)
