@@ -69,6 +69,7 @@ DB_PATH = f'{LM_PROJ_DIR}exp_db/'
 DATA_PATH = f'{MNT_DIR}data/'
 OGB_ROOT = f'{MNT_DIR}data/ogb/'
 AMAZON_ROOT = f'{MNT_DIR}data/amazon/'
+DBLP_ROOT = f'{MNT_DIR}data/dblp/'
 
 DATA_INFO = {
     'arxiv': {
@@ -136,6 +137,15 @@ DATA_INFO = {
         'max_length': 40,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Digital/Music/',
     },
+    'DBLP': {
+        'type': 'dblp',
+        'train_ratio': 0,  # Default (public) split
+        'n_labels': 40,
+        'n_nodes': 307968,
+        'DBLP_name': 'Citation-V8',
+        'max_length': 64,  # Place to save raw data
+        'data_root': f'{DBLP_ROOT}dblp/CitationV8/',
+    },
 }
 
 get_d_info = lambda x: DATA_INFO[x.split('_')[0]]
@@ -145,5 +155,5 @@ DEFAULT_DATASET =  'History_DT' #'Children_TB'#'arxiv_TA'
 DEFAULT_D_INFO = get_d_info(DEFAULT_DATASET)
 
 # Datasets Name
-# arxiv_TA/ Children_DT / History_DT/ Fitness_T / Computers_RS / Photo_RS
+# arxiv_TA/ Children_DT / History_DT/ Fitness_T / Computers_RS / Photo_RS / Music_T/
 

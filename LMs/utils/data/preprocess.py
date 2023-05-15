@@ -78,9 +78,13 @@ def split_time(g, train_year=2016, val_year=2017):
     year = list(np.array(g.ndata['year']))
     indices = np.arange(g.num_nodes())
     # 1999-2014 train
-    train_ids = indices[:year.index(train_year)]
-    val_ids = indices[year.index(train_year):year.index(val_year)]
-    test_ids = indices[year.index(val_year):]
+    # Filter out nodes with label -1
+    valid_indices = [i for i in indices if g.ndata['labels'][i] != -1]
+
+    # 1999-2014 train
+    train_ids = valid_indices[:year.index(train_year)]
+    val_ids = valid_indices[year.index(train_year):year.index(val_year)]
+    test_ids = valid_indices[year.index(val_year):]
 
     return train_ids, val_ids, test_ids
 
@@ -104,6 +108,14 @@ def load_amazon_graph_structure_only(cf):
     else:
         raise ValueError('Please check the split datasets way')
 
+    return g, labels, split_idx
+
+def load_dblp_graph_structure_only(cf):
+    import dgl
+    g = dgl.load_graphs(f"{cf.data.data_root}{cf.data.DBLP_name}.pt")[0][0]
+    labels = g.ndata['label'].numpy()
+
+    split_idx = split_time(g, 2012, 2013)
 
     return g, labels, split_idx
 
@@ -121,6 +133,10 @@ def load_TAG_info(cf):
                 g_info = SN(splits=splits, labels=labels, n_nodes=g.num_nodes())
             elif d.md['type'] == 'amazon':
                 g, labels, split_idx = load_amazon_graph_structure_only(cf)
+                splits = {'train_x': split_idx[0], 'valid_x': split_idx[1], 'test_x': split_idx[2]}
+                g_info = SN(splits=splits, labels=labels, n_nodes=g.num_nodes())
+            elif d.md['type'] == 'dblp':
+                g, labels, split_idx = load_dblp_graph_structure_only(cf)
                 splits = {'train_x': split_idx[0], 'valid_x': split_idx[1], 'test_x': split_idx[2]}
                 g_info = SN(splits=splits, labels=labels, n_nodes=g.num_nodes())
             else:
