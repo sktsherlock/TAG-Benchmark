@@ -17,6 +17,7 @@ from torch_sparse import SparseTensor
 from torch_geometric.utils import to_undirected, dropout_adj
 from utils.data.OGB.arxiv import _tokenize_ogb_arxiv_datasets
 from utils.data.Amazon.Amazon_data import _tokenize_amazon_datasets
+from utils.data.DBLP.DBLP_data import _tokenize_dblp_datasets
 
 
 def plot_length_distribution(node_text, tokenizer, g):
@@ -47,6 +48,8 @@ def tokenize_graph(cf):
                     raise NotImplementedError
             elif d.md['type'] == 'amazon':
                 _tokenize_amazon_datasets(d)
+            elif d.md['type'] == 'dblp':
+                _tokenize_dblp_datasets(d)
             else:
                 raise NotImplementedError
             print(f'Tokenization finished on LOCAL_RANK #{cf.local_rank}')
@@ -79,7 +82,7 @@ def split_time(g, train_year=2016, val_year=2017):
     indices = np.arange(g.num_nodes())
     # 1999-2014 train
     # Filter out nodes with label -1
-    valid_indices = [i for i in indices if g.ndata['labels'][i] != -1]
+    valid_indices = [i for i in indices if g.ndata['label'][i] != -1]
 
     train_ids = valid_indices[:year.index(train_year)]
     val_ids = valid_indices[year.index(train_year):year.index(val_year)]

@@ -164,6 +164,9 @@ class Sequence():
         if self.md['type'] == 'amazon':
             g = dgl.load_graphs(f"{self.data_root}{self.amazon_name}.pt")[0][0]
             g = dgl.to_bidirected(g)
+        elif self.md['type'] == 'dblp':
+            g = dgl.load_graphs(f"{self.data_root}{self.DBLP_name}.pt")[0][0]
+            g = dgl.to_bidirected(g)
         elif self.md['type'] == 'ogb':
             dataset = DglNodePropPredDataset('ogbn-arxiv', root=self.raw_data_path)
             g, _ = dataset[0]
