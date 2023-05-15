@@ -81,10 +81,17 @@ def split_time(g, train_year=2016, val_year=2017):
     # Filter out nodes with label -1
     valid_indices = [i for i in indices if g.ndata['labels'][i] != -1]
 
-    # 1999-2014 train
     train_ids = valid_indices[:year.index(train_year)]
     val_ids = valid_indices[year.index(train_year):year.index(val_year)]
     test_ids = valid_indices[year.index(val_year):]
+
+    train_length = len(train_ids)
+    val_length = len(val_ids)
+    test_length = len(test_ids)
+
+    print("Train set length:", train_length)
+    print("Validation set length:", val_length)
+    print("Test set length:", test_length)
 
     return train_ids, val_ids, test_ids
 
