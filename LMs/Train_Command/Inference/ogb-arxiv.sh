@@ -81,3 +81,18 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --mod
 
 #! Digital Muics for link prediction need the feature
 CUDA_VISIBLE_DEVICES=6,7 python Train_Command/inference_LM.py --model TinyBert --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Music/TinyBert/' --dataset Music_T --inf_batch_size 1000
+
+#! DBLP
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python Train_Command/inference_LM.py --model TinyBert --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/TinyBert/' --dataset DBLP_T --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Distilbert  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/Distilbert/' --dataset DBLP_T --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/Electra/Small/' --dataset DBLP_T --inf_batch_size 2000
+# Base
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model RoBerta  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/RoBert/Base/' --dataset DBLP_T --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Bert  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/Bert/Base/' --dataset DBLP_T --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra-base  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/Electra/Base/' --dataset DBLP_T --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Deberta  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/Deberta/Base/' --dataset DBLP_T --inf_batch_size 2000
+# Large
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Roberta-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/RoBert/Large/' --dataset DBLP_T --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Bert-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/Bert/Large/' --dataset DBLP_T --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/Electra/Large/' --dataset DBLP_T --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Deberta-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/Deberta/Large/' --dataset DBLP_T --inf_batch_size 2000
