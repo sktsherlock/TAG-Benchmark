@@ -63,18 +63,19 @@ def tokenize_graph(cf):
     else:
         cf.log(f'Found processed {cf.dataset}.')
 
-def split_graph(nodes_num, train_ratio, val_ratio):
 
+def split_graph(nodes_num, train_ratio, val_ratio):
     np.random.seed(42)
     indices = np.random.permutation(nodes_num)
     train_size = int(nodes_num * train_ratio)
     val_size = int(nodes_num * val_ratio)
 
     train_ids = indices[:train_size]
-    val_ids = indices[train_size:train_size+val_size]
-    test_ids = indices[train_size+val_size:]
+    val_ids = indices[train_size:train_size + val_size]
+    test_ids = indices[train_size + val_size:]
 
     return train_ids, val_ids, test_ids
+
 
 def split_time(g, train_year=2016, val_year=2017):
     np.random.seed(42)
@@ -84,9 +85,11 @@ def split_time(g, train_year=2016, val_year=2017):
     # Filter out nodes with label -1
     valid_indices = [i for i in indices if g.ndata['label'][i] != -1]
 
-    train_ids = valid_indices[:year.index(train_year)]
-    val_ids = valid_indices[year.index(train_year):year.index(val_year)]
-    test_ids = valid_indices[year.index(val_year):]
+    # Filter out valid indices based on years
+    train_ids = [i for i in valid_indices if year[i] < train_year]
+    val_ids = [i for i in valid_indices if year[i] >= train_year and year[i] < val_year]
+    test_ids = [i for i in valid_indices if year[i] >= val_year]
+
 
     train_length = len(train_ids)
     val_length = len(val_ids)
@@ -107,6 +110,7 @@ def load_ogb_graph_structure_only(cf):
     labels = labels.squeeze().numpy()
     return g, labels, split_idx
 
+
 def load_amazon_graph_structure_only(cf):
     import dgl
     g = dgl.load_graphs(f"{cf.data.data_root}{cf.data.amazon_name}.pt")[0][0]
@@ -120,14 +124,16 @@ def load_amazon_graph_structure_only(cf):
 
     return g, labels, split_idx
 
+
 def load_dblp_graph_structure_only(cf):
     import dgl
     g = dgl.load_graphs(f"{cf.data.data_root}{cf.data.DBLP_name}.pt")[0][0]
     labels = g.ndata['label'].numpy()
 
-    split_idx = split_time(g, 2012, 2013)
+    split_idx = split_time(g, 2010, 2011)
 
     return g, labels, split_idx
+
 
 def load_TAG_info(cf):
     d = cf.data
@@ -150,7 +156,7 @@ def load_TAG_info(cf):
                 splits = {'train_x': split_idx[0], 'valid_x': split_idx[1], 'test_x': split_idx[2]}
                 g_info = SN(splits=splits, labels=labels, n_nodes=g.num_nodes())
             else:
-                raise NotImplementedError #
+                raise NotImplementedError  #
             d.save_g_info(g_info)
             del g
         else:
@@ -192,6 +198,7 @@ def tokenize_NP_graph(cf):
             time.sleep(5)  # Wait for file write for 5 seconds
     else:
         cf.log(f'Found processed NP {cf.dataset}.')
+
 
 def tokenize_TRP_graph(cf):
     from utils.data.OGB.arxiv import _tokenize_TRP_ogb_arxiv_datasets
