@@ -16,6 +16,7 @@ from model.GNN_arg import args_init
 from model.Dataloader import load_data
 from ogb.nodeproppred import DglNodePropPredDataset
 
+
 device = None
 in_feats, n_classes = None, None
 epsilon = 1 - math.log(2)
