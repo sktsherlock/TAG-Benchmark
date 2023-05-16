@@ -3,8 +3,11 @@ import argparse
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-
-from ogb.linkproppred import PygLinkPropPredDataset, Evaluator
+import dgl
+from ogb.linkproppred import PygLinkPropPredDataset
+from model.Dataloader import Evaluator, split_edge, from_dgl
+import numpy as np
+from model.GNN_arg import Logger
 
 class LinkPredictor(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
@@ -32,17 +35,17 @@ class LinkPredictor(torch.nn.Module):
         x = self.lins[-1](x)
         return torch.sigmoid(x)
 
-def train(predictor, x, split_edge, optimizer, batch_size):
+def train(predictor, x, edge_split, optimizer, batch_size):
     predictor.train()
 
-    pos_train_edge = split_edge['train']['edge'].to(x.device)
+    pos_train_edge = edge_split[0].to(x.device)
 
     total_loss = total_examples = 0
     for perm in DataLoader(range(pos_train_edge.size(0)), batch_size,
                            shuffle=True):
         optimizer.zero_grad()
 
-        edge = pos_train_edge[perm].t()
+        edge = pos_train_edge[perm].t() #转会edge index形式
 
         pos_out = predictor(x[edge[0]], x[edge[1]])
         pos_loss = -torch.log(pos_out + 1e-15).mean()
@@ -65,14 +68,14 @@ def train(predictor, x, split_edge, optimizer, batch_size):
 
 
 @torch.no_grad()
-def test(predictor, x, split_edge, evaluator, batch_size):
+def test(predictor, x, edge_split, evaluator, batch_size):
     predictor.eval()
 
-    pos_train_edge = split_edge['train']['edge'].to(x.device)
-    pos_valid_edge = split_edge['valid']['edge'].to(x.device)
-    neg_valid_edge = split_edge['valid']['edge_neg'].to(x.device)
-    pos_test_edge = split_edge['test']['edge'].to(x.device)
-    neg_test_edge = split_edge['test']['edge_neg'].to(x.device)
+    pos_train_edge = edge_split[0].to(x.device)
+    pos_valid_edge = edge_split[1].to(x.device)
+    neg_valid_edge = edge_split[3].to(x.device)
+    pos_test_edge = edge_split[2].to(x.device)
+    neg_test_edge = edge_split[3].to(x.device)
 
     pos_train_preds = []
     for perm in DataLoader(range(pos_train_edge.size(0)), batch_size):
@@ -126,7 +129,7 @@ def test(predictor, x, split_edge, evaluator, batch_size):
 
 
 def main():
-    parser = argparse.ArgumentParser(description='OGBL-COLLAB (MLP)')
+    parser = argparse.ArgumentParser(description='Link-Prediction PLM/TCL')
     parser.add_argument('--device', type=int, default=0)
     parser.add_argument('--log_steps', type=int, default=1)
     parser.add_argument('--use_node_embedding', action='store_true')
@@ -135,9 +138,11 @@ def main():
     parser.add_argument('--dropout', type=float, default=0.0)
     parser.add_argument('--batch_size', type=int, default=64 * 1024)
     parser.add_argument('--lr', type=float, default=0.01)
-    parser.add_argument('--epochs', type=int, default=200)
+    parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--eval_steps', type=int, default=1)
     parser.add_argument('--runs', type=int, default=10)
+    parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/Amazon/History/Bert/Base/emb.npy", help="Use LM embedding as feature")
+    parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/History/", help="Path to save splitting")
     args = parser.parse_args()
     print(args)
 
@@ -145,10 +150,16 @@ def main():
     device = torch.device(device)
 
     dataset = PygLinkPropPredDataset(name='ogbl-collab')
-    split_edge = dataset.get_edge_split()
     data = dataset[0]
+    graph = dgl.load_graphs('/mnt/v-wzhuang/Amazon/Books/Amazon-Books-History.pt')[0][0]
+    graph = dgl.to_bidirected(graph)
+    graph = from_dgl(graph)
+    edge_split = split_edge(graph, test_ratio=0.2, val_ratio=0.1, path=args.path)
+    # split_edge = dataset.get_edge_split()
 
-    x = data.x
+    x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32)).to(device)
+
+
     if args.use_node_embedding:
         embedding = torch.load('embedding.pt', map_location='cpu')
         x = torch.cat([x, embedding], dim=-1)
@@ -157,25 +168,25 @@ def main():
     predictor = LinkPredictor(x.size(-1), args.hidden_channels, 1,
                               args.num_layers, args.dropout).to(device)
 
-    evaluator = Evaluator(name='ogbl-collab')
-
-    # loggers = {
-    #     'Hits@10': Logger(args.runs, args),
-    #     'Hits@50': Logger(args.runs, args),
-    #     'Hits@100': Logger(args.runs, args),
-    # }
+    evaluator = Evaluator(name='History')
+    loggers = {
+        'Hits@10': Logger(args.runs, args),
+        'Hits@50': Logger(args.runs, args),
+        'Hits@100': Logger(args.runs, args),
+    }
 
     for run in range(args.runs):
         predictor.reset_parameters()
         optimizer = torch.optim.Adam(predictor.parameters(), lr=args.lr)
 
         for epoch in range(1, 1 + args.epochs):
-            loss = train(predictor, x, split_edge, optimizer, args.batch_size)
+            loss = train(predictor, x, edge_split, optimizer, args.batch_size)
 
             if epoch % args.eval_steps == 0:
-                results = test(predictor, x, split_edge, evaluator,
+                results = test(predictor, x, edge_split, evaluator,
                                args.batch_size)
-
+                for key, result in results.items():
+                    loggers[key].add_result(run, result)
 
                 if epoch % args.log_steps == 0:
                     for key, result in results.items():
@@ -189,7 +200,13 @@ def main():
                               f'Test: {100 * test_hits:.2f}%')
                     print('---')
 
+        for key in loggers.keys():
+            print(key)
+            loggers[key].print_statistics(run)
 
+    for key in loggers.keys():
+        print(key)
+        loggers[key].print_statistics()
 
 if __name__ == "__main__":
     main()
