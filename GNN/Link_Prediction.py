@@ -8,6 +8,7 @@ from ogb.linkproppred import PygLinkPropPredDataset
 from model.Dataloader import Evaluator, split_edge, from_dgl
 import numpy as np
 from model.GNN_arg import Logger
+import wandb
 
 class LinkPredictor(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
@@ -141,9 +142,12 @@ def main():
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--eval_steps', type=int, default=1)
     parser.add_argument('--runs', type=int, default=10)
+    parser.add_argument('--neg_len', type=int, default=1000)
     parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/Amazon/History/Bert/Base/emb.npy", help="Use LM embedding as feature")
     parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/History/", help="Path to save splitting")
     args = parser.parse_args()
+    wandb.config = args
+    wandb.init(config=args, reinit=True)
     print(args)
 
     device = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
@@ -154,7 +158,7 @@ def main():
     graph = dgl.load_graphs('/mnt/v-wzhuang/Amazon/Books/Amazon-Books-History.pt')[0][0]
     graph = dgl.to_bidirected(graph)
     graph = from_dgl(graph)
-    edge_split = split_edge(graph, test_ratio=0.2, val_ratio=0.1, path=args.path)
+    edge_split = split_edge(graph, test_ratio=0.2, val_ratio=0.1, path=args.path, neg_len=args.neg_len)
     # split_edge = dataset.get_edge_split()
 
     x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32)).to(device)

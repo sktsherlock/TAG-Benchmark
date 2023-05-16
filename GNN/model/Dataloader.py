@@ -169,7 +169,7 @@ def from_dgl(g):
     return data
 
 
-def split_edge(graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len=100000, path=None):
+def split_edge(graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len=1000, path=None):
     if os.path.exists(os.path.join(path, 'train_edge_index.pt')) and \
             os.path.exists(os.path.join(path, 'val_edge_index.pt')) and \
             os.path.exists(os.path.join(path, 'test_edge_index.pt')) and \
