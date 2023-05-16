@@ -145,6 +145,7 @@ def main():
     parser.add_argument('--neg_len', type=int, default=1000)
     parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/Amazon/History/Bert/Base/emb.npy", help="Use LM embedding as feature")
     parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/History/", help="Path to save splitting")
+    parser.add_argument("--graph_path", type=str, default=None, help="Path to load the graph")
     args = parser.parse_args()
     wandb.config = args
     wandb.init(config=args, reinit=True)
@@ -155,7 +156,7 @@ def main():
 
     dataset = PygLinkPropPredDataset(name='ogbl-collab')
     data = dataset[0]
-    graph = dgl.load_graphs('/mnt/v-wzhuang/Amazon/Books/Amazon-Books-History.pt')[0][0]
+    graph = dgl.load_graphs(f'{args.graph_path}')[0][0]
     graph = dgl.to_bidirected(graph)
     graph = from_dgl(graph)
     edge_split = split_edge(graph, test_ratio=0.2, val_ratio=0.1, path=args.path, neg_len=args.neg_len)
