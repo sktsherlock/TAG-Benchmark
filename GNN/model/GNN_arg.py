@@ -1,5 +1,7 @@
 import argparse
 import torch
+import wandb
+
 
 def args_init():
     argparser = argparse.ArgumentParser(
@@ -31,8 +33,9 @@ def args_init():
         "--input-drop", type=float, default=0.1, help="input drop rate"
     )
     argparser.add_argument(
-        "--learning-eps", type=bool, default=True, help="If True, learn epsilon to distinguish center nodes from neighbors;"
-                                                        "If False, aggregate neighbors and center nodes altogether."
+        "--learning-eps", type=bool, default=True,
+        help="If True, learn epsilon to distinguish center nodes from neighbors;"
+             "If False, aggregate neighbors and center nodes altogether."
     )
     argparser.add_argument("--wd", type=float, default=0, help="weight decay")
     argparser.add_argument(
@@ -41,7 +44,7 @@ def args_init():
     argparser.add_argument(
         "--neighbor-pooling-type", type=str, default='mean', help="how to aggregate neighbors (sum, mean, or max)"
     )
-    #! GAT
+    # ! GAT
     argparser.add_argument(
         "--no-attn-dst", type=bool, default=True, help="Don't use attn_dst."
     )
@@ -56,12 +59,12 @@ def args_init():
     )
     # ! SAGE
     argparser.add_argument("--aggregator-type", type=str, default="mean",
-                        help="Aggregator type: mean/gcn/pool/lstm")
-    #! JKNET
+                           help="Aggregator type: mean/gcn/pool/lstm")
+    # ! JKNET
     argparser.add_argument(
         "--mode", type=str, default='cat', help="the mode of aggregate the feature, 'cat', 'lstm'"
     )
-    #! default
+    # ! default
     argparser.add_argument(
         "--log-every", type=int, default=20, help="log every LOG_EVERY epochs"
     )
@@ -77,7 +80,7 @@ def args_init():
     argparser.add_argument(
         "--data_name", type=str, default='ogbn-arxiv', help="The datasets to be implemented."
     )
-    #! Split datasets
+    # ! Split datasets
     argparser.add_argument(
         "--train_ratio", type=float, default=0.6, help="training ratio"
     )
@@ -85,6 +88,7 @@ def args_init():
         "--val_ratio", type=float, default=0.2, help="training ratio"
     )
     return argparser
+
 
 class Logger(object):
     def __init__(self, runs, info=None):
@@ -96,7 +100,7 @@ class Logger(object):
         assert run >= 0 and run < len(self.results)
         self.results[run].append(result)
 
-    def print_statistics(self, run=None):
+    def print_statistics(self, run=None, key='Hits@10'):
         if run is not None:
             result = 100 * torch.tensor(self.results[run])
             argmax = result[:, 1].argmax().item()
@@ -120,10 +124,19 @@ class Logger(object):
 
             print(f'All runs:')
             r = best_result[:, 0]
-            print(f'Highest Train: {r.mean():.2f} ± {r.std():.2f}')
+            print(f'{key} Highest Train: {r.mean():.2f} ± {r.std():.2f}')
+            wandb.log({f'{key} Highest Train Acc': float(f'{r.mean():.2f}'),
+                       f'{key} Highest Train Std': float(f'{r.std():.2f}')})
             r = best_result[:, 1]
-            print(f'Highest Valid: {r.mean():.2f} ± {r.std():.2f}')
+            print(f'{key} Highest Valid: {r.mean():.2f} ± {r.std():.2f}')
+            wandb.log({f'{key} Highest Valid Acc': float(f'{r.mean():.2f}'),
+                       f'{key} Highest Valid Std': float(f'{r.std():.2f}')})
             r = best_result[:, 2]
-            print(f'  Final Train: {r.mean():.2f} ± {r.std():.2f}')
+            print(f'{key} Final Train: {r.mean():.2f} ± {r.std():.2f}')
+            wandb.log(
+                {f'{key} Final Train Acc': float(f'{r.mean():.2f}'), f'{key} Final Train Std': float(f'{r.std():.2f}')})
             r = best_result[:, 3]
-            print(f'   Final Test: {r.mean():.2f} ± {r.std():.2f}')
+            print(f'{key} Final Test: {r.mean():.2f} ± {r.std():.2f}')
+            wandb.log(
+                {f'{key} Final Test Acc': float(f'{r.mean():.2f}'), f'{key} Final Test Std': float(f'{r.std():.2f}')})
+

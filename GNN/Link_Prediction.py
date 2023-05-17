@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import dgl
-from ogb.linkproppred import PygLinkPropPredDataset
+
 from model.Dataloader import Evaluator, split_edge, from_dgl
 import numpy as np
 from model.GNN_arg import Logger
@@ -139,13 +139,13 @@ def main():
     parser.add_argument('--dropout', type=float, default=0.0)
     parser.add_argument('--batch_size', type=int, default=64 * 1024)
     parser.add_argument('--lr', type=float, default=0.01)
-    parser.add_argument('--epochs', type=int, default=10)
+    parser.add_argument('--epochs', type=int, default=2)
     parser.add_argument('--eval_steps', type=int, default=1)
-    parser.add_argument('--runs', type=int, default=10)
-    parser.add_argument('--neg_len', type=int, default=1000)
+    parser.add_argument('--runs', type=int, default=5)
+    parser.add_argument('--neg_len', type=int, default=10000)
     parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/Amazon/History/Bert/Base/emb.npy", help="Use LM embedding as feature")
     parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/History/", help="Path to save splitting")
-    parser.add_argument("--graph_path", type=str, default=None, help="Path to load the graph")
+    parser.add_argument("--graph_path", type=str, default="/mnt/v-wzhuang/Amazon/Books/Amazon-Books-History.pt", help="Path to load the graph")
     args = parser.parse_args()
     wandb.config = args
     wandb.init(config=args, reinit=True)
@@ -154,12 +154,10 @@ def main():
     device = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
     device = torch.device(device)
 
-    dataset = PygLinkPropPredDataset(name='ogbl-collab')
-    data = dataset[0]
     graph = dgl.load_graphs(f'{args.graph_path}')[0][0]
-    graph = dgl.to_bidirected(graph)
+
     graph = from_dgl(graph)
-    edge_split = split_edge(graph, test_ratio=0.2, val_ratio=0.1, path=args.path, neg_len=args.neg_len)
+    edge_split = split_edge(graph, test_ratio=0.08, val_ratio=0.02, path=args.path, neg_len=args.neg_len)
     # split_edge = dataset.get_edge_split()
 
     x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32)).to(device)
@@ -179,6 +177,9 @@ def main():
         'Hits@50': Logger(args.runs, args),
         'Hits@100': Logger(args.runs, args),
     }
+
+    np.random.seed(42)
+    torch.manual_seed(42)
 
     for run in range(args.runs):
         predictor.reset_parameters()
@@ -207,11 +208,11 @@ def main():
 
         for key in loggers.keys():
             print(key)
-            loggers[key].print_statistics(run)
+            loggers[key].print_statistics(run, key=key)
 
     for key in loggers.keys():
         print(key)
-        loggers[key].print_statistics()
+        loggers[key].print_statistics(key=key)
 
 if __name__ == "__main__":
     main()
