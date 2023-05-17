@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import dgl
-
+from ogb.linkproppred import PygLinkPropPredDataset
 from model.Dataloader import Evaluator, split_edge, from_dgl
 import numpy as np
 from model.GNN_arg import Logger
@@ -143,9 +143,10 @@ def main():
     parser.add_argument('--eval_steps', type=int, default=1)
     parser.add_argument('--runs', type=int, default=5)
     parser.add_argument('--neg_len', type=int, default=10000)
-    parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/Amazon/History/Bert/Base/emb.npy", help="Use LM embedding as feature")
-    parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/History/", help="Path to save splitting")
-    parser.add_argument("--graph_path", type=str, default="/mnt/v-wzhuang/Amazon/Books/Amazon-Books-History.pt", help="Path to load the graph")
+    parser.add_argument('--way', type=str, default="random")
+    parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/TinyBert/emb.npy", help="Use LM embedding as feature")
+    parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/DBLP/", help="Path to save splitting")
+    parser.add_argument("--graph_path", type=str, default="/mnt/v-wzhuang/DBLP/Citation-V8.pt", help="Path to load the graph")
     args = parser.parse_args()
     wandb.config = args
     wandb.init(config=args, reinit=True)
@@ -157,7 +158,7 @@ def main():
     graph = dgl.load_graphs(f'{args.graph_path}')[0][0]
 
     graph = from_dgl(graph)
-    edge_split = split_edge(graph, test_ratio=0.08, val_ratio=0.02, path=args.path, neg_len=args.neg_len)
+    edge_split = split_edge(graph, test_ratio=0.08, val_ratio=0.02, path=args.path, neg_len=args.neg_len, way=args.way)
     # split_edge = dataset.get_edge_split()
 
     x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32)).to(device)

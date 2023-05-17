@@ -168,7 +168,7 @@ def from_dgl(g):
     return data
 
 
-def split_edge(graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len=1000, path=None):
+def split_edge(graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len=1000, path=None, way='random'):
     if os.path.exists(os.path.join(path, 'train_edge_index.pt')) and \
             os.path.exists(os.path.join(path, 'val_edge_index.pt')) and \
             os.path.exists(os.path.join(path, 'test_edge_index.pt')) and \
@@ -191,14 +191,16 @@ def split_edge(graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len=100
         test_size = int(len(eids) * test_ratio)
         val_size = int(len(eids) * val_ratio)
         train_size = graph.num_edges - test_size - val_size
+        if way == 'random':
+            test_pos_u, test_pos_v = u[eids[:test_size]], v[eids[:test_size]]
+            val_pos_u, val_pos_v = u[eids[test_size:test_size + val_size]], v[eids[test_size:test_size + val_size]]
+            train_pos_u, train_pos_v = u[eids[test_size + val_size:]], v[eids[test_size + val_size:]]
 
-        test_pos_u, test_pos_v = u[eids[:test_size]], v[eids[:test_size]]
-        val_pos_u, val_pos_v = u[eids[test_size:test_size + val_size]], v[eids[test_size:test_size + val_size]]
-        train_pos_u, train_pos_v = u[eids[test_size + val_size:]], v[eids[test_size + val_size:]]
-
-        train_edge_index = th.stack((train_pos_u, train_pos_v), dim=1)
-        val_edge_index = th.stack((val_pos_u, val_pos_v), dim=1)
-        test_edge_index = th.stack((test_pos_u, test_pos_v), dim=1)
+            train_edge_index = th.stack((train_pos_u, train_pos_v), dim=1)
+            val_edge_index = th.stack((val_pos_u, val_pos_v), dim=1)
+            test_edge_index = th.stack((test_pos_u, test_pos_v), dim=1)
+        elif way == 'Time':
+            pass
 
         # 构建neg_u, neg_v
         # Find all negative edges and split them for training and testing
