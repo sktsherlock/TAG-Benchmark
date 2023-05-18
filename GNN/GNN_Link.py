@@ -7,11 +7,13 @@ from torch.utils.data import DataLoader
 from torch_sparse import SparseTensor
 import torch_geometric.transforms as T
 from torch_geometric.nn import GCNConv, SAGEConv
+from torch_geometric.utils import to_undirected
 
 from ogb.linkproppred import PygLinkPropPredDataset
 from model.Dataloader import Evaluator, split_edge, from_dgl
 from model.GNN_arg import Logger
 import dgl
+import numpy as np
 import wandb
 
 
@@ -147,7 +149,6 @@ def test(model, predictor, x, adj_t, full_adj_t, edge_split, evaluator, batch_si
     pos_test_edge = edge_split[2].to(x.device)
     neg_test_edge = edge_split[3].to(x.device)
 
-
     pos_train_preds = []
     for perm in DataLoader(range(pos_train_edge.size(0)), batch_size):
         edge = pos_train_edge[perm].t()
@@ -210,14 +211,18 @@ def main():
     parser.add_argument('--hidden_channels', type=int, default=256)
     parser.add_argument('--dropout', type=float, default=0.0)
     parser.add_argument('--batch_size', type=int, default=64 * 1024)
-    parser.add_argument('--lr', type=float, default=0.01)
-    parser.add_argument('--epochs', type=int, default=2)
+    parser.add_argument('--lr', type=float, default=0.001)
+    parser.add_argument('--epochs', type=int, default=10)
+    parser.add_argument('--gnn_model', type=str, help='GNN MOdel', default='GCN')
     parser.add_argument('--eval_steps', type=int, default=1)
     parser.add_argument('--runs', type=int, default=5)
     parser.add_argument('--neg_len', type=int, default=10000)
-    parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/Amazon/History/Bert/Base/emb.npy", help="Use LM embedding as feature")
-    parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/History/", help="Path to save splitting")
-    parser.add_argument("--graph_path", type=str, default="/mnt/v-wzhuang/Amazon/Books/Amazon-Books-History.pt", help="Path to load the graph")
+    parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/Amazon/History/Bert/Base/emb.npy",
+                        help="Use LM embedding as feature")
+    parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/History/",
+                        help="Path to save splitting")
+    parser.add_argument("--graph_path", type=str, default="/mnt/v-wzhuang/Amazon/Books/Amazon-Books-History.pt",
+                        help="Path to load the graph")
     args = parser.parse_args()
     wandb.config = args
     wandb.init(config=args, reinit=True)
@@ -233,43 +238,36 @@ def main():
 
     x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32)).to(device)
 
-    if args.use_node_embedding:
-        embedding = torch.load('embedding.pt', map_location='cpu')
-        x = torch.cat([x, embedding], dim=-1)
-
     x = x.to(device)
 
-    dataset = PygLinkPropPredDataset(name='ogbl-collab')
-    data = dataset[0]
-    edge_index = data.edge_index
-    data.edge_weight = data.edge_weight.view(-1).to(torch.float)
-    data = T.ToSparseTensor()(data)
-
-    split_edges = dataset.get_edge_split()
+    # edge_index = data.edge_index
+    # data.edge_weight = data.edge_weight.view(-1).to(torch.float)
 
     # Use training + validation edges for inference on test set.
+    edge_index = to_undirected(edge_split[0].t())
+    graph = T.ToSparseTensor()(graph)
+    adj_t = graph.adj_t.to(device)
+    val_edge_index = edge_split[1].t()
+    full_adj_t = torch.cat([edge_index, val_edge_index], dim=-1)
 
-    val_edge_index = split_edges['valid']['edge'].t()
-    full_edge_index = torch.cat([edge_index, val_edge_index], dim=-1)
-    data.full_adj_t = SparseTensor.from_edge_index(full_edge_index).t()
-    data.full_adj_t = data.full_adj_t.to_symmetric()
+    full_adj_t = SparseTensor.from_edge_index(full_adj_t).t()
+    full_adj_t = full_adj_t.to_symmetric().to(device)
 
-
-
-
-    if args.use_sage:
-        model = SAGE(data.num_features, args.hidden_channels,
+    if args.gnn_model == 'SAGE':
+        model = SAGE(x.size(1), args.hidden_channels,
                      args.hidden_channels, args.num_layers,
                      args.dropout).to(device)
-    else:
-        model = GCN(data.num_features, args.hidden_channels,
+    elif args.gnn_model == 'GCN':
+        model = GCN(x.size(1), args.hidden_channels,
                     args.hidden_channels, args.num_layers,
                     args.dropout).to(device)
+    else:
+        raise ValueError('Not implemented')
 
     predictor = LinkPredictor(args.hidden_channels, args.hidden_channels, 1,
                               args.num_layers, args.dropout).to(device)
 
-    evaluator = Evaluator(name='ogbl-collab')
+    evaluator = Evaluator(name='History')
     loggers = {
         'Hits@10': Logger(args.runs, args),
         'Hits@50': Logger(args.runs, args),
@@ -284,11 +282,11 @@ def main():
             lr=args.lr)
 
         for epoch in range(1, 1 + args.epochs):
-            loss = train(model, predictor, data, split_edge, optimizer,
+            loss = train(model, predictor, x, adj_t, edge_split, optimizer,
                          args.batch_size)
 
             if epoch % args.eval_steps == 0:
-                results = test(model, predictor, data, split_edge, evaluator,
+                results = test(model, predictor, x, adj_t, full_adj_t, edge_split, evaluator,
                                args.batch_size)
                 for key, result in results.items():
                     loggers[key].add_result(run, result)
@@ -311,7 +309,7 @@ def main():
 
     for key in loggers.keys():
         print(key)
-        loggers[key].print_statistics()
+        loggers[key].print_statistics(key=key)
 
 
 if __name__ == "__main__":
