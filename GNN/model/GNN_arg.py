@@ -78,6 +78,9 @@ def args_init():
     argparser.add_argument(
         "--k", type=int, default=10, help="Number of propagation steps"
     )
+    argparser.add_argument(
+        "--hidden_sizes", type=int, nargs="+", default=[64], help="hidden unit sizes for appnp",
+    )
     # ! default
     argparser.add_argument(
         "--log-every", type=int, default=20, help="log every LOG_EVERY epochs"

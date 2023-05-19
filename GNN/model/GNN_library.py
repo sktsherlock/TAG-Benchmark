@@ -46,8 +46,8 @@ class ElementWiseLinear(nn.Module):
 class APPNP(nn.Module):
     def __init__(
         self,
-        g,
         in_feats,
+        n_layers,
         n_hidden,
         n_classes,
         activation,
@@ -57,14 +57,15 @@ class APPNP(nn.Module):
         k,
     ):
         super(APPNP, self).__init__()
+        self.n_layers = n_layers
+        self.n_hidden = n_hidden
         self.layers = nn.ModuleList()
         # input layer
-        self.layers.append(nn.Linear(in_feats, n_hidden[0]))
-        # hidden layers
-        for i in range(1, len(n_hidden)):
-            self.layers.append(nn.Linear(n_hidden[i - 1], n_hidden[i]))
-        # output layer
-        self.layers.append(nn.Linear(n_hidden[-1], n_classes))
+        for i in range(n_layers):
+            in_hidden = n_hidden if i > 0 else in_feats
+            out_hidden = n_hidden if i < n_layers - 1 else n_classes
+            self.layers.append(nn.Linear(in_hidden, out_hidden))
+
         self.activation = activation
 
         self.input_drop = nn.Dropout(input_drop)
@@ -83,7 +84,7 @@ class APPNP(nn.Module):
         h = self.activation(self.layers[0](h))
         for layer in self.layers[1:-1]:
             h = self.activation(layer(h))
-        h = self.layers[-1](self.feat_drop(h))
+        h = self.layers[-1](self.input_drop(h))
         # propagation step
         h = self.propagate(graph, h)
         return h

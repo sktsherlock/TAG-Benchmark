@@ -90,6 +90,7 @@ def gen_model(args):
     elif args.model_name == 'APPNP':
         model = APPNP(
             in_feats,
+            args.n_layers,
             args.n_hidden,
             n_classes,
             F.relu,
