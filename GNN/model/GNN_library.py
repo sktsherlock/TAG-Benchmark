@@ -9,7 +9,6 @@ import torch.nn.functional as F
 from dgl.sampling import node2vec_random_walk
 from torch.utils.data import DataLoader
 
-
 class ElementWiseLinear(nn.Module):
     def __init__(self, size, weight=True, bias=True, inplace=False):
         super().__init__()
@@ -43,6 +42,52 @@ class ElementWiseLinear(nn.Module):
             if self.bias is not None:
                 x = x + self.bias
         return x
+
+class APPNP(nn.Module):
+    def __init__(
+        self,
+        g,
+        in_feats,
+        n_hidden,
+        n_classes,
+        activation,
+        input_drop,
+        edge_drop,
+        alpha,
+        k,
+    ):
+        super(APPNP, self).__init__()
+        self.layers = nn.ModuleList()
+        # input layer
+        self.layers.append(nn.Linear(in_feats, n_hidden[0]))
+        # hidden layers
+        for i in range(1, len(n_hidden)):
+            self.layers.append(nn.Linear(n_hidden[i - 1], n_hidden[i]))
+        # output layer
+        self.layers.append(nn.Linear(n_hidden[-1], n_classes))
+        self.activation = activation
+
+        self.input_drop = nn.Dropout(input_drop)
+
+        self.propagate = dglnn.APPNPConv(k, alpha, edge_drop)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        for layer in self.layers:
+            layer.reset_parameters()
+
+    def forward(self, graph, features):
+        # prediction step
+        h = features
+        h = self.input_drop(h)
+        h = self.activation(self.layers[0](h))
+        for layer in self.layers[1:-1]:
+            h = self.activation(layer(h))
+        h = self.layers[-1](self.feat_drop(h))
+        # propagation step
+        h = self.propagate(graph, h)
+        return h
+
 
 
 class GraphSAGE(nn.Module):

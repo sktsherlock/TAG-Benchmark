@@ -66,16 +66,17 @@ def args_init():
     )
     #! Monet
     argparser.add_argument(
-        "--pseudo-dim",
-        type=int,
-        default=2,
-        help="Pseudo coordinate dimensions in GMMConv, 2 and 3",
+        "--pseudo-dim",type=int,default=2,help="Pseudo coordinate dimensions in GMMConv, 2 and 3",
     )
     argparser.add_argument(
-        "--n-kernels",
-        type=int,
-        default=3,
-        help="Number of kernels in GMMConv layer",
+        "--n-kernels",type=int,default=3,help="Number of kernels in GMMConv layer",
+    )
+    #! APPNP
+    argparser.add_argument(
+        "--alpha", type=float, default=0.1, help="Teleport Probability"
+    )
+    argparser.add_argument(
+        "--k", type=int, default=10, help="Number of propagation steps"
     )
     # ! default
     argparser.add_argument(

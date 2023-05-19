@@ -11,7 +11,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from matplotlib import pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
-from model.GNN_library import GIN, GCN, GAT, GIN, GraphSAGE, JKNet, MLP, MoNet
+from model.GNN_library import GIN, GCN, GAT, GIN, GraphSAGE, JKNet, MLP, APPNP
 from model.GNN_arg import args_init
 from model.Dataloader import load_data
 from ogb.nodeproppred import DglNodePropPredDataset
@@ -87,16 +87,16 @@ def gen_model(args):
             args.input_drop,
             args.dropout,
         )
-    elif args.model_name == 'MoNet':
-        model = MoNet(
+    elif args.model_name == 'APPNP':
+        model = APPNP(
             in_feats,
             args.n_hidden,
             n_classes,
-            args.n_layers,
-            args.pseudo_dim,
-            args.n_kernels,
+            F.relu,
             args.input_drop,
             args.dropout,
+            args.alpha,
+            args.k,
         )
     else:
         raise ValueError('Not implement!')
