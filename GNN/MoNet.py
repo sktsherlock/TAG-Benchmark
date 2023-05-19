@@ -117,7 +117,7 @@ def run(
     # graph preprocess and calculate normalization factor
     n_edges = graph.num_edges()
     us, vs = graph.edges(order="eid")
-    udeg, vdeg = 1 / th.sqrt(g.in_degrees(us).float()), 1 / th.sqrt(
+    udeg, vdeg = 1 / th.sqrt(graph.in_degrees(us).float()), 1 / th.sqrt(
         graph.in_degrees(vs).float()
     )
     pseudo = th.cat([udeg.unsqueeze(1), vdeg.unsqueeze(1)], dim=1)
