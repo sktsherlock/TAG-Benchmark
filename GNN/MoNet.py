@@ -9,12 +9,10 @@ import numpy as np
 import torch as th
 import torch.nn.functional as F
 import torch.optim as optim
-from matplotlib import pyplot as plt
-from matplotlib.ticker import AutoMinorLocator, MultipleLocator
-from model.GNN_library import GIN, GCN, GAT, GIN, GraphSAGE, JKNet, MLP, MoNet
+
+from model.GNN_library import MoNet
 from model.GNN_arg import args_init
 from model.Dataloader import load_data
-from ogb.nodeproppred import DglNodePropPredDataset
 
 
 device = None
@@ -23,71 +21,7 @@ epsilon = 1 - math.log(2)
 
 
 def gen_model(args):
-    if args.model_name == 'GIN':
-        model = GIN(
-            in_feats,
-            args.n_hidden,
-            n_classes,
-            args.n_layers,
-            args.num_mlp_layers,
-            args.input_drop,
-            args.learning_eps,
-            args.neighbor_pooling_type,
-            )
-    elif args.model_name == 'GCN':
-        model = GCN(
-            in_feats,
-            args.n_hidden,
-            n_classes,
-            args.n_layers,
-            F.relu,
-            args.dropout,
-            args.input_drop,
-        )
-    elif args.model_name == 'GAT':
-        model = GAT(
-            in_feats,
-            n_classes,
-            args.n_hidden,
-            args.n_layers,
-            args.n_heads,
-            F.relu,
-            args.dropout,
-            args.input_drop,
-            args.attn_drop,
-            args.edge_drop,
-            not args.no_attn_dst,
-        )
-    elif args.model_name == 'SAGE':
-        model = GraphSAGE(
-            in_feats,
-            args.n_hidden,
-            n_classes,
-            args.n_layers,
-            F.relu,
-            args.dropout,
-            args.aggregator_type,
-            args.input_drop,
-        )
-    elif args.model_name == 'JKNet':
-        model = JKNet(
-            in_feats,
-            args.n_hidden,
-            n_classes,
-            args.n_layers,
-            args.mode,
-            args.dropout,
-        )
-    elif args.model_name == 'MLP':
-        model = MLP(
-            args.n_layers,
-            in_feats,
-            args.n_hidden,
-            n_classes,
-            args.input_drop,
-            args.dropout,
-        )
-    elif args.model_name == 'MoNet':
+    if args.model_name == 'MoNet':
         model = MoNet(
             in_feats,
             args.n_hidden,
@@ -123,11 +57,11 @@ def adjust_learning_rate(optimizer, lr, epoch):
             param_group["lr"] = lr * epoch / 50
 
 
-def train(model, graph, feat, labels, train_idx, optimizer):
+def train(model, graph, feat, pseudo, labels, train_idx, optimizer):
     model.train()
 
     optimizer.zero_grad()
-    pred = model(graph, feat)
+    pred = model(feat, pseudo, graph)
     loss = cross_entropy(pred[train_idx], labels[train_idx])
     loss.backward()
     optimizer.step()
@@ -137,11 +71,11 @@ def train(model, graph, feat, labels, train_idx, optimizer):
 
 @th.no_grad()
 def evaluate(
-    model, graph, feat, labels, train_idx, val_idx, test_idx
+    model, graph, feat, pseudo, labels, train_idx, val_idx, test_idx
 ):
     model.eval()
     with th.no_grad():
-        pred = model(graph, feat)
+        pred = model(feat, pseudo, graph)
     val_loss = cross_entropy(pred[val_idx], labels[val_idx])
     test_loss = cross_entropy(pred[test_idx], labels[test_idx])
 
@@ -180,6 +114,13 @@ def run(
     total_time = 0
     best_val_acc, final_test_acc, best_val_loss = 0, 0, float("inf")
 
+    # graph preprocess and calculate normalization factor
+    n_edges = graph.num_edges()
+    us, vs = graph.edges(order="eid")
+    udeg, vdeg = 1 / th.sqrt(g.in_degrees(us).float()), 1 / th.sqrt(
+        graph.in_degrees(vs).float()
+    )
+    pseudo = th.cat([udeg.unsqueeze(1), vdeg.unsqueeze(1)], dim=1)
 
     for epoch in range(1, args.n_epochs + 1):
         tic = time.time()
@@ -187,7 +128,7 @@ def run(
         adjust_learning_rate(optimizer, args.lr, epoch)
 
         loss, pred = train(
-            model, graph, feat, labels, train_idx, optimizer
+            model, graph, feat, pseudo, labels, train_idx, optimizer
         )
         acc = compute_acc(pred[train_idx], labels[train_idx])
 
@@ -201,6 +142,7 @@ def run(
             model,
             graph,
             feat,
+            pseudo,
             labels,
             train_idx,
             val_idx,

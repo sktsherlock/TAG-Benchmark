@@ -207,6 +207,8 @@ def get_lm_trainer(model, name=None):
         from Trainer.TDK_trainer import TDK_Trainer as LMTrainer
     elif name == 'CL_DK':
         from Trainer.TCL_DK_trainer import TCL_DK_Trainer as LMTrainer
+    elif name == 'Tlink':
+        from Trainer.TLink_trainer import TLink_Trainer as LMTrainer
     else:
         from lm_trainer import LMTrainer as LMTrainer
     return LMTrainer

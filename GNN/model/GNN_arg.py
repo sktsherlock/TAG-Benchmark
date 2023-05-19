@@ -64,6 +64,19 @@ def args_init():
     argparser.add_argument(
         "--mode", type=str, default='cat', help="the mode of aggregate the feature, 'cat', 'lstm'"
     )
+    #! Monet
+    argparser.add_argument(
+        "--pseudo-dim",
+        type=int,
+        default=2,
+        help="Pseudo coordinate dimensions in GMMConv, 2 and 3",
+    )
+    argparser.add_argument(
+        "--n-kernels",
+        type=int,
+        default=3,
+        help="Number of kernels in GMMConv layer",
+    )
     # ! default
     argparser.add_argument(
         "--log-every", type=int, default=20, help="log every LOG_EVERY epochs"

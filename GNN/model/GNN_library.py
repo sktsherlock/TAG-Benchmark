@@ -600,17 +600,17 @@ class JKNet(nn.Module):
 class MoNet(nn.Module):
     def __init__(
         self,
-        g,
         in_feats,
         n_hidden,
-        out_feats,
+        n_classes,
         n_layers,
         dim,
         n_kernels,
+        input_drop,
         dropout,
     ):
         super(MoNet, self).__init__()
-        self.g = g
+        self.input_drop = nn.Dropout(input_drop)
         self.layers = nn.ModuleList()
         self.pseudo_proj = nn.ModuleList()
 
@@ -624,16 +624,17 @@ class MoNet(nn.Module):
             self.pseudo_proj.append(nn.Sequential(nn.Linear(2, dim), nn.Tanh()))
 
         # Output layer
-        self.layers.append(dglnn.GMMConv(n_hidden, out_feats, dim, n_kernels))
+        self.layers.append(dglnn.GMMConv(n_hidden, n_classes, dim, n_kernels))
         self.pseudo_proj.append(nn.Sequential(nn.Linear(2, dim), nn.Tanh()))
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, feat, pseudo):
+    def forward(self, feat, pseudo, graph):
         h = feat
+        h = self.input_drop(h)
         for i in range(len(self.layers)):
             if i != 0:
                 h = self.dropout(h)
-            h = self.layers[i](self.g, h, self.pseudo_proj[i](pseudo))
+            h = self.layers[i](graph, h, self.pseudo_proj[i](pseudo))
         return h
 
 class Node2vec(nn.Module):
