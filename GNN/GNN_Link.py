@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 
 from torch_sparse import SparseTensor
 import torch_geometric.transforms as T
-from torch_geometric.nn import GCNConv, SAGEConv
+from torch_geometric.nn import GCNConv, SAGEConv, GATConv
 from torch_geometric.utils import to_undirected
 
 from ogb.linkproppred import PygLinkPropPredDataset
@@ -43,7 +43,6 @@ class GCN(torch.nn.Module):
         x = self.convs[-1](x, adj_t)
         return x
 
-
 class SAGE(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
                  dropout):
@@ -69,6 +68,33 @@ class SAGE(torch.nn.Module):
         x = self.convs[-1](x, adj_t)
         return x
 
+class GAT(torch.nn.Module):
+    def __init__(self, in_channels, hidden_channels, out_channels, num_layers, heads, dropout):
+        super().__init__()
+        self.num_layers = num_layers
+        self.dropout = dropout
+
+        self.convs = torch.nn.ModuleList()
+        self.convs.append(GATConv(in_channels, hidden_channels,
+                                  heads))
+        for _ in range(num_layers - 2):
+            self.convs.append(
+                GATConv(heads * hidden_channels, hidden_channels, heads))
+        self.convs.append(
+            GATConv(heads * hidden_channels, out_channels, heads,
+                    concat=False))
+
+    def reset_parameters(self):
+        for conv in self.convs:
+            conv.reset_parameters()
+
+    def forward(self, x, edge_index):
+        for conv in self.convs[:-1]:
+            x = conv(x, edge_index)
+            x = F.elu(x)
+            x = F.dropout(x, p=self.dropout, training=self.training)
+        x = self.convs[-1](x, edge_index)
+        return x
 
 class LinkPredictor(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
@@ -259,6 +285,10 @@ def main():
                      args.dropout).to(device)
     elif args.gnn_model == 'GCN':
         model = GCN(x.size(1), args.hidden_channels,
+                    args.hidden_channels, args.num_layers,
+                    args.dropout).to(device)
+    elif args.gnn_model == 'GAT':
+        model = GAT(x.size(1), args.hidden_channels,
                     args.hidden_channels, args.num_layers,
                     args.dropout).to(device)
     else:
