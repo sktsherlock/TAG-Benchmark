@@ -240,6 +240,7 @@ def main():
     parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--epochs', type=int, default=10)
     parser.add_argument('--gnn_model', type=str, help='GNN MOdel', default='GCN')
+    parser.add_argument('--heads', type=int, default=4)
     parser.add_argument('--eval_steps', type=int, default=1)
     parser.add_argument('--runs', type=int, default=5)
     parser.add_argument('--neg_len', type=int, default=10000)
@@ -289,7 +290,7 @@ def main():
                     args.dropout).to(device)
     elif args.gnn_model == 'GAT':
         model = GAT(x.size(1), args.hidden_channels,
-                    args.hidden_channels, args.num_layers,
+                    args.hidden_channels, args.num_layers, args.heads,
                     args.dropout).to(device)
     else:
         raise ValueError('Not implemented')
