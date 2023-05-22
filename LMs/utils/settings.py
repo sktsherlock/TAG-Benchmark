@@ -79,7 +79,7 @@ DATA_INFO = {
         'n_nodes': 169343,
         'ogb_name': 'ogbn-arxiv',
         'raw_data_path': OGB_ROOT,  # Place to save raw data
-        'max_length': 64,  # Place to save raw data ARXIV_ta 512； arxiv_T 64
+        'max_length': 512,  # Place to save raw data ARXIV_ta 512； arxiv_T 64
         'data_root': f'{OGB_ROOT}ogbn_arxiv/',  # Default ogb download target path
         'raw_text_url': 'https://snap.stanford.edu/ogb/data/misc/ogbn_arxiv/titleabs.tsv.gz',
     },
