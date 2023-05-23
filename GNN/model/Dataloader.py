@@ -227,8 +227,8 @@ class Evaluator:
             'eval_metric': 'hits@50'
                         },
             'DBLP': {
-                'name': 'History',
-                'eval_metric': 'hits@50'
+                'name': 'DBLP',
+                'eval_metric': 'mrr'
                         }
 }
 
