@@ -222,13 +222,16 @@ def split_edge(graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len=100
     return train_edge_index, val_edge_index, test_edge_index, test_neg_edge_index
 
 
-def split_edge_MMR(graph, time=2015, random_seed=42, neg_len=1000, path=None):
-    if os.path.exists(os.path.join(path, 'edge_split.pt')):
+def split_edge_MMR(dgl_graph, time=2015, random_seed=42, neg_len=1000, path=None):
+    if os.path.exists(os.path.join(path, 'edge_split.pt')) and os.path.exists(os.path.join(path, 'train_G.pt')):
         edge_split = th.load(os.path.join(path, 'edge_split.pt'))
+        train_g = dgl.load_graphs(os.path.join(path, 'train_G.pt'))[0][0]
     else:
 
         np.random.seed(random_seed)
         th.manual_seed(random_seed)
+
+        graph = from_dgl(dgl_graph)
 
         year = list(np.array(graph.year))
         indices = np.arange(graph.num_nodes)
@@ -273,8 +276,11 @@ def split_edge_MMR(graph, time=2015, random_seed=42, neg_len=1000, path=None):
                                'target_node_neg': test_target_neg}}
 
         th.save(edge_split, os.path.join(path, 'edge_split.pt'))
+        # ! 保存子图
+        train_g = dgl.remove_edges(dgl_graph, val_list + test_list)
+        dgl.save_graphs(os.path.join(path, 'train_G.pt'), train_g)
 
-    return edge_split
+    return edge_split, train_g
 
 
 class Evaluator:
@@ -457,27 +463,29 @@ class Evaluator:
             argsort = th.argsort(y_pred, dim=1, descending=True)
             ranking_list = th.nonzero(argsort == 0, as_tuple=False)
             ranking_list = ranking_list[:, 1] + 1
-            hits1_list = (ranking_list <= 1).to(th.float)
-            hits3_list = (ranking_list <= 3).to(th.float)
-            hits10_list = (ranking_list <= 10).to(th.float)
+            # hits1_list = (ranking_list <= 1).to(th.float)
+            # hits3_list = (ranking_list <= 3).to(th.float)
+            # hits10_list = (ranking_list <= 10).to(th.float)
             mrr_list = 1. / ranking_list.to(th.float)
 
-            return {'hits@1_list': hits1_list,
-                    'hits@3_list': hits3_list,
-                    'hits@10_list': hits10_list,
-                    'mrr_list': mrr_list}
+            return {
+                # 'hits@1_list': hits1_list,
+                #  'hits@3_list': hits3_list,
+                #  'hits@10_list': hits10_list,
+                'mrr_list': mrr_list}
 
         else:
             y_pred = np.concatenate([y_pred_pos.reshape(-1, 1), y_pred_neg], axis=1)
             argsort = np.argsort(-y_pred, axis=1)
             ranking_list = (argsort == 0).nonzero()
             ranking_list = ranking_list[1] + 1
-            hits1_list = (ranking_list <= 1).astype(np.float32)
-            hits3_list = (ranking_list <= 3).astype(np.float32)
-            hits10_list = (ranking_list <= 10).astype(np.float32)
+            # hits1_list = (ranking_list <= 1).astype(np.float32)
+            # hits3_list = (ranking_list <= 3).astype(np.float32)
+            # hits10_list = (ranking_list <= 10).astype(np.float32)
             mrr_list = 1. / ranking_list.astype(np.float32)
 
-            return {'hits@1_list': hits1_list,
-                    'hits@3_list': hits3_list,
-                    'hits@10_list': hits10_list,
-                    'mrr_list': mrr_list}
+            return {
+                # 'hits@1_list': hits1_list,
+                #  'hits@3_list': hits3_list,
+                #  'hits@10_list': hits10_list,
+                'mrr_list': mrr_list}

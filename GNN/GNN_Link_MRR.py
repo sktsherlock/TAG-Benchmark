@@ -160,13 +160,13 @@ def train(model, predictor, x, graph, edge_split, optimizer, batch_size):
 
 
 @torch.no_grad()
-def test(model, predictor, x, graph, edge_split, evaluator, batch_size):
+def test(model, predictor, x, graph, edge_split, evaluator, batch_size, neg_len):
     model.eval()
     predictor.eval()
 
     h = model(x, graph.adj_t)
 
-    def test_split(split, args):
+    def test_split(split, neg_len):
         source = edge_split[split]['source_node'].to(h.device)
         target = edge_split[split]['target_node'].to(h.device)
         target_neg = edge_split[split]['target_node_neg'].to(h.device)
@@ -178,21 +178,21 @@ def test(model, predictor, x, graph, edge_split, evaluator, batch_size):
         pos_pred = torch.cat(pos_preds, dim=0)
 
         neg_preds = []
-        source = source.view(-1, 1).repeat(1, args.neg_len).view(-1)
+        source = source.view(-1, 1).repeat(1, neg_len).view(-1)
         target_neg = target_neg.view(-1)
         for perm in DataLoader(range(source.size(0)), batch_size):
             src, dst_neg = source[perm], target_neg[perm]
             neg_preds += [predictor(h[src], h[dst_neg]).squeeze().cpu()]
-        neg_pred = torch.cat(neg_preds, dim=0).view(-1, args.neg_len)
+        neg_pred = torch.cat(neg_preds, dim=0).view(-1, neg_len)
 
         return evaluator.eval({
             'y_pred_pos': pos_pred,
             'y_pred_neg': neg_pred,
         })['mrr_list'].mean().item()
 
-    train_mrr = test_split('eval_train')
-    valid_mrr = test_split('valid')
-    test_mrr = test_split('test')
+    train_mrr = test_split('eval_train', neg_len)
+    valid_mrr = test_split('valid', neg_len)
+    test_mrr = test_split('test', neg_len)
 
     return train_mrr, valid_mrr, test_mrr
 
@@ -200,20 +200,20 @@ def test(model, predictor, x, graph, edge_split, evaluator, batch_size):
 def main():
     parser = argparse.ArgumentParser(description='Link-Prediction PLM/TCL')
     parser.add_argument('--device', type=int, default=0)
-    parser.add_argument('--log_steps', type=int, default=1)
+    parser.add_argument('--log_steps', type=int, default=5)
     parser.add_argument('--use_node_embedding', action='store_true')
-    parser.add_argument('--num_layers', type=int, default=3)
+    parser.add_argument('--num_layers', type=int, default=2)
     parser.add_argument('--hidden_channels', type=int, default=256)
     parser.add_argument('--dropout', type=float, default=0.0)
     parser.add_argument('--batch_size', type=int, default=64 * 1024)
     parser.add_argument('--lr', type=float, default=0.0005)
     parser.add_argument('--epochs', type=int, default=100)
-    parser.add_argument('--gnn_model', type=str, help='GNN MOdel', default='GCN')
+    parser.add_argument('--gnn_model', type=str, help='GNN MOdel', default='GAT')
     parser.add_argument('--heads', type=int, default=4)
-    parser.add_argument('--eval_steps', type=int, default=1)
+    parser.add_argument('--eval_steps', type=int, default=5)
     parser.add_argument('--runs', type=int, default=5)
     parser.add_argument('--neg_len', type=int, default=2000)
-    parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/Amazon/History/Bert/Base/emb.npy",
+    parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/TinyBert/emb.npy",
                         help="Use LM embedding as feature")
     parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/DBLP-2015/",
                         help="Path to save splitting")
@@ -232,10 +232,8 @@ def main():
 
     graph = dgl.load_graphs(f'{args.graph_path}')[0][0]
 
-    graph = from_dgl(graph)
+    edge_split, train_G = split_edge_MMR(graph, time=2015, random_seed=42, neg_len=args.neg_len, path=args.path)
 
-
-    edge_split = split_edge_MMR(graph, time=2015, random_seed=42, neg_len=args.neg_len, path=args.path)
 
     x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32)).to(device)
 
@@ -248,13 +246,13 @@ def main():
         'target_node': edge_split['train']['target_node'][idx],
         'target_node_neg': edge_split['valid']['target_node_neg'],
     }
+    #len(edge_split['train']['source_node']) = 6110221  valid 5338 test 5338
 
 
-
-
-    graph = T.ToSparseTensor()(graph)
-    graph.adj_t = graph.adj_t.to_symmetric()
-    graph = graph.to(device)
+    train_G  = from_dgl(train_G)
+    train_G = T.ToSparseTensor()(train_G) #完整数据
+    train_G.adj_t = train_G.adj_t.to_symmetric()
+    train_G = train_G.to(device)
 
 
     if args.gnn_model == 'SAGE':
@@ -286,12 +284,12 @@ def main():
             lr=args.lr)
 
         for epoch in range(1, 1 + args.epochs):
-            loss = train(model, predictor, x, graph, edge_split, optimizer,
+            loss = train(model, predictor, x, train_G, edge_split, optimizer,
                          args.batch_size)
             wandb.log({'Loss': loss})
             if epoch % args.eval_steps == 0:
-                result = test(model, predictor, x, graph, edge_split, evaluator,
-                               args.batch_size)
+                result = test(model, predictor, x, train_G, edge_split, evaluator,
+                               args.batch_size, args.neg_len)
                 logger.add_result(run, result)
 
                 if epoch % args.log_steps == 0:
@@ -305,7 +303,7 @@ def main():
 
             logger.print_statistics(run)
 
-        logger.print_statistics()
+        logger.print_statistics(key='mrr')
 
 
 if __name__ == "__main__":
