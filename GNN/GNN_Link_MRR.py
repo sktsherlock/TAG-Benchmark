@@ -199,7 +199,7 @@ def test(model, predictor, x, graph, edge_split, evaluator, batch_size, neg_len)
 
 def main():
     parser = argparse.ArgumentParser(description='Link-Prediction PLM/TCL')
-    parser.add_argument('--device', type=int, default=4)
+    parser.add_argument('--device', type=int, default=0)
     parser.add_argument('--log_steps', type=int, default=5)
     parser.add_argument('--use_node_embedding', action='store_true')
     parser.add_argument('--num_layers', type=int, default=2)
