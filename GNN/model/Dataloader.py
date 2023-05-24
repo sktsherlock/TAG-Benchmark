@@ -171,20 +171,16 @@ def from_dgl(g):
     return data
 
 
-def split_edge(graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len=1000, path=None, way='random'):
-    if os.path.exists(os.path.join(path, 'train_edge_index.pt')) and \
-            os.path.exists(os.path.join(path, 'val_edge_index.pt')) and \
-            os.path.exists(os.path.join(path, 'test_edge_index.pt')) and \
-            os.path.exists(os.path.join(path, 'test_neg_edge_index.pt')):
+def split_edge(dgl_graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len=1000, path=None, way='random'):
+    if os.path.exists(os.path.join(path, 'edge_split.pt')):
+        edge_split = th.load(os.path.join(path, 'edge_split.pt'))
 
-        train_edge_index = th.load(os.path.join(path, 'train_edge_index.pt'))
-        val_edge_index = th.load(os.path.join(path, 'val_edge_index.pt'))
-        test_edge_index = th.load(os.path.join(path, 'test_edge_index.pt'))
-        test_neg_edge_index = th.load(os.path.join(path, 'test_neg_edge_index.pt'))
     else:
 
         np.random.seed(random_seed)
         th.manual_seed(random_seed)
+
+        graph = from_dgl(dgl_graph)
 
         eids = np.arange(graph.num_edges)
         eids = np.random.permutation(eids)
@@ -193,33 +189,25 @@ def split_edge(graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len=100
 
         test_size = int(len(eids) * test_ratio)
         val_size = int(len(eids) * val_ratio)
-        train_size = graph.num_edges - test_size - val_size
-        if way == 'random':
-            test_pos_u, test_pos_v = u[eids[:test_size]], v[eids[:test_size]]
-            val_pos_u, val_pos_v = u[eids[test_size:test_size + val_size]], v[eids[test_size:test_size + val_size]]
-            train_pos_u, train_pos_v = u[eids[test_size + val_size:]], v[eids[test_size + val_size:]]
 
-            train_edge_index = th.stack((train_pos_u, train_pos_v), dim=1)
-            val_edge_index = th.stack((val_pos_u, val_pos_v), dim=1)
-            test_edge_index = th.stack((test_pos_u, test_pos_v), dim=1)
-        elif way == 'Time':
-            pass
+        test_pos_u, test_pos_v = u[eids[:test_size]], v[eids[:test_size]]
+        val_pos_u, val_pos_v = u[eids[test_size:test_size + val_size]], v[eids[test_size:test_size + val_size]]
+        train_pos_u, train_pos_v = u[eids[test_size + val_size:]], v[eids[test_size + val_size:]]
 
-        # 构建neg_u, neg_v
-        # Find all negative edges and split them for training and testing
-        # adj = sp.coo_matrix((np.ones(len(u)), (u.numpy(), v.numpy())))
-        # adj_neg = 1 - adj.todense() - np.eye(graph.num_nodes)
-        # neg_u, neg_v = np.where(adj_neg != 0)
+        train_edge_index = th.stack((train_pos_u, train_pos_v), dim=1)
+        val_edge_index = th.stack((val_pos_u, val_pos_v), dim=1)
+        test_edge_index = th.stack((test_pos_u, test_pos_v), dim=1)
 
+        valid_neg_edge_index = th.randint(0, graph.num_nodes, [neg_len, 2], dtype=th.long)
         test_neg_edge_index = th.randint(0, graph.num_nodes, [neg_len, 2], dtype=th.long)
+        # ! 创建dict类型存法
+        edge_split = {'train': {'edge': train_edge_index},
+                      'valid': {'edge': val_edge_index, 'edge_neg': valid_neg_edge_index},
+                      'test': {'edge': test_edge_index, 'edge_neg': test_neg_edge_index}}
 
-        # 保存到本地
-        th.save(train_edge_index, os.path.join(path, 'train_edge_index.pt'))
-        th.save(val_edge_index, os.path.join(path, 'val_edge_index.pt'))
-        th.save(test_edge_index, os.path.join(path, 'test_edge_index.pt'))
-        th.save(test_neg_edge_index, os.path.join(path, 'test_neg_edge_index.pt'))
+        th.save(edge_split, os.path.join(path, 'edge_split.pt'))
 
-    return train_edge_index, val_edge_index, test_edge_index, test_neg_edge_index
+    return edge_split
 
 
 def split_edge_MMR(dgl_graph, time=2015, random_seed=42, neg_len=1000, path=None):

@@ -15,6 +15,7 @@ from model.GNN_arg import Logger
 import dgl
 import numpy as np
 import wandb
+import os
 
 
 class GCN(torch.nn.Module):
@@ -127,7 +128,7 @@ def train(model, predictor, x, adj_t, edge_split, optimizer, batch_size):
     model.train()
     predictor.train()
 
-    pos_train_edge = edge_split[0].to(x.device)
+    pos_train_edge = edge_split['train']['edge'].to(x.device)
 
     total_loss = total_examples = 0
     for perm in DataLoader(range(pos_train_edge.size(0)), batch_size,
@@ -150,9 +151,6 @@ def train(model, predictor, x, adj_t, edge_split, optimizer, batch_size):
         loss = pos_loss + neg_loss
         loss.backward()
 
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        torch.nn.utils.clip_grad_norm_(predictor.parameters(), 1.0)
-
         optimizer.step()
 
         num_examples = pos_out.size(0)
@@ -163,17 +161,17 @@ def train(model, predictor, x, adj_t, edge_split, optimizer, batch_size):
 
 
 @torch.no_grad()
-def test(model, predictor, x, adj_t, full_adj_t, edge_split, evaluator, batch_size):
+def test(model, predictor, x, adj_t, edge_split, evaluator, batch_size):
     model.eval()
     predictor.eval()
 
     h = model(x, adj_t)
 
-    pos_train_edge = edge_split[0].to(x.device)
-    pos_valid_edge = edge_split[1].to(x.device)
-    neg_valid_edge = edge_split[3].to(x.device)
-    pos_test_edge = edge_split[2].to(x.device)
-    neg_test_edge = edge_split[3].to(x.device)
+    pos_train_edge = edge_split['train']['edge'].to(h.device)
+    pos_valid_edge = edge_split['valid']['edge'].to(h.device)
+    neg_valid_edge = edge_split['valid']['edge_neg'].to(h.device)
+    pos_test_edge = edge_split['test']['edge'].to(h.device)
+    neg_test_edge = edge_split['test']['edge_neg'].to(h.device)
 
     pos_train_preds = []
     for perm in DataLoader(range(pos_train_edge.size(0)), batch_size):
@@ -193,7 +191,7 @@ def test(model, predictor, x, adj_t, full_adj_t, edge_split, evaluator, batch_si
         neg_valid_preds += [predictor(h[edge[0]], h[edge[1]]).squeeze().cpu()]
     neg_valid_pred = torch.cat(neg_valid_preds, dim=0)
 
-    h = model(x, full_adj_t)
+    h = model(x, adj_t)
 
     pos_test_preds = []
     for perm in DataLoader(range(pos_test_edge.size(0)), batch_size):
@@ -255,30 +253,25 @@ def main():
     wandb.init(config=args, reinit=True)
     print(args)
 
+    if not os.path.exists(args.path):
+        os.makedirs(args.path)
+
     device = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
     device = torch.device(device)
 
     graph = dgl.load_graphs(f'{args.graph_path}')[0][0]
 
-    graph = from_dgl(graph)
-    edge_split = split_edge(graph, test_ratio=0.08, val_ratio=0.02, path=args.path, neg_len=args.neg_len)
+
+    edge_split  = split_edge(graph, test_ratio=0.08, val_ratio=0.02, path=args.path, neg_len=args.neg_len)
 
     x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32)).to(device)
 
     x = x.to(device)
 
-    # edge_index = data.edge_index
-    # data.edge_weight = data.edge_weight.view(-1).to(torch.float)
+    edge_index = edge_split['train']['edge'].t()
+    adj_t = SparseTensor.from_edge_index(edge_index).t()
+    adj_t = adj_t.to_symmetric().to(device)
 
-    # Use training + validation edges for inference on test set.
-    edge_index = to_undirected(edge_split[0].t())
-    graph = T.ToSparseTensor()(graph)
-    adj_t = graph.adj_t.to(device)
-    val_edge_index = edge_split[1].t()
-    full_adj_t = torch.cat([edge_index, val_edge_index], dim=-1)
-
-    full_adj_t = SparseTensor.from_edge_index(full_adj_t).t()
-    full_adj_t = full_adj_t.to_symmetric().to(device)
 
     if args.gnn_model == 'SAGE':
         model = SAGE(x.size(1), args.hidden_channels,
@@ -317,7 +310,7 @@ def main():
                          args.batch_size)
 
             if epoch % args.eval_steps == 0:
-                results = test(model, predictor, x, adj_t, full_adj_t, edge_split, evaluator,
+                results = test(model, predictor, x, adj_t, edge_split, evaluator,
                                args.batch_size)
                 for key, result in results.items():
                     loggers[key].add_result(run, result)
