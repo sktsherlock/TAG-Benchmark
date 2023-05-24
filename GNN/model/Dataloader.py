@@ -6,19 +6,21 @@ from sklearn.model_selection import train_test_split
 import scipy.sparse as sp
 import os
 import random
+import pickle
+
 
 def split_graph(nodes_num, train_ratio, val_ratio):
-
     np.random.seed(42)
     indices = np.random.permutation(nodes_num)
     train_size = int(nodes_num * train_ratio)
     val_size = int(nodes_num * val_ratio)
 
     train_ids = indices[:train_size]
-    val_ids = indices[train_size:train_size+val_size]
-    test_ids = indices[train_size+val_size:]
+    val_ids = indices[train_size:train_size + val_size]
+    test_ids = indices[train_size + val_size:]
 
     return train_ids, val_ids, test_ids
+
 
 # def split_time(g, train_year=2016, val_year=2017):
 #     year = list(np.array(g.ndata['year']))
@@ -43,7 +45,6 @@ def split_time(g, train_year=2016, val_year=2017):
     val_ids = [i for i in valid_indices if year[i] >= train_year and year[i] < val_year]
     test_ids = [i for i in valid_indices if year[i] >= val_year]
 
-
     train_length = len(train_ids)
     val_length = len(val_ids)
     test_length = len(test_ids)
@@ -53,6 +54,7 @@ def split_time(g, train_year=2016, val_year=2017):
     print("Test set length:", test_length)
 
     return train_ids, val_ids, test_ids
+
 
 def load_data(name, train_ratio=0.6, val_ratio=0.2):
     if name == 'ogbn-arxiv':
@@ -103,6 +105,7 @@ def load_data(name, train_ratio=0.6, val_ratio=0.2):
     else:
         raise ValueError('Not implemetned')
     return graph, labels, train_idx, val_idx, test_idx
+
 
 def from_dgl(g):
     r"""Converts a :obj:`dgl` graph object to a
@@ -208,7 +211,7 @@ def split_edge(graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len=100
         # adj_neg = 1 - adj.todense() - np.eye(graph.num_nodes)
         # neg_u, neg_v = np.where(adj_neg != 0)
 
-        test_neg_edge_index = th.randint(0, graph.num_nodes, [neg_len,2], dtype=th.long)
+        test_neg_edge_index = th.randint(0, graph.num_nodes, [neg_len, 2], dtype=th.long)
 
         # 保存到本地
         th.save(train_edge_index, os.path.join(path, 'train_edge_index.pt'))
@@ -218,20 +221,75 @@ def split_edge(graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len=100
 
     return train_edge_index, val_edge_index, test_edge_index, test_neg_edge_index
 
+
+def split_edge_MMR(graph, time=2015, random_seed=42, neg_len=1000, path=None):
+    if os.path.exists(os.path.join(path, 'edge_split.pt')):
+        edge_split = th.load(os.path.join(path, 'edge_split.pt'))
+    else:
+
+        np.random.seed(random_seed)
+        th.manual_seed(random_seed)
+
+        year = list(np.array(graph.year))
+        indices = np.arange(graph.num_nodes)
+        # %%
+        all_source = graph.edge_index[0]
+        all_target = graph.edge_index[1]
+        # %%
+        import random
+        val_list = []
+        test_list = []
+        for i in range(year.index(time), graph.num_nodes):
+            indices = th.where(all_source == i)[0]
+            if len(indices) >= 2:
+                _list = random.sample(list(indices), k=2)
+                val_list.append(_list[0])
+                test_list.append(_list[1])
+
+        val_source = all_source[val_list]
+        val_target = all_target[val_list]
+
+        test_source = all_source[test_list]
+        test_target = all_target[test_list]
+
+        all_index = list(range(0, len(graph.edge_index[0])))
+
+        val_list = np.array(val_list).tolist()
+        test_list = np.array(test_list).tolist()
+
+        train_idx = set(all_index) - set(val_list) - set(test_list)
+
+        tra_source = all_source[list(train_idx)]
+        tra_target = all_target[list(train_idx)]
+
+        val_target_neg = th.randint(low=0, high=year.index(time), size=(len(val_source), neg_len))
+        test_target_neg = th.randint(low=0, high=year.index(time), size=(len(test_source), neg_len))
+
+        # ! 创建dict类型存法
+        edge_split = {'train': {'source_node': tra_source, 'target_node': tra_target},
+                      'valid': {'source_node': val_source, 'target_node': val_target,
+                                'target_node_neg': val_target_neg},
+                      'test': {'source_node': test_source, 'target_node': test_target,
+                               'target_node_neg': test_target_neg}}
+
+        th.save(edge_split, os.path.join(path, 'edge_split.pt'))
+
+    return edge_split
+
+
 class Evaluator:
     def __init__(self, name):
         self.name = name
         meta_info = {
             'History': {
-            'name': 'History',
-            'eval_metric': 'hits@50'
-                        },
+                'name': 'History',
+                'eval_metric': 'hits@50'
+            },
             'DBLP': {
                 'name': 'DBLP',
                 'eval_metric': 'mrr'
-                        }
-}
-
+            }
+        }
 
         self.eval_metric = meta_info[self.name]['eval_metric']
 
@@ -285,7 +343,6 @@ class Evaluator:
                 # both y_pred_pos and y_pred_neg are numpy ndarray
 
                 type_info = 'numpy'
-
 
             if not y_pred_pos.ndim == 1:
                 raise RuntimeError('y_pred_pos must to 1-dim arrray, {}-dim array given'.format(y_pred_pos.ndim))
@@ -342,7 +399,6 @@ class Evaluator:
 
                 type_info = 'numpy'
 
-
             if not y_pred_pos.ndim == 1:
                 raise RuntimeError('y_pred_pos must to 1-dim arrray, {}-dim array given'.format(y_pred_pos.ndim))
 
@@ -353,7 +409,6 @@ class Evaluator:
 
         else:
             raise ValueError('Undefined eval metric %s' % (self.eval_metric))
-
 
     def eval(self, input_dict):
 
@@ -366,7 +421,6 @@ class Evaluator:
 
         else:
             raise ValueError('Undefined eval metric %s' % (self.eval_metric))
-
 
     def _eval_hits(self, y_pred_pos, y_pred_neg, type_info):
         '''
@@ -398,33 +452,32 @@ class Evaluator:
             y_pred_pos is an array with shape (batch size, )
         '''
 
-
         if type_info == 'torch':
-            y_pred = th.cat([y_pred_pos.view(-1,1), y_pred_neg], dim = 1)
-            argsort = th.argsort(y_pred, dim = 1, descending = True)
+            y_pred = th.cat([y_pred_pos.view(-1, 1), y_pred_neg], dim=1)
+            argsort = th.argsort(y_pred, dim=1, descending=True)
             ranking_list = th.nonzero(argsort == 0, as_tuple=False)
             ranking_list = ranking_list[:, 1] + 1
             hits1_list = (ranking_list <= 1).to(th.float)
             hits3_list = (ranking_list <= 3).to(th.float)
             hits10_list = (ranking_list <= 10).to(th.float)
-            mrr_list = 1./ranking_list.to(th.float)
+            mrr_list = 1. / ranking_list.to(th.float)
 
             return {'hits@1_list': hits1_list,
-                     'hits@3_list': hits3_list,
-                     'hits@10_list': hits10_list,
-                     'mrr_list': mrr_list}
+                    'hits@3_list': hits3_list,
+                    'hits@10_list': hits10_list,
+                    'mrr_list': mrr_list}
 
         else:
-            y_pred = np.concatenate([y_pred_pos.reshape(-1,1), y_pred_neg], axis = 1)
-            argsort = np.argsort(-y_pred, axis = 1)
+            y_pred = np.concatenate([y_pred_pos.reshape(-1, 1), y_pred_neg], axis=1)
+            argsort = np.argsort(-y_pred, axis=1)
             ranking_list = (argsort == 0).nonzero()
             ranking_list = ranking_list[1] + 1
             hits1_list = (ranking_list <= 1).astype(np.float32)
             hits3_list = (ranking_list <= 3).astype(np.float32)
             hits10_list = (ranking_list <= 10).astype(np.float32)
-            mrr_list = 1./ranking_list.astype(np.float32)
+            mrr_list = 1. / ranking_list.astype(np.float32)
 
             return {'hits@1_list': hits1_list,
-                     'hits@3_list': hits3_list,
-                     'hits@10_list': hits10_list,
-                     'mrr_list': mrr_list}
+                    'hits@3_list': hits3_list,
+                    'hits@10_list': hits10_list,
+                    'mrr_list': mrr_list}
