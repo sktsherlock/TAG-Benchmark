@@ -199,7 +199,7 @@ def test(model, predictor, x, graph, edge_split, evaluator, batch_size, neg_len)
 
 def main():
     parser = argparse.ArgumentParser(description='Link-Prediction PLM/TCL')
-    parser.add_argument('--device', type=int, default=0)
+    parser.add_argument('--device', type=int, default=4)
     parser.add_argument('--log_steps', type=int, default=5)
     parser.add_argument('--use_node_embedding', action='store_true')
     parser.add_argument('--num_layers', type=int, default=2)
@@ -208,7 +208,7 @@ def main():
     parser.add_argument('--batch_size', type=int, default=64 * 1024)
     parser.add_argument('--lr', type=float, default=0.0005)
     parser.add_argument('--epochs', type=int, default=100)
-    parser.add_argument('--gnn_model', type=str, help='GNN MOdel', default='GAT')
+    parser.add_argument('--gnn_model', type=str, help='GNN MOdel', default='GCN')
     parser.add_argument('--heads', type=int, default=4)
     parser.add_argument('--eval_steps', type=int, default=5)
     parser.add_argument('--runs', type=int, default=5)
@@ -301,10 +301,12 @@ def main():
                           f'Valid: {valid_mrr:.4f}, '
                           f'Test: {test_mrr:.4f}')
 
-            logger.print_statistics(run)
+        logger.print_statistics(run)
 
-        logger.print_statistics(key='mrr')
+    logger.print_statistics(key='mrr')
 
 
 if __name__ == "__main__":
     main()
+
+
