@@ -241,7 +241,7 @@ def main():
     parser.add_argument('--heads', type=int, default=4)
     parser.add_argument('--eval_steps', type=int, default=1)
     parser.add_argument('--runs', type=int, default=5)
-    parser.add_argument('--neg_len', type=int, default=10000)
+    parser.add_argument('--neg_len', type=str, default='10000')
     parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/Amazon/History/Bert/Base/emb.npy",
                         help="Use LM embedding as feature")
     parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/History/",
@@ -253,7 +253,7 @@ def main():
     wandb.init(config=args, reinit=True)
     print(args)
 
-    if not os.path.exists(f'{args.path}/{args.neg_len}'):
+    if not os.path.exists(f'{args.path}{args.neg_len}/'):
         os.makedirs(args.path)
 
     device = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
