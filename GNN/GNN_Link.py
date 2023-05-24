@@ -254,7 +254,7 @@ def main():
     print(args)
 
     if not os.path.exists(f'{args.path}{args.neg_len}/'):
-        os.makedirs(args.path)
+        os.makedirs(f'{args.path}{args.neg_len}/')
 
     device = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
     device = torch.device(device)
