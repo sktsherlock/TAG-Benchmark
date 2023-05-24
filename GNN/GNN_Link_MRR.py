@@ -10,12 +10,12 @@ from torch_geometric.nn import GCNConv, SAGEConv, GATConv
 from torch_geometric.utils import to_undirected
 
 from ogb.linkproppred import PygLinkPropPredDataset
-from model.Dataloader import Evaluator, split_edge, from_dgl
+from model.Dataloader import Evaluator, split_edge_MMR, from_dgl
 from model.GNN_arg import Logger
 import dgl
 import numpy as np
 import wandb
-
+import os
 
 class GCN(torch.nn.Module):
     def __init__(self, in_channels, hidden_channels, out_channels, num_layers,
@@ -215,14 +215,17 @@ def main():
     parser.add_argument('--neg_len', type=int, default=2000)
     parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/Amazon/History/Bert/Base/emb.npy",
                         help="Use LM embedding as feature")
-    parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/History/",
+    parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/DBLP-2015/",
                         help="Path to save splitting")
-    parser.add_argument("--graph_path", type=str, default="/mnt/v-wzhuang/Amazon/Books/Amazon-Books-History.pt",
+    parser.add_argument("--graph_path", type=str, default="/mnt/v-wzhuang/DBLP/Citation-2015.pt",
                         help="Path to load the graph")
     args = parser.parse_args()
     wandb.config = args
     wandb.init(config=args, reinit=True)
     print(args)
+
+    if not os.path.exists(args.path):
+        os.makedirs(args.path)
 
     device = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
     device = torch.device(device)
@@ -230,7 +233,9 @@ def main():
     graph = dgl.load_graphs(f'{args.graph_path}')[0][0]
 
     graph = from_dgl(graph)
-    edge_split = split_edge(graph, test_ratio=0.08, val_ratio=0.02, path=args.path, neg_len=args.neg_len)
+
+
+    edge_split = split_edge_MMR(graph, time=2015, random_seed=42, neg_len=args.neg_len, path=args.path)
 
     x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32)).to(device)
 
