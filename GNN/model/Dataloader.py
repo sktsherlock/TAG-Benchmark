@@ -172,7 +172,7 @@ def from_dgl(g):
 
 
 def split_edge(dgl_graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len=1000, path=None, way='random'):
-    if os.path.exists(os.path.join(path, 'edge_split.pt')):
+    if os.path.exists(os.path.join(path, f'{neg_len}/edge_split.pt')):
         edge_split = th.load(os.path.join(path, 'edge_split.pt'))
 
     else:
@@ -205,7 +205,7 @@ def split_edge(dgl_graph, test_ratio=0.2, val_ratio=0.1, random_seed=42, neg_len
                       'valid': {'edge': val_edge_index, 'edge_neg': valid_neg_edge_index},
                       'test': {'edge': test_edge_index, 'edge_neg': test_neg_edge_index}}
 
-        th.save(edge_split, os.path.join(path, 'edge_split.pt'))
+        th.save(edge_split, os.path.join(path, f'{neg_len}/edge_split.pt'))
 
     return edge_split
 
