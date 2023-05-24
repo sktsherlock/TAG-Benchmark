@@ -253,7 +253,7 @@ def main():
     wandb.init(config=args, reinit=True)
     print(args)
 
-    if not os.path.exists(args.path):
+    if not os.path.exists(f'{args.path}/{args.neg_len}'):
         os.makedirs(args.path)
 
     device = f'cuda:{args.device}' if torch.cuda.is_available() else 'cpu'
