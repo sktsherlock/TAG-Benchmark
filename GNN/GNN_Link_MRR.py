@@ -235,8 +235,7 @@ def main():
     edge_split, train_G = split_edge_MMR(graph, time=2015, random_seed=42, neg_len=args.neg_len, path=args.path)
 
 
-    x = torch.from_numpy(np.load(args.use_PLM).astype(np.float32)).to(device)
-
+    x = torch.from_numpy(np.load(args.use_PLM).astype(np.float16)).to(device)
     x = x.to(device)
 
     torch.manual_seed(42)
