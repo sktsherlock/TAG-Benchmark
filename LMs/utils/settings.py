@@ -142,9 +142,9 @@ DATA_INFO = {
         'train_ratio': 0,  # Default (public) split
         'n_labels': 40,
         'n_nodes': 1106759,
-        'DBLP_name': 'Citation-V8',
+        'DBLP_name': 'Citation-2015',
         'max_length': 256,  # Place to save raw data
-        'data_root': f'{DBLP_ROOT}CitationV8/',
+        'data_root': f'{DBLP_ROOT}Citation2015/',
     },
 }
 
