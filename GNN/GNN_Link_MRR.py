@@ -123,19 +123,19 @@ class LinkPredictor(torch.nn.Module):
         return torch.sigmoid(x)
 
 
-def train(model, predictor, x, adj_t, edge_split, optimizer, batch_size):
+def train(model, predictor, x, graph, edge_split, optimizer, batch_size):
     model.train()
     predictor.train()
 
-    source_edge = edge_split[0].to(x.device)
-    target_edge = edge_split[1].to(x.device)
+    source_edge = edge_split['train']['source_node'].to(x.device)
+    target_edge = edge_split['train']['target_node'].to(x.device)
 
     total_loss = total_examples = 0
     for perm in DataLoader(range(source_edge.size(0)), batch_size,
                            shuffle=True):
         optimizer.zero_grad()
 
-        h = model(x, adj_t)
+        h = model(x, graph.adj_t)
 
         src, dst = source_edge[perm], target_edge[perm]
 
@@ -160,11 +160,11 @@ def train(model, predictor, x, adj_t, edge_split, optimizer, batch_size):
 
 
 @torch.no_grad()
-def test(model, predictor, x, adj_t, full_adj_t, edge_split, evaluator, batch_size):
+def test(model, predictor, x, graph, edge_split, evaluator, batch_size):
     model.eval()
     predictor.eval()
 
-    h = model(x, adj_t)
+    h = model(x, graph.adj_t)
 
     def test_split(split, args):
         source = edge_split[split]['source_node'].to(h.device)
@@ -251,15 +251,11 @@ def main():
 
 
 
-    # Use training + validation edges for inference on test set.
-    edge_index = to_undirected(edge_split[0].t())
-    graph = T.ToSparseTensor()(graph)
-    adj_t = graph.adj_t.to(device)
-    val_edge_index = edge_split[1].t()
-    full_adj_t = torch.cat([edge_index, val_edge_index], dim=-1)
 
-    full_adj_t = SparseTensor.from_edge_index(full_adj_t).t()
-    full_adj_t = full_adj_t.to_symmetric().to(device)
+    graph = T.ToSparseTensor()(graph)
+    graph.adj_t = graph.adj_t.to_symmetric()
+    graph = graph.to(device)
+
 
     if args.gnn_model == 'SAGE':
         model = SAGE(x.size(1), args.hidden_channels,
@@ -290,11 +286,11 @@ def main():
             lr=args.lr)
 
         for epoch in range(1, 1 + args.epochs):
-            loss = train(model, predictor, x, adj_t, edge_split, optimizer,
+            loss = train(model, predictor, x, graph, edge_split, optimizer,
                          args.batch_size)
             wandb.log({'Loss': loss})
             if epoch % args.eval_steps == 0:
-                result = test(model, predictor, x, adj_t, full_adj_t, edge_split, evaluator,
+                result = test(model, predictor, x, graph, edge_split, evaluator,
                                args.batch_size)
                 logger.add_result(run, result)
 
