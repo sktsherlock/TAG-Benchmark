@@ -81,6 +81,7 @@ def split_time(g, train_year=2016, val_year=2017):
     indices = np.arange(g.num_nodes())
     # 1999-2014 train
     # Filter out nodes with label -1
+    print(f'train year: {train_year}')
     valid_indices = [i for i in indices if g.ndata['label'][i] != -1]
 
     # Filter out valid indices based on years
