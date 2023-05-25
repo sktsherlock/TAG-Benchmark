@@ -17,7 +17,7 @@ from torch_sparse import SparseTensor
 from torch_geometric.utils import to_undirected, dropout_adj
 from utils.data.OGB.arxiv import _tokenize_ogb_arxiv_datasets
 from utils.data.Amazon.Amazon_data import _tokenize_amazon_datasets
-from utils.data.DBLP.DBLP_data import _tokenize_dblp_datasets
+
 
 
 def plot_length_distribution(node_text, tokenizer, g):
@@ -46,10 +46,8 @@ def tokenize_graph(cf):
                     _tokenize_ogb_arxiv_datasets(d)
                 else:
                     raise NotImplementedError
-            elif d.md['type'] == 'amazon':
+            elif d.md['type'] in {'amazon', 'dblp'}:
                 _tokenize_amazon_datasets(d)
-            elif d.md['type'] == 'dblp':
-                _tokenize_dblp_datasets(d)
             else:
                 raise NotImplementedError
             print(f'Tokenization finished on LOCAL_RANK #{cf.local_rank}')
@@ -113,7 +111,7 @@ def load_ogb_graph_structure_only(cf):
 
 def load_amazon_graph_structure_only(cf):
     import dgl
-    g = dgl.load_graphs(f"{cf.data.data_root}{cf.data.amazon_name}.pt")[0][0]
+    g = dgl.load_graphs(f"{cf.data.data_root}{cf.data.data_name}.pt")[0][0]
     labels = g.ndata['label'].numpy()
     if cf.splits == 'random':
         split_idx = split_graph(g.num_nodes(), cf.train_ratio, cf.val_ratio)
@@ -127,7 +125,7 @@ def load_amazon_graph_structure_only(cf):
 
 def load_dblp_graph_structure_only(cf):
     import dgl
-    g = dgl.load_graphs(f"{cf.data.data_root}{cf.data.DBLP_name}.pt")[0][0]
+    g = dgl.load_graphs(f"{cf.data.data_root}{cf.data.data_name}.pt")[0][0]
     labels = g.ndata['label'].numpy()
 
     split_idx = split_time(g, 2010, 2011)

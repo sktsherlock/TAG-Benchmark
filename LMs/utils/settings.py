@@ -88,7 +88,7 @@ DATA_INFO = {
         'train_ratio': 0,  # Default (public) split
         'n_labels': 24,
         'n_nodes': 76875,
-        'amazon_name': 'Books-Children',
+        'data_name': 'Books-Children',
         'max_length': 256,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Books/Children/',  # Default ogb download target path
     },
@@ -97,17 +97,17 @@ DATA_INFO = {
         'train_ratio': 0,  # Default (public) split
         'n_labels': 13,
         'n_nodes': 41551,
-        'amazon_name': 'Books-History',
+        'data_name': 'Books-History',
         'max_length': 256,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Books/History/',  # Default ogb download target path
     },
     'Computers': {
         'type': 'amazon',
         'train_ratio': 0,  # Default (public) split
-        'n_labels': 16,
-        'n_nodes': 85302,
-        'amazon_name': 'Electronics-Computers',
-        'max_length': 128,  # Place to save raw data
+        'n_labels': 10,
+        'n_nodes': 87229,
+        'data_name': 'Electronics-Computers',
+        'max_length': 256,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Electronics/Computers/',  # Default ogb download target path
     },
     'Fitness': {
@@ -115,7 +115,7 @@ DATA_INFO = {
         'train_ratio': 0,  # Default (public) split
         'n_labels': 13,
         'n_nodes': 173091,
-        'amazon_name': 'Sports-Fitness',
+        'data_name': 'Sports-Fitness',
         'max_length': 64,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Sports/Fitness/',
     },
@@ -124,7 +124,7 @@ DATA_INFO = {
         'train_ratio': 0,  # Default (public) split
         'n_labels': 12,
         'n_nodes': 48362,
-        'amazon_name': 'Electronics-Photo',
+        'data_name': 'Electronics-Photo',
         'max_length': 512,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Electronics/Photo/',
     },
@@ -133,7 +133,7 @@ DATA_INFO = {
         'train_ratio': 0,  # Default (public) split
         'n_labels': 0,
         'n_nodes': 4290,
-        'amazon_name': 'Digital-Music',
+        'data_name': 'Digital-Music',
         'max_length': 40,  # Place to save raw data
         'data_root': f'{AMAZON_ROOT}Digital/Music/',
     },
@@ -142,7 +142,7 @@ DATA_INFO = {
         'train_ratio': 0,  # Default (public) split
         'n_labels': 40,
         'n_nodes': 1106759,
-        'DBLP_name': 'Citation-2015',
+        'data_name': 'Citation-2015',
         'max_length': 256,  # Place to save raw data
         'data_root': f'{DBLP_ROOT}Citation2015/',
     },

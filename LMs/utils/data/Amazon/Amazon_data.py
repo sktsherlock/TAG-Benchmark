@@ -9,12 +9,12 @@ from utils.function.os_utils import mkdir_p
 
 def _tokenize_amazon_datasets(d):
     #! 创建目录
-    if not osp.exists(osp.join(d.data_root, f'{d.amazon_name}.txt')):
+    if not osp.exists(osp.join(d.data_root, f'{d.data_name}.txt')):
         mkdir_p(d.data_root)
         raise{'Please input'}
     #! Tokenize the data
     else:
-        text = pd.read_csv(osp.join(d.data_root, f'{d.amazon_name}.txt'), header=None, sep='\t')
+        text = pd.read_csv(osp.join(d.data_root, f'{d.data_name}.txt'), header=None, sep='\t')
         text = text[0]
         # Look at
     #! For debug
