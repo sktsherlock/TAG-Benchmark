@@ -96,3 +96,18 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --mod
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Bert-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/Bert/Large/' --dataset DBLP_T --inf_batch_size 2000
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/Electra/Large/' --dataset DBLP_T --inf_batch_size 2000
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Deberta-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/DBLP/CitationV8/Deberta/Large/' --dataset DBLP_T --inf_batch_size 2000
+
+#! Computers
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python Train_Command/inference_LM.py --model TinyBert --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Computers/TinyBert/' --dataset Computers_RS --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Distilbert  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Computers/Distilbert/' --dataset Computers_RS --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Computers/Electra/Small/' --dataset Computers_RS --inf_batch_size 2000
+# Base
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model RoBerta  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Computers/RoBert/Base/' --dataset Computers_RS --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Bert  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Computers/Bert/Base/' --dataset Computers_RS --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra-base  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Computers/Electra/Base/' --dataset Computers_RS --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Deberta  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Computers/Deberta/Base/' --dataset Computers_RS --inf_batch_size 2000
+# Large
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Roberta-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Computers/RoBert/Large/' --dataset Computers_RS --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Bert-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Computers/Bert/Large/' --dataset Computers_RS --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Computers/Electra/Large/' --dataset Computers_RS --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Deberta-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Computers/Deberta/Large/' --dataset Computers_RS --inf_batch_size 2000

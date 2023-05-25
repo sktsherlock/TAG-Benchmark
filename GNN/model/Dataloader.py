@@ -95,6 +95,13 @@ def load_data(name, train_ratio=0.6, val_ratio=0.2):
         train_idx = th.tensor(train_idx)
         val_idx = th.tensor(val_idx)
         test_idx = th.tensor(test_idx)
+    elif name == 'amazon-computers':
+        graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Electronics/Computers/Electronics-Computers.pt')[0][0]
+        labels = graph.ndata['label']
+        train_idx, val_idx, test_idx = split_time(graph, 2017, 2018)
+        train_idx = th.tensor(train_idx)
+        val_idx = th.tensor(val_idx)
+        test_idx = th.tensor(test_idx)
     elif name == 'dblp':
         graph = dgl.load_graphs('/mnt/v-wzhuang/DBLP/Citation-V8.pt')[0][0]
         labels = graph.ndata['label']
