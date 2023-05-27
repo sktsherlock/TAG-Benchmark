@@ -47,19 +47,19 @@ CUDA_VISIBLE_DEVICES=6,7 python Train_Command/inference_LM.py --model Deberta-la
 
 # Sports-Fitness
 # Small
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python Train_Command/inference_LM.py --model TinyBert --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/TinyBert/' --dataset Fitness_T --inf_batch_size 2000
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Distilbert  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Distilbert/' --dataset Fitness_T --inf_batch_size 2000
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Electra/Small/' --dataset Fitness_T --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python Train_Command/inference_LM.py --model TinyBert --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/TinyBert/' --dataset Fitness_TTT --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Distilbert  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Distilbert/' --dataset Fitness_TT --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Electra/Small/' --dataset Fitness_TT --inf_batch_size 2000
 # Base
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model RoBerta  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/RoBert/Base/' --dataset Fitness_T --inf_batch_size 2000
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Bert  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Bert/Base/' --dataset Fitness_T --inf_batch_size 2000
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra-base  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Electra/Base/' --dataset Fitness_T --inf_batch_size 2000
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Deberta  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Deberta/Base/' --dataset Fitness_T --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model RoBerta  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/RoBert/Base/' --dataset Fitness_TT --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Bert  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Bert/Base/' --dataset Fitness_TT --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra-base  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Electra/Base/' --dataset Fitness_TT --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Deberta  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Deberta/Base/' --dataset Fitness_TT --inf_batch_size 2000
 # Large
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Roberta-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/RoBert/Large/' --dataset Fitness_T --inf_batch_size 2000
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Bert-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Bert/Large/' --dataset Fitness_T --inf_batch_size 2000
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Electra/Large/' --dataset Fitness_T --inf_batch_size 2000
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Deberta-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Deberta/Large/' --dataset Fitness_T --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Roberta-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/RoBert/Large/' --dataset Fitness_TT --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Bert-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Bert/Large/' --dataset Fitness_TT --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Electra/Large/' --dataset Fitness_TT --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Deberta-large  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Deberta/Large/' --dataset Fitness_TT --inf_batch_size 2000
 
 
 #! ELECTRONICS-Photo

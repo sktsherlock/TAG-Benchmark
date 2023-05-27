@@ -114,10 +114,10 @@ DATA_INFO = {
         'type': 'amazon',
         'train_ratio': 0,  # Default (public) split
         'n_labels': 13,
-        'n_nodes': 173091,
+        'n_nodes': 173055,
         'data_name': 'Sports-Fitness',
         'max_length': 64,  # Place to save raw data
-        'data_root': f'{AMAZON_ROOT}Sports/Fitness/',
+        'data_root': f'{AMAZON_ROOT}Sports/Fit/',
     },
     'Photo': {
         'type': 'amazon',
