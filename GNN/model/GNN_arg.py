@@ -97,6 +97,9 @@ def args_init():
     argparser.add_argument(
         "--data_name", type=str, default='ogbn-arxiv', help="The datasets to be implemented."
     )
+    argparser.add_argument(
+        "--metric", type=str, default='acc', help="The datasets to be implemented."
+    )
     # ! Split datasets
     argparser.add_argument(
         "--train_ratio", type=float, default=0.6, help="training ratio"
