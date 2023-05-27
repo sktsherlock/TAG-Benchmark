@@ -120,7 +120,7 @@ def compute_f1(pred, labels, average='macro'):
     """
     Compute the F1 of prediction given the labels.
     """
-    return f1_score(y_true=labels, y_pred=pred, average=average)
+    return f1_score(y_true=labels.cpu(), y_pred=th.argmax(pred, dim=1).cpu(), average=average)
 
 
 def adjust_learning_rate(optimizer, lr, epoch):
@@ -205,41 +205,41 @@ def run(
             model, graph, feat, labels, train_idx, optimizer
         )
         # acc = compute_acc(pred[train_idx], labels[train_idx])
-
-        (
-            train_acc,
-            val_acc,
-            test_acc,
-            val_loss,
-            test_loss,
-        ) = evaluate(
-            model,
-            graph,
-            feat,
-            labels,
-            train_idx,
-            val_idx,
-            test_idx,
-            args.metric,
-        )
-        wandb.log({'Train_loss': loss, 'Val_loss': val_loss, 'Test_loss': test_loss})
-        lr_scheduler.step(loss)
-
-        toc = time.time()
-        total_time += toc - tic
-
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            best_val_acc = val_acc
-            final_test_acc = test_acc
-
-        if epoch % args.log_every == 0:
-            print(
-                f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}\n"
-                f"Loss: {loss.item():.4f}\n"
-                f"Train/Val/Test loss: {loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n"
-                f"Train/Val/Test/Best val/Final test {args.metric}: {train_acc:.4f}/{val_acc:.4f}/{test_acc:.4f}/{best_val_acc:.4f}/{final_test_acc:.4f}"
+        if epoch % args.eval_steps == 0:
+            (
+                train_acc,
+                val_acc,
+                test_acc,
+                val_loss,
+                test_loss,
+            ) = evaluate(
+                model,
+                graph,
+                feat,
+                labels,
+                train_idx,
+                val_idx,
+                test_idx,
+                args.metric,
             )
+            wandb.log({'Train_loss': loss, 'Val_loss': val_loss, 'Test_loss': test_loss})
+            lr_scheduler.step(loss)
+
+            toc = time.time()
+            total_time += toc - tic
+
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                best_val_acc = val_acc
+                final_test_acc = test_acc
+
+            if epoch % args.log_every == 0:
+                print(
+                    f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}\n"
+                    f"Loss: {loss.item():.4f}\n"
+                    f"Train/Val/Test loss: {loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n"
+                    f"Train/Val/Test/Best val/Final test {args.metric}: {train_acc:.4f}/{val_acc:.4f}/{test_acc:.4f}/{best_val_acc:.4f}/{final_test_acc:.4f}"
+                )
 
 
     print("*" * 50)

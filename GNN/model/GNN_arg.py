@@ -86,6 +86,9 @@ def args_init():
         "--log-every", type=int, default=20, help="log every LOG_EVERY epochs"
     )
     argparser.add_argument(
+        "--eval_steps", type=int, default=5, help="eval in every epochs"
+    )
+    argparser.add_argument(
         "--use_PLM", type=str, default=None, help="Use LM embedding as feature"
     )
     argparser.add_argument(
@@ -98,7 +101,7 @@ def args_init():
         "--data_name", type=str, default='ogbn-arxiv', help="The datasets to be implemented."
     )
     argparser.add_argument(
-        "--metric", type=str, default='acc', help="The datasets to be implemented."
+        "--metric", type=str, default='f1', help="The datasets to be implemented."
     )
     # ! Split datasets
     argparser.add_argument(
