@@ -82,7 +82,7 @@ def load_data(name, train_ratio=0.6, val_ratio=0.2):
         val_idx = th.tensor(val_idx)
         test_idx = th.tensor(test_idx)
     elif name == 'amazon-fitness':
-        graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Sports/Fitness/Sports-Fitness.pt')[0][0]
+        graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Sports/Fit/Sports-Fitness.pt')[0][0]
         labels = graph.ndata['label']
         train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), train_ratio, val_ratio)
         train_idx = th.tensor(train_idx)

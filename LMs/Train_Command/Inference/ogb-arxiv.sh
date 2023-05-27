@@ -47,7 +47,7 @@ CUDA_VISIBLE_DEVICES=6,7 python Train_Command/inference_LM.py --model Deberta-la
 
 # Sports-Fitness
 # Small
-CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python Train_Command/inference_LM.py --model TinyBert --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/TinyBert/' --dataset Fitness_TTT --inf_batch_size 2000
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python Train_Command/inference_LM.py --model TinyBert --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/TinyBert/' --dataset Fitness_TT --inf_batch_size 2000
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Distilbert  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Distilbert/' --dataset Fitness_TT --inf_batch_size 2000
 CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --model Electra  --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Amazon/Fitness/Electra/Small/' --dataset Fitness_TT --inf_batch_size 2000
 # Base
