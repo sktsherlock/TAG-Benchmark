@@ -5,12 +5,12 @@ from utils.function.dgl_utils import *
 from utils.settings import *
 from utils.data.preprocess import tokenize_graph, load_TAG_info
 import numpy as np
-
+from torch_sparse import SparseTensor
 from scipy.sparse import coo_matrix
 from ogb.nodeproppred import DglNodePropPredDataset
 import dgl
 import time
-
+import os
 
 class Sequence():
     def __init__(self, cf):
@@ -52,7 +52,7 @@ class Sequence():
             info.path = f'{self._token_folder}{k}.npy'
         return
 
-    def init(self, dpk=False):
+    def init(self, dpk=False, link=False):
         # ! Load sequence graph info which is shared by GNN and LMs
         cf = self.cf
         self.gi = g_info = load_TAG_info(cf) # g graph
@@ -65,6 +65,8 @@ class Sequence():
         self._load_data_fields()
         self.device = cf.device  # if cf.local_rank<0 else th.device(cf.local_rank)
         self.neighbours = self.get_neighbours()
+        if link:
+            self.edge_index = self.get_train_edge()
         if dpk:
             self.dpk = np.load(f'{self.data_root}deepwalk_feat.npy')
 
@@ -168,6 +170,25 @@ class Sequence():
             dataset = DglNodePropPredDataset('ogbn-arxiv', root=self.raw_data_path)
             g, _ = dataset[0]
             g = dgl.to_bidirected(g)
+        else:
+            raise ValueError('Not implement!!')
+
+        neighbours_1 = list(g.adjacency_matrix_scipy().tolil().rows)
+        return neighbours_1
+
+    def get_train_edge(self):
+        if self.md['data_name'] == 'Citation-2015':
+            train_g = dgl.load_graphs(os.path.join('/mnt/v-wzhuang/TAG/Link_Predction/DBLP-2015/', 'train_G.pt'))[0][0]
+        elif self.md['data_name'] == 'Books-Children':
+            edge_split = th.load('/mnt/v-wzhuang/TAG/Link_Predction/Photo/20000/edge_split.pt')
+            edge_index = edge_split['train']['edge'].t()
+            train_g = SparseTensor.from_edge_index(edge_index).t()
+            train_g = train_g.to_symmetric()
+            list(train_g.adjacency_matrix_scipy().tolil().rows)
+
+        elif self.md['type'] == 'ogb':
+            dataset = DglNodePropPredDataset('ogbn-arxiv', root=self.raw_data_path)
+            g, _ = dataset[0]
         else:
             raise ValueError('Not implement!!')
 
