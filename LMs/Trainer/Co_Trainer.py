@@ -85,99 +85,8 @@ class CoT_Trainer():
         self.log = cf.logger.log
         trfm_logging.set_verbosity_error()
 
+
     @uf.time_logger
-    def train(self):
-        # ! Prepare data
-        self.d = d = Sequence(cf := self.cf).init()
-        self.train_data = SeqCLDataset(self.d)
-
-        # Finetune on dowstream tasks
-        train_steps = len(d.train_x) // cf.eq_batch_size + 1
-        warmup_steps = int(cf.warmup_epochs * train_steps)
-        # ! Load Model for NP with no trainer
-        #PLM = AutoModel.from_pretrained(cf.hf_model)
-        PLM = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(
-            f'{cf.pretrain_path}')
-        GNN = GraphSAGE(in_feats=PLM.config.hidden_size, hidden_dim=128, n_layers=2)
-        #! Freeze the model.encoder layer if cf.freeze is not None
-        if cf.freeze is not None:
-            for param in PLM.parameters():
-                param.requires_grad = False
-            if cf.local_rank <= 0:
-                trainable_params = sum(
-                    p.numel() for p in PLM.parameters() if p.requires_grad
-                )
-                assert trainable_params == 0
-            for param in PLM.encoder.layer[-cf.freeze:].parameters():
-                param.requires_grad = True
-            if cf.local_rank <= 0:
-                trainable_params = sum(
-                    p.numel() for p in PLM.parameters() if p.requires_grad
-                )
-                print(f" Pass the freeze layer, the LM Encoder  parameters are {trainable_params}")
-
-        self.model = CoTModel(
-                PLM,
-                GNN,
-                dropout=cf.cla_dropout,
-            )
-        if cf.local_rank <= 0:
-            trainable_params = sum(
-                p.numel() for p in self.model.parameters() if p.requires_grad
-            )
-            print(f" LM Model parameters are {trainable_params}")
-        if cf.model == 'Distilbert':
-            self.model.config.dropout = cf.dropout
-            self.model.config.attention_dropout = cf.att_dropout
-        elif cf.model == 'GPT2':
-            self.model.config.attn_pdrop = cf.att_dropout
-            self.model.config.embd_pdrop = cf.dropout
-        else:
-            self.model.config.hidden_dropout_prob = cf.dropout
-            self.model.config.attention_probs_dropout_prob = cf.att_dropout
-        self.log(self.model.config)
-
-        if cf.grad_steps is not None:
-            cf.grad_acc_steps = cf.grad_steps
-            cf.batch_size = cf.per_device_bsz
-
-        training_args = TrainingArguments(
-            output_dir=cf.out_dir,
-            learning_rate=cf.lr, weight_decay=cf.weight_decay,
-            gradient_accumulation_steps=cf.grad_acc_steps,
-            save_total_limit=None,
-            report_to='wandb' if cf.wandb_on else None,
-            per_device_train_batch_size=cf.batch_size,
-            per_device_eval_batch_size=cf.batch_size * 6 if cf.hf_model in {'distilbert-base-uncased',
-                                                                            'google/electra-base-discriminator'} else cf.batch_size * 10,
-            warmup_steps=warmup_steps,
-            disable_tqdm=False,
-            dataloader_drop_last=True,
-            num_train_epochs=cf.epochs,
-            local_rank=cf.local_rank,
-            dataloader_num_workers=1,
-            fp16=True,
-        )
-
-        self.trainer = CustomTrainer(
-            model=self.model,
-            args=training_args,
-            train_dataset=self.train_data,
-        )
-        self.trainer.train()
-
-        if cf.local_rank <= 0:
-            if cf.cache_dir is not None:
-                print(f'Save the finnal cl model in {cf.cache_dir}')
-                PLM.save_pretrained(cf.cache_dir)
-                ckpt = f'{cf.cache_dir}{cf.model}.ckpt'
-                th.save(self.model.state_dict(), uf.init_path(ckpt))
-            else:
-                PLM.save_pretrained(cf.out_dir)
-                th.save(self.model.state_dict(), uf.init_path(cf.lm.ckpt))
-        else:
-            print('Dont save the model in the local_rank:', cf.local_rank)
-
     def train_notrainer(self):
         import math
         import json
@@ -208,21 +117,21 @@ class CoT_Trainer():
         per_device_eval_batch_size = cf.batch_size * 6 if cf.hf_model in {'distilbert-base-uncased',
                                                                           'google/electra-base-discriminator'} else cf.batch_size * 10
 
-        train_dataloader = dgl.dataloading.DataLoader(self.d.g,
+        self.train_dataloader = dgl.dataloading.DataLoader(self.d.g,
                                                       self.datasets['train'],
                                                       sampler,
                                                       batch_size=cf.batch_size,
                                                       shuffle=True,
                                                       drop_last=False)
 
-        val_dataloader = dgl.dataloading.DataLoader(self.d.g,
+        self.val_dataloader = dgl.dataloading.DataLoader(self.d.g,
                                                     self.datasets['valid'],
                                                     sampler,
                                                     batch_size=cf.batch_size,
                                                     shuffle=True,
                                                     drop_last=False)
 
-        test_dataloader = dgl.dataloading.DataLoader(self.d.g,
+        self.test_dataloader = dgl.dataloading.DataLoader(self.d.g,
                                                      self.datasets['test'],
                                                      sampler,
                                                      batch_size=cf.batch_size,
@@ -261,7 +170,7 @@ class CoT_Trainer():
         eval_steps = cf.eval_patience // cf.eq_batch_size
 
         # Scheduler and math around the number of training steps.
-        num_update_steps_per_epoch = math.ceil(len(train_dataloader) / cf.grad_acc_steps)
+        num_update_steps_per_epoch = math.ceil(len(self.train_dataloader) / cf.grad_acc_steps)
         total_train_steps = self.cf.epochs * num_update_steps_per_epoch
         overrode_max_train_steps = True
 
@@ -274,11 +183,11 @@ class CoT_Trainer():
 
         # Prepare everything with our `accelerator`.
         self.model, self.optimizer, _, _, lr_scheduler = accelerator.prepare(
-            self.model, self.optimizer, train_dataloader, val_dataloader, lr_scheduler
+            self.model, self.optimizer, self.train_dataloader, self.val_dataloader, lr_scheduler
         )
 
         # We need to recalculate our total training steps as the size of the training dataloader may have changed.
-        num_update_steps_per_epoch = math.ceil(len(train_dataloader) / cf.grad_acc_steps)
+        num_update_steps_per_epoch = math.ceil(len(self.train_dataloader) / cf.grad_acc_steps)
         if overrode_max_train_steps:
             total_train_steps = self.cf.epochs * num_update_steps_per_epoch
         # Afterwards we recalculate our number of training epochs
@@ -299,11 +208,12 @@ class CoT_Trainer():
         # update the progress_bar if load from checkpoint
         progress_bar.update(starting_epoch * num_update_steps_per_epoch)
         completed_steps = starting_epoch * num_update_steps_per_epoch
+        loss_func = th.nn.CrossEntropyLoss(label_smoothing=cf.label_smoothing_factor, reduction=cf.ce_reduction)
 
         for epoch in range(self.cf.epochs):
             self.model.train()
             correct_sum = 0
-            for batch, (input_nodes, output_nodes, block) in enumerate(train_dataloader):
+            for batch, (input_nodes, output_nodes, block) in enumerate(self.train_dataloader):
                 with accelerator.accumulate(self.model):
                     input_text, labels = load_subtensor(self.data.ndata, output_nodes,self.data.labels, input_nodes, cf.device)
                     block = [block_.to(cf.device) for block_ in block]
@@ -334,7 +244,7 @@ class CoT_Trainer():
             val_correct_sum = 0
 
             with th.no_grad():
-                for batch, (input_nodes, output_nodes, block) in enumerate(val_dataloader):
+                for batch, (input_nodes, output_nodes, block) in enumerate(self.val_dataloader):
                     input_text, labels = load_subtensor(self.data.ndata, output_nodes, self.data.labels, input_nodes,
                                                         cf.device)
                     block = [block_.to(cf.device) for block_ in block]
@@ -353,33 +263,27 @@ class CoT_Trainer():
             if best_val_acc < val_acc:
                 best_val_acc = val_acc
                 wandb.log({'best_val_acc': best_val_acc})
-
-
                 th.save(self.model.state_dict(), cf.out_dir)
 
-                # Test
-                test_correct_sum = 0
-                with th.no_grad():
-                    for batch, (input_nodes, output_nodes, block) in enumerate(test_dataloader):
-                        input_text, labels = load_subtensor(self.data.ndata, output_nodes, self.data.labels,
-                                                            input_nodes, cf.device)
-                        block = [block_.to(cf.device) for block_ in block]
+    def test(self):
+        self.model = th.load(self.cf.out_dir)
+        self.model.eval()
+        test_correct_sum = 0
+        with th.no_grad():
+            for batch, (input_nodes, output_nodes, block) in enumerate(self.test_dataloader):
+                input_text, labels = load_subtensor(self.data.ndata, output_nodes, self.data.labels, input_nodes,
+                                                    self.cf.device)
+                block = [block_.to(self.cf.device) for block_ in block]
 
-                        y_pre = self.model(block, input_text)
-                        y_pre = y_pre.argmax(1).view(-1, 1)
-                        correct_pre = (y_pre == labels).sum().item()
-                        test_correct_sum += correct_pre
+                y_pre = self.model(block, input_text)
+                y_pre = y_pre.argmax(1).view(-1, 1)
+                correct_pre = (y_pre == labels).sum().item()
+                test_correct_sum += correct_pre
 
-                test_acc = test_correct_sum / self.data.splits['test_x'].shape[0]
-                wandb.log({'test_acc': test_acc})
+        test_acc = test_correct_sum / self.datasets['test'].shape[0]
 
 
-            # ! Save the final model
-            if cf.out_dir is not None:
-                accelerator.wait_for_everyone()
-                unwrapped_model = accelerator.unwrap_model(PLM)
-                unwrapped_model.save_pretrained(
-                    cf.out_dir, is_main_process=accelerator.is_main_process, save_function=accelerator.save
-                )
+
+
 
 
