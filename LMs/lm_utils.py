@@ -141,6 +141,17 @@ class LMConfig(ModelConfig):
         parser.add_argument("-fz", "--freeze", default=None,
                             help='freeze control whether to freeze the lm model, its number means how many layers do not freezed.',
                             type=int)
+        # For GNN
+        parser.add_argument("-gnn-name", "--gnn-name", default='SAGE', type=str, help='The name of the GNN')
+        parser.add_argument("-n-hidden", "--n-hidden", default=256, type=int, help="number of hidden units")
+        parser.add_argument("-n-layers", "--n-layers", default=1, type=int, help="number of layers")
+        parser.add_argument("-n-heads", "--n-heads", type=int, default=3, help="number of heads")
+        # For Sampler
+        parser.add_argument("-sampler-way", "--sampler-way", type=str, default='default', help="the sampler way")
+        # add fanouts
+        parser.add_argument("--fanouts", default=1, type=int, help="fanouts")
+        parser.add_argument("--metric", default='acc', type=str, help="the metric")
+        # For split datasets
         parser.add_argument("--train_ratio", default=0.6, type=float)
         parser.add_argument("--val_ratio", default=0.2, type=float)
         parser.add_argument("--splits", default='random', type=str, help="The split datasets way")

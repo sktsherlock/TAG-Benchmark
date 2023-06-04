@@ -15,5 +15,6 @@ if __name__ == "__main__":
     # ! Load data and train
     trainer = Trainer(cf=cf)
     trainer.train_notrainer()
+    trainer.test()
 
 
