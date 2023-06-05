@@ -53,13 +53,15 @@ def load_data(name):
         labels = graph.ndata['label']
 
     elif name == 'amazon-fitness':
-        graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Sports/Fitness/Sports-Fitness.pt')[0][0]
+        graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Sports/Fit/Sports-Fitness.pt')[0][0]
         labels = graph.ndata['label']
 
     elif name == 'amazon-photo':
         graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Electronics/Photo/Electronics-Photo.pt')[0][0]
         labels = graph.ndata['label']
-
+    elif name == 'amazon-computer':
+        graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Electronics/Computers/Electronics-Computers.pt')[0][0]
+        labels = graph.ndata['label']
     else:
         raise ValueError('Not implemetned')
     return graph, labels
@@ -84,6 +86,12 @@ def main():
         text = text[0]
     elif args.dataset == 'amazon-history':
         text = pd.read_csv('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Books/History/Books-History.txt', sep='\t', header=None)
+        text = text[0]
+    elif args.dataset == 'amazon-fitness':
+        text = pd.read_csv('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Sports/Fit/Sports-Fitness.txt', sep='\t', header=None)
+        text = text[0]
+    elif args.dataset == 'amazon-computer':
+        text = pd.read_csv('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Electronics/Computers/Electronics-Computers.txt', sep='\t', header=None)
         text = text[0]
     else:
         raise ValueError('Not implemented.')
