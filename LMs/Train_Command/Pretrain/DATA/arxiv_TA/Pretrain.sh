@@ -51,10 +51,11 @@ CUDA_VISIBLE_DEVICES=4,5,6,7 /usr/bin/env python sweep/dist_runner.py LMs/Train_
 
 #!TMLM+TCL+TDK
 # Small
-CUDA_VISIBLE_DEVICES=7 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL_DK.py --PrtMode=TMLM_TCL_Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=arxiv_TA --dropout=0.1 --epochs=5 --eq_batch_size=100 --per_device_bsz=100 --grad_steps=1 --lr=5e-05 --model=TinyBert --warmup_epochs=1 --gpus=7 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TMLM_TCL_Deepwalk/Arxiv/TinyBert/ --pretrain_path=/mnt/v-wzhuang/TAG/Prt/TMLM/Arxiv/TinyBert/
+CUDA_VISIBLE_DEVICES=5,6 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL_DK.py --PrtMode=TMLM_TCL_Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=arxiv_TA --dropout=0.1 --epochs=5 --eq_batch_size=200 --per_device_bsz=100 --grad_steps=1 --lr=5e-05 --model=TinyBert --warmup_epochs=1 --gpus=5,6 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TMLM_TCL_Deepwalk/Arxiv/TinyBert/ --pretrain_path=/mnt/v-wzhuang/TAG/Prt/TMLM/Arxiv/TinyBert/
 
 CUDA_VISIBLE_DEVICES=5,6 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL_DK.py --PrtMode=TMLM_TCL_Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=arxiv_TA --dropout=0.1 --epochs=5 --eq_batch_size=100 --per_device_bsz=50 --grad_steps=1 --lr=5e-05 --model=Electra --warmup_epochs=1 --gpus=5,6 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TMLM_TCL_Deepwalk/Arxiv/Electra/Small/ --pretrain_path=/mnt/v-wzhuang/TAG/Prt/TMLM/Arxiv/Electra/Small/
-CUDA_VISIBLE_DEVICES=0,1 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL_DK.py --PrtMode=TMLM_TCL_Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=arxiv_TA --dropout=0.1 --epochs=5 --eq_batch_size=100 --per_device_bsz=50 --grad_steps=1 --lr=5e-05 --model=Distilbert --warmup_epochs=1 --gpus=0,1 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TMLM_TCL_Deepwalk/Arxiv/Distilbert/ --pretrain_path=/mnt/v-wzhuang/TAG/Prt/TMLM/Arxiv/Distilbert/
+CUDA_VISIBLE_DEVICES=0 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL_DK.py --PrtMode=TMLM_TCL_Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=arxiv_TA --dropout=0.1 --epochs=5 --eq_batch_size=100 --per_device_bsz=50 --grad_steps=2 --lr=5e-05 --model=Distilbert --warmup_epochs=1 --gpus=0 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TMLM_TCL_Deepwalk/Arxiv/Distilbert/ --pretrain_path=/mnt/v-wzhuang/TAG/Prt/TMLM/Arxiv/Distilbert/
+
 # Base
 CUDA_VISIBLE_DEVICES=0,1,2,3 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL_DK.py --PrtMode=TMLM_TCL_Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=arxiv_TA --dropout=0.1 --epochs=5 --eq_batch_size=60 --per_device_bsz=15 --grad_steps=1 --lr=5e-05 --model=Bert --warmup_epochs=1 --gpus=0,1,2,3 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TMLM_TCL_Deepwalk/Arxiv/Bert/Base/ --pretrain_path=/mnt/v-wzhuang/TAG/Prt/TMLM/Arxiv/Bert/Base/
 CUDA_VISIBLE_DEVICES=1,2,3,4 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL_DK.py --PrtMode=TMLM_TCL_Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=arxiv_TA --dropout=0.1 --epochs=5 --eq_batch_size=60 --per_device_bsz=15 --grad_steps=1 --lr=5e-05 --model=Deberta --warmup_epochs=1 --gpus=1,2,3,4 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TMLM_TCL_Deepwalk/Arxiv/Deberta/Base/ --pretrain_path=/mnt/v-wzhuang/TAG/Prt/TMLM/Arxiv/Deberta/Base/
@@ -73,7 +74,7 @@ CUDA_VISIBLE_DEVICES=4,5,6,7 /usr/bin/env python sweep/dist_runner.py LMs/Train_
 
 # TDK
 
-# TCL
+# TCLF
 
 # TCL+TDK
 

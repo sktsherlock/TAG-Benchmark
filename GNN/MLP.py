@@ -11,10 +11,11 @@ import torch.nn.functional as F
 import torch.optim as optim
 from matplotlib import pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
-from model.GNN_library import GIN, GCN, GAT, GIN, GraphSAGE, JKNet, MLP
+from model.GNN_library import MLP
 from model.GNN_arg import args_init
 from model.Dataloader import load_data
 from ogb.nodeproppred import DglNodePropPredDataset
+from sklearn.metrics import f1_score
 
 device = None
 in_feats, n_classes = None, None
@@ -22,62 +23,7 @@ epsilon = 1 - math.log(2)
 
 
 def gen_model(args):
-    if args.model_name == 'GIN':
-        model = GIN(
-            in_feats,
-            args.n_hidden,
-            n_classes,
-            args.n_layers,
-            args.num_mlp_layers,
-            args.input_drop,
-            args.learning_eps,
-            args.neighbor_pooling_type,
-            )
-    elif args.model_name == 'GCN':
-        model = GCN(
-            in_feats,
-            args.n_hidden,
-            n_classes,
-            args.n_layers,
-            F.relu,
-            args.dropout,
-            args.input_drop,
-        )
-    elif args.model_name == 'GAT':
-        model = GAT(
-            in_feats,
-            n_classes,
-            args.n_hidden,
-            args.n_layers,
-            args.n_heads,
-            F.relu,
-            args.dropout,
-            args.input_drop,
-            args.attn_drop,
-            args.edge_drop,
-            not args.no_attn_dst,
-        )
-    elif args.model_name == 'SAGE':
-        model = GraphSAGE(
-            in_feats,
-            args.n_hidden,
-            n_classes,
-            args.n_layers,
-            F.relu,
-            args.dropout,
-            args.aggregator_type,
-            args.input_drop,
-        )
-    elif args.model_name == 'JKNet':
-        model = JKNet(
-            in_feats,
-            args.n_hidden,
-            n_classes,
-            args.n_layers,
-            args.mode,
-            args.dropout,
-        )
-    elif args.model_name == 'MLP':
+    if args.model_name == 'MLP':
         model = MLP(
             args.n_layers,
             in_feats,
@@ -103,6 +49,11 @@ def compute_acc(pred, labels):
     """
     return ((th.argmax(pred, dim=1) == labels).float().sum() / len(pred) ).item()
 
+def compute_f1(pred, labels, average='macro'):
+    """
+    Compute the F1 of prediction given the labels.
+    """
+    return f1_score(y_true=labels.cpu(), y_pred=th.argmax(pred, dim=1).cpu(), average=average)
 
 
 def adjust_learning_rate(optimizer, lr, epoch):
@@ -125,7 +76,7 @@ def train(model, feat, labels, train_idx, optimizer):
 
 @th.no_grad()
 def evaluate(
-    model, feat, labels, train_idx, val_idx, test_idx
+    model, feat, labels, train_idx, val_idx, test_idx, metric='acc'
 ):
     model.eval()
     with th.no_grad():
@@ -133,10 +84,19 @@ def evaluate(
     val_loss = cross_entropy(pred[val_idx], labels[val_idx])
     test_loss = cross_entropy(pred[test_idx], labels[test_idx])
 
-    return (
+    if metric == 'acc':
+        return (
         compute_acc(pred[train_idx], labels[train_idx]),
         compute_acc(pred[val_idx], labels[val_idx]),
         compute_acc(pred[test_idx], labels[test_idx]),
+        val_loss,
+        test_loss,
+    )
+    else:
+        return (
+        compute_f1(pred[train_idx], labels[train_idx]),
+        compute_f1(pred[val_idx], labels[val_idx]),
+        compute_f1(pred[test_idx], labels[test_idx]),
         val_loss,
         test_loss,
     )
@@ -177,40 +137,42 @@ def run(
         loss, pred = train(
             model, feat, labels, train_idx, optimizer
         )
-        acc = compute_acc(pred[train_idx], labels[train_idx])
-
-        (
-            train_acc,
-            val_acc,
-            test_acc,
-            val_loss,
-            test_loss,
-        ) = evaluate(
-            model,
-            feat,
-            labels,
-            train_idx,
-            val_idx,
-            test_idx,
-        )
-        wandb.log({'Train_loss': loss, 'Val_loss': val_loss, 'Test_loss': test_loss})
-        lr_scheduler.step(loss)
-
-        toc = time.time()
-        total_time += toc - tic
-
-        if val_loss < best_val_loss:
-            best_val_loss = val_loss
-            best_val_acc = val_acc
-            final_test_acc = test_acc
-
-        if epoch % args.log_every == 0:
-            print(
-                f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}\n"
-                f"Loss: {loss.item():.4f}, Acc: {acc:.4f}\n"
-                f"Train/Val/Test loss: {loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n"
-                f"Train/Val/Test/Best val/Final test acc: {train_acc:.4f}/{val_acc:.4f}/{test_acc:.4f}/{best_val_acc:.4f}/{final_test_acc:.4f}"
+        # acc = compute_acc(pred[train_idx], labels[train_idx])
+        if epoch % args.eval_steps == 0:
+            (
+                train_acc,
+                val_acc,
+                test_acc,
+                val_loss,
+                test_loss,
+            ) = evaluate(
+                model,
+                graph,
+                feat,
+                labels,
+                train_idx,
+                val_idx,
+                test_idx,
+                args.metric,
             )
+            wandb.log({'Train_loss': loss, 'Val_loss': val_loss, 'Test_loss': test_loss})
+            lr_scheduler.step(loss)
+
+            toc = time.time()
+            total_time += toc - tic
+
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                best_val_acc = val_acc
+                final_test_acc = test_acc
+
+            if epoch % args.log_every == 0:
+                print(
+                    f"Run: {n_running}/{args.n_runs}, Epoch: {epoch}/{args.n_epochs}, Average epoch time: {total_time / epoch:.2f}\n"
+                    f"Loss: {loss.item():.4f}\n"
+                    f"Train/Val/Test loss: {loss:.4f}/{val_loss:.4f}/{test_loss:.4f}\n"
+                    f"Train/Val/Test/Best val/Final test {args.metric}: {train_acc:.4f}/{val_acc:.4f}/{test_acc:.4f}/{best_val_acc:.4f}/{final_test_acc:.4f}"
+                )
 
 
     print("*" * 50)
@@ -285,7 +247,7 @@ def main():
     print(f"Average val accuracy: {np.mean(val_accs)} ± {np.std(val_accs)}")
     print(f"Average test accuracy: {np.mean(test_accs)} ± {np.std(test_accs)}")
     print(f"Number of params: {count_parameters(args)}")
-    wandb.log({'Mean_Val_Acc': np.mean(val_accs), 'Mean_Test_Acc': np.mean(test_accs)})
+    wandb.log({f'Mean_Val_{args.metric}': np.mean(val_accs), f'Mean_Test_{args.metric}': np.mean(test_accs)})
 
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@
 
 
 #Small
-CUDA_VISIBLE_DEVICES=4,5,6,7 /usr/bin/env python sweep/dist_runner.py LMs/train_MLM.py --do_train=True --learning_rate=5e-05 --model_name_or_path=prajjwal1/bert-tiny --num_train_epochs=1 --output_dir=/mnt/v-wzhuang/TAG/Prt/TMLM/Arxiv/TinyBert/ --overwrite_output_dir=True --per_device_train_batch_size=30 --train_file=/mnt/v-wzhuang/TAG-Benchmark/data/arxiv_TA/arxiv_TA_TMLM.txt --warmup_steps=2500 --line_by_line=True --max_seq_length=512
+CUDA_VISIBLE_DEVICES=5,6,7 /usr/bin/env python sweep/dist_runner.py LMs/train_MLM.py --do_train=True --learning_rate=5e-05 --model_name_or_path=prajjwal1/bert-tiny --num_train_epochs=2 --output_dir=/mnt/v-wzhuang/TAG/Prt/TMLM/Arxiv/TinyBert/ --overwrite_output_dir=True --per_device_train_batch_size=60 --train_file=/mnt/v-wzhuang/TAG-Benchmark/data/arxiv_TA/arxiv_TA_TMLM.txt --warmup_steps=2500 --line_by_line=True --max_seq_length=512
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 /usr/bin/env python sweep/dist_runner.py LMs/train_MLM.py --do_train=True --learning_rate=5e-05 --model_name_or_path=google/electra-small-discriminator --num_train_epochs=1 --output_dir=/mnt/v-wzhuang/TAG/Prt/TMLM/Arxiv/Electra/Small/ --overwrite_output_dir=True --per_device_train_batch_size=30 --train_file=/mnt/v-wzhuang/TAG-Benchmark/data/arxiv_TA/arxiv_TA_TMLM.txt --warmup_steps=2500 --line_by_line=True
 

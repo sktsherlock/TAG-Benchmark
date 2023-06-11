@@ -1,3 +1,22 @@
+Small
+CUDA_VISIBLE_DEVICES=2 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_DPK.py --PrtMode=Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=History_DT --dropout=0.1 --epochs=5 --eq_batch_size=240 --per_device_bsz=240 --grad_steps=1 --lr=5e-05 --model=TinyBert --warmup_epochs=1 --gpus=2 --cache_dir=/mnt/v-wzhuang/TAG/Prt/DeepWalk/Amazon/History/TinyBert/
+
+CUDA_VISIBLE_DEVICES=1 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_DPK.py --PrtMode=Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=History_DT --dropout=0.1 --epochs=5 --eq_batch_size=240 --per_device_bsz=240 --grad_steps=1 --lr=5e-05 --model=Distilbert --warmup_epochs=1 --gpus=1 --cache_dir=/mnt/v-wzhuang/TAG/Prt/DeepWalk/Amazon/History/Distilbert/
+
+CUDA_VISIBLE_DEVICES=0 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_DPK.py --PrtMode=Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=History_DT --dropout=0.1 --epochs=5 --eq_batch_size=240 --per_device_bsz=240 --grad_steps=1 --lr=5e-05 --model=Electra --warmup_epochs=1 --gpus=0 --cache_dir=/mnt/v-wzhuang/TAG/Prt/DeepWalk/Amazon/History/Electra/Small/
+
+
+
+CUDA_VISIBLE_DEVICES=7 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL.py --PrtMode=TCL  --att_dropout=0.1 --cla_dropout=0.1 --dataset=History_DT --dropout=0.1 --epochs=5 --eq_batch_size=240 --per_device_bsz=120 --grad_steps=1 --lr=5e-05 --model=TinyBert --warmup_epochs=1 --gpus=7 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TCL/Amazon/History/TinyBert/
+CUDA_VISIBLE_DEVICES=5,6 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL.py --PrtMode=TCL  --att_dropout=0.1 --cla_dropout=0.1 --dataset=History_DT --dropout=0.1 --epochs=5 --eq_batch_size=240 --per_device_bsz=120 --grad_steps=1 --lr=5e-05 --model=Distilbert --warmup_epochs=1 --gpus=5,6 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TCL/Amazon/History/Distilbert/
+CUDA_VISIBLE_DEVICES=3,4 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL.py --PrtMode=TCL  --att_dropout=0.1 --cla_dropout=0.1 --dataset=History_DT --dropout=0.1 --epochs=5 --eq_batch_size=240 --per_device_bsz=120 --grad_steps=1 --lr=5e-05 --model=Electra --warmup_epochs=1 --gpus=3,4 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TCL/Amazon/History/Electra/Small/
+
+CUDA_VISIBLE_DEVICES=7 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL_DK.py --PrtMode=TMLM_TCL_Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=History_DT --dropout=0.1 --epochs=5 --eq_batch_size=240 --per_device_bsz=240 --grad_steps=1 --lr=5e-05 --model=TinyBert --warmup_epochs=1 --gpus=7 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TMLM_TCL_Deepwalk/Amazon/History/TinyBert/ --pretrain_path=/mnt/v-wzhuang/TAG/Prt/TMLM/Amazon/History/TinyBert/
+CUDA_VISIBLE_DEVICES=5,6 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL_DK.py --PrtMode=TMLM_TCL_Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=History_DT --dropout=0.1 --epochs=5 --eq_batch_size=240 --per_device_bsz=120 --grad_steps=1 --lr=5e-05 --model=Distilbert --warmup_epochs=1 --gpus=5,6 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TMLM_TCL_Deepwalk/Amazon/History/Distilbert/ --pretrain_path=/mnt/v-wzhuang/TAG/Prt/TMLM/Amazon/History/Distilbert/
+
+CUDA_VISIBLE_DEVICES=3,4 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL_DK.py --PrtMode=TMLM_TCL_Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=History_DT --dropout=0.1 --epochs=5 --eq_batch_size=240 --per_device_bsz=120 --grad_steps=1 --lr=5e-05 --model=Electra --warmup_epochs=1 --gpus=3,4 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TMLM_TCL_Deepwalk/Amazon/History/Electra/Small/ --pretrain_path=/mnt/v-wzhuang/TAG/Prt/TMLM/Amazon/History/Electra/Small/
+
+
 Base
 CUDA_VISIBLE_DEVICES=0,1 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_DPK.py --PrtMode=Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=History_DT --dropout=0.1 --epochs=5 --eq_batch_size=180 --per_device_bsz=90 --grad_steps=1 --lr=5e-05 --model=Bert --warmup_epochs=1 --gpus=0,1 --cache_dir=/mnt/v-wzhuang/TAG/Prt/DeepWalk/Amazon/History/Bert/Base/
 CUDA_VISIBLE_DEVICES=0,1 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_DPK.py --PrtMode=Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=History_DT --dropout=0.1 --epochs=5 --eq_batch_size=180 --per_device_bsz=90 --grad_steps=1 --lr=5e-05 --model=Deberta --warmup_epochs=1 --gpus=0,1 --cache_dir=/mnt/v-wzhuang/TAG/Prt/DeepWalk/Amazon/History/Deberta/Base/
