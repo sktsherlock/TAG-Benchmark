@@ -127,11 +127,7 @@ def load_amazon_graph_structure_only(cf):
 def load_dblp_graph_structure_only(cf):
     import dgl
     g = dgl.load_graphs(f"{cf.data.data_root}{cf.data.data_name}.pt")[0][0]
-    labels = g.ndata['label'].numpy()
-
-    split_idx = split_time(g, 2010, 2011)
-
-    return g, labels, split_idx
+    return g
 
 
 def load_TAG_info(cf):
@@ -151,9 +147,8 @@ def load_TAG_info(cf):
                 splits = {'train_x': split_idx[0], 'valid_x': split_idx[1], 'test_x': split_idx[2]}
                 g_info = SN(splits=splits, labels=labels, n_nodes=g.num_nodes())
             elif d.md['type'] == 'dblp':
-                g, labels, split_idx = load_dblp_graph_structure_only(cf)
-                splits = {'train_x': split_idx[0], 'valid_x': split_idx[1], 'test_x': split_idx[2]}
-                g_info = SN(splits=splits, labels=labels, n_nodes=g.num_nodes())
+                g = load_dblp_graph_structure_only(cf)
+                g_info = SN(n_nodes=g.num_nodes())
             else:
                 raise NotImplementedError  #
             d.save_g_info(g_info)
