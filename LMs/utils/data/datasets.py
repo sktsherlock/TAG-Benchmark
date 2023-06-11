@@ -56,7 +56,8 @@ class Sequence():
         # ! Load sequence graph info which is shared by GNN and LMs
         cf = self.cf
         self.gi = g_info = load_TAG_info(cf) # g graph
-        self.__dict__.update(g_info.splits)
+        if not link:
+            self.__dict__.update(g_info.splits)
         self.n_nodes = g_info.n_nodes
         if lab == True:
             self.ndata.update({_: getattr(g_info, _) for _ in ['labels']})
