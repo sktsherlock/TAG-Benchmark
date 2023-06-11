@@ -192,7 +192,7 @@ class Sequence():
         else:
             raise ValueError('Not implement!!')
 
-        neighbours_1 = list(g.adjacency_matrix_scipy().tolil().rows)
+        neighbours_1 = list(train_g.adjacency_matrix_scipy().tolil().rows)
         return neighbours_1
 
     def get_tokens(self, node_id):
