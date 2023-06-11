@@ -52,14 +52,16 @@ class Sequence():
             info.path = f'{self._token_folder}{k}.npy'
         return
 
-    def init(self, dpk=False, link=False):
+    def init(self, dpk=False, link=False, lab=True):
         # ! Load sequence graph info which is shared by GNN and LMs
         cf = self.cf
         self.gi = g_info = load_TAG_info(cf) # g graph
         self.__dict__.update(g_info.splits)
         self.n_nodes = g_info.n_nodes
-
-        self.ndata.update({_: getattr(g_info, _) for _ in ['labels']})
+        if lab == True:
+            self.ndata.update({_: getattr(g_info, _) for _ in ['labels']})
+        else:
+            pass
         # ! LM phase
         tokenize_graph(self.cf)
         self._load_data_fields()

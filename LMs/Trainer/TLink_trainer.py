@@ -66,7 +66,7 @@ class TLink_Trainer():
     @uf.time_logger
     def train_trainer(self):
         # ! Prepare data
-        self.d = d = Sequence(cf := self.cf).init(link=True)
+        self.d = d = Sequence(cf := self.cf).init(link=True, lab=False)
         self.train_data = Seq_Link_Dataset(self.d)
 
         # Finetune on dowstream tasks
