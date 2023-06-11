@@ -147,7 +147,6 @@ def run(
                 test_loss,
             ) = evaluate(
                 model,
-                graph,
                 feat,
                 labels,
                 train_idx,
