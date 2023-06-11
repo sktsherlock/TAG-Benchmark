@@ -70,8 +70,7 @@ class TLink_Trainer():
         self.train_data = Seq_Link_Dataset(self.d)
 
         # Finetune on dowstream tasks
-        train_steps = len(d.train_x) // cf.eq_batch_size + 1
-        warmup_steps = int(cf.warmup_epochs * train_steps)
+        warmup_steps = int(cf.warmup_epochs * 2500)
         # ! Load Model for NP with no trainer
         #PLM = AutoModel.from_pretrained(cf.hf_model)
         PLM = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(
