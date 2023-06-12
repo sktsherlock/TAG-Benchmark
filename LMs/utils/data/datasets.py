@@ -314,8 +314,14 @@ class Seq_Link_Dataset(th.utils.data.Dataset):
     def __getitem__(self, node_id):
         item = self.d.get_tokens(node_id)
         neighbour_id = self.d.edge_index[node_id]
-        k = np.random.choice(neighbour_id, 1)
-        item = self.d.get_NB_tokens(item, k[0])
+        if neighbour_id is not []:
+            k = np.random.choice(neighbour_id, 1)
+            item = self.d.get_NB_tokens(item, k[0])
+        else:
+            # Do the self contrastive learning
+            k = node_id
+            item = self.d.get_NB_tokens(item, k)
+
         return item
 
     def __len__(self):
