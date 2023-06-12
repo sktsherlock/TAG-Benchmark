@@ -70,9 +70,10 @@ class TLink_Trainer():
         self.train_data = Seq_Link_Dataset(self.d)
 
         # Finetune on dowstream tasks
-        warmup_steps = int(cf.warmup_epochs * 2500)
+        train_steps = len(self.train_data) // cf.eq_batch_size + 1
+        warmup_steps = int(cf.warmup_epochs * train_steps)
+
         # ! Load Model for NP with no trainer
-        #PLM = AutoModel.from_pretrained(cf.hf_model)
         PLM = AutoModel.from_pretrained(cf.hf_model) if cf.pretrain_path is None else AutoModel.from_pretrained(
             f'{cf.pretrain_path}')
 
@@ -106,9 +107,6 @@ class TLink_Trainer():
         if cf.model == 'Distilbert':
             self.model.config.dropout = cf.dropout
             self.model.config.attention_dropout = cf.att_dropout
-        elif cf.model == 'GPT2':
-            self.model.config.attn_pdrop = cf.att_dropout
-            self.model.config.embd_pdrop = cf.dropout
         else:
             self.model.config.hidden_dropout_prob = cf.dropout
             self.model.config.attention_probs_dropout_prob = cf.att_dropout

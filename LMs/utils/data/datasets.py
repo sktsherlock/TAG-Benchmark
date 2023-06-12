@@ -182,16 +182,13 @@ class Sequence():
     def get_train_edge(self):
         if self.md['data_name'] == 'Citation-2015':
             train_g = dgl.load_graphs(os.path.join('/mnt/v-wzhuang/TAG/Link_Predction/DBLP-2015/', 'train_G.pt'))[0][0]
+            train_g = dgl.to_bidirected(train_g)
         elif self.md['data_name'] == 'Books-Children':
             edge_split = th.load('/mnt/v-wzhuang/TAG/Link_Predction/Photo/20000/edge_split.pt')
             edge_index = edge_split['train']['edge'].t()
             train_g = SparseTensor.from_edge_index(edge_index).t()
             train_g = train_g.to_symmetric()
             list(train_g.adjacency_matrix_scipy().tolil().rows)
-
-        elif self.md['type'] == 'ogb':
-            dataset = DglNodePropPredDataset('ogbn-arxiv', root=self.raw_data_path)
-            g, _ = dataset[0]
         else:
             raise ValueError('Not implement!!')
 
