@@ -1,3 +1,11 @@
+#! SMALL
+CUDA_VISIBLE_DEVICES=0 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_DPK.py --PrtMode=Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=Fitness_TT --dropout=0.1 --epochs=5 --eq_batch_size=500 --per_device_bsz=500 --grad_steps=1 --lr=5e-05 --model=TinyBert --warmup_epochs=1 --gpus=0 --cache_dir=/mnt/v-wzhuang/TAG/Prt/DeepWalk/Amazon/Fit/TinyBert/
+
+CUDA_VISIBLE_DEVICES=1 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_DPK.py --PrtMode=Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=Fitness_TT --dropout=0.1 --epochs=5 --eq_batch_size=500 --per_device_bsz=500 --grad_steps=1 --lr=5e-05 --model=Distilbert --warmup_epochs=1 --gpus=1 --cache_dir=/mnt/v-wzhuang/TAG/Prt/DeepWalk/Amazon/Fit/Distilbert/
+
+CUDA_VISIBLE_DEVICES=2 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_DPK.py --PrtMode=Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=Fitness_TT --dropout=0.1 --epochs=5 --eq_batch_size=500 --per_device_bsz=500 --grad_steps=1 --lr=5e-05 --model=Electra --warmup_epochs=1 --gpus=2 --cache_dir=/mnt/v-wzhuang/TAG/Prt/DeepWalk/Amazon/Fit/Electra/Small/
+
+
 #! TDK
 Base
 CUDA_VISIBLE_DEVICES=0 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_DPK.py --PrtMode=Deepwalk  --att_dropout=0.1 --cla_dropout=0.1 --dataset=Fitness_TT --dropout=0.1 --epochs=5 --eq_batch_size=400 --per_device_bsz=400 --grad_steps=1 --lr=5e-05 --model=Bert --warmup_epochs=1 --gpus=0 --cache_dir=/mnt/v-wzhuang/TAG/Prt/DeepWalk/Amazon/Fit/Bert/Base/
