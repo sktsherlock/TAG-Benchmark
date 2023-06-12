@@ -232,7 +232,10 @@ class TCLTrainer():
             print(f" LM Model parameters are {trainable_params}")
         if cf.model == 'Distilbert':
             self.model.config.dropout = cf.dropout
-            self.model.config.attention_dropout = cf.att_dropoutut
+            self.model.config.attention_dropout = cf.att_dropout
+        elif cf.model == 'GPT2':
+            self.model.config.attn_pdrop = cf.att_dropout
+            self.model.config.embd_pdrop = cf.dropout
         else:
             self.model.config.hidden_dropout_prob = cf.dropout
             self.model.config.attention_probs_dropout_prob = cf.att_dropout
