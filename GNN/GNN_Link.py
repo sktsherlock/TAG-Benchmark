@@ -241,6 +241,8 @@ def main():
     parser.add_argument('--heads', type=int, default=4)
     parser.add_argument('--eval_steps', type=int, default=1)
     parser.add_argument('--runs', type=int, default=5)
+    parser.add_argument('--test_ratio', type=float, default=0.08)
+    parser.add_argument('--val_ratio', type=float, default=0.02)
     parser.add_argument('--neg_len', type=str, default='10000')
     parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/Amazon/History/Bert/Base/emb.npy",
                         help="Use LM embedding as feature")

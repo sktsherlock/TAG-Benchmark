@@ -166,7 +166,7 @@ class Sequence():
         return self.ndata[k]
 
     def get_neighbours(self):
-        if self.md['type'] in {'amazon', 'dblp', 'goodreads'}:
+        if self.md['type'] in {'amazon', 'dblp', 'good'}:
             g = dgl.load_graphs(f"{self.data_root}{self.data_name}.pt")[0][0]
             g = dgl.to_bidirected(g)
         elif self.md['type'] == 'ogb':
@@ -189,6 +189,8 @@ class Sequence():
             train_g = SparseTensor.from_edge_index(edge_index).t()
             train_g = train_g.to_symmetric()
             list(train_g.adjacency_matrix_scipy().tolil().rows)
+        elif self.md['data_name']  == 'GoodReads':
+            raise ValueError('Please implement!!')
         else:
             raise ValueError('Not implement!!')
 

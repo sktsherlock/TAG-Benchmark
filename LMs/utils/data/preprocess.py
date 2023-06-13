@@ -46,7 +46,7 @@ def tokenize_graph(cf):
                     _tokenize_ogb_arxiv_datasets(d)
                 else:
                     raise NotImplementedError
-            elif d.md['type'] in {'amazon', 'dblp'}:
+            elif d.md['type'] in {'amazon', 'dblp', 'good'}:
                 _tokenize_amazon_datasets(d)
             else:
                 raise NotImplementedError

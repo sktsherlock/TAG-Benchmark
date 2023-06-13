@@ -1,6 +1,7 @@
 #! Arxiv
 # Small Model
 CUDA_VISIBLE_DEVICES=6,7 python Train_Command/inference_LM.py --model TinyBert --pretrain_path=  --inference_dir '/mnt/v-wzhuang/TAG/TMLM_TCL_TDK_Finetune/OGB/Arxiv/TinyBert/' --dataset arxiv_TA --inf_batch_size 600
+
 CUDA_VISIBLE_DEVICES=6,7 python Train_Command/inference_LM.py --model Distilbert  --inference_dir '/mnt/v-wzhuang/TAG/TMLM_TCL_TDK_Finetune/OGB/Arxiv/Distilbert/' --dataset arxiv_TA --inf_batch_size 800
 CUDA_VISIBLE_DEVICES=6,7 python Train_Command/inference_LM.py --model Electra  --inference_dir '/mnt/v-wzhuang/TAG/TMLM_TCL_TDK_Finetune/OGB/Arxiv/Electra/Small/' --dataset arxiv_TA --inf_batch_size 800
 # Base Model

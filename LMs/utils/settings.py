@@ -70,6 +70,7 @@ DATA_PATH = f'{MNT_DIR}data/'
 OGB_ROOT = f'{MNT_DIR}data/ogb/'
 AMAZON_ROOT = f'{MNT_DIR}data/amazon/'
 DBLP_ROOT = f'{MNT_DIR}data/dblp/'
+GOOD_ROOT = f'{MNT_DIR}data/good/'
 
 DATA_INFO = {
     'arxiv': {
@@ -145,6 +146,14 @@ DATA_INFO = {
         'data_name': 'Citation-2015',
         'max_length': 256,  # Place to save raw data
         'data_root': f'{DBLP_ROOT}Citation2015/',
+    },
+    'Good': {
+        'type': 'good',
+        'train_ratio': 0,  # Default (public) split
+        'n_nodes': 676084,
+        'data_name': 'GoodReads',
+        'max_length': 24,  # Place to save raw data
+        'data_root': f'{GOOD_ROOT}Goodreads/',
     },
 }
 

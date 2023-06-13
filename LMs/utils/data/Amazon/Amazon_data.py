@@ -11,7 +11,7 @@ def _tokenize_amazon_datasets(d):
     #! 创建目录
     if not osp.exists(osp.join(d.data_root, f'{d.data_name}.txt')):
         mkdir_p(d.data_root)
-        raise{'Please input'}
+        raise{f'Please input the txt to the {d.data_root}'}
     #! Tokenize the data
     else:
         text = pd.read_csv(osp.join(d.data_root, f'{d.data_name}.txt'), header=None, sep='\t')
