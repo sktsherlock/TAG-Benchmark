@@ -188,12 +188,14 @@ class Sequence():
             edge_index = edge_split['train']['edge'].t()
             train_g = SparseTensor.from_edge_index(edge_index).t()
             train_g = train_g.to_symmetric()
-            list(train_g.adjacency_matrix_scipy().tolil().rows)
+            train_g = dgl.graph((train_g.coo()[0], train_g.coo()[1]))
         elif self.md['data_name']  == 'GoodReads':
             edge_split = th.load('/mnt/v-wzhuang/TAG/Link_Predction/GoodReads/edge_split.pt')
             edge_index = edge_split['train']['edge'].t()
             train_g = SparseTensor.from_edge_index(edge_index).t()
             train_g = train_g.to_symmetric()
+            train_g = dgl.graph((train_g.coo()[0], train_g.coo()[1]))
+
         else:
             raise ValueError('Not implement!!')
 
@@ -319,7 +321,7 @@ class Seq_Link_Dataset(th.utils.data.Dataset):
     def __getitem__(self, node_id):
         item = self.d.get_tokens(node_id)
         neighbour_id = self.d.edge_index[node_id]
-        if neighbour_id is not []:
+        if neighbour_id != []:
             k = np.random.choice(neighbour_id, 1)
             item = self.d.get_NB_tokens(item, k[0])
         else:
