@@ -1,6 +1,7 @@
 # 3 PLMs
 TinyBert
-CUDA_VISIBLE_DEVICES=0 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_TLink.py --PrtMode=TLink  --att_dropout=0.1 --cla_dropout=0.1 --dataset=Good_T --dropout=0.1 --epochs=10 --eq_batch_size=1600 --per_device_bsz=1600 --grad_steps=1 --lr=5e-05 --model=TinyBert --warmup_epochs=1 --gpus=0 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TLink/Good/TinyBert/
+CUDA_VISIBLE_DEVICES=0 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_TLink.py --PrtMode=TLink  --att_dropout=0.1 --cla_dropout=0.1 --dataset=Good_T --dropout=0.1 --epochs=10 --eq_batch_size=5000 --per_device_bsz=5000 --grad_steps=1 --lr=5e-05 --model=TinyBert --warmup_epochs=1 --gpus=0 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TLink/Good/TinyBert/
+
 Distilbert
 CUDA_VISIBLE_DEVICES=1,2,3,4 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_TLink.py --PrtMode=TLink  --att_dropout=0.1 --cla_dropout=0.1 --dataset=Good_T --dropout=0.1 --epochs=5 --eq_batch_size=720 --per_device_bsz=130 --grad_steps=1 --lr=5e-05 --model=Distilbert --warmup_epochs=1 --gpus=1,2,3,4 --cache_dir=/mnt/v-wzhuang/TAG/Prt/TLink/Good/Distilbert/
 Roberta-base

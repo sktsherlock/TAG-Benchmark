@@ -149,6 +149,9 @@ def load_TAG_info(cf):
             elif d.md['type'] == 'dblp':
                 g = load_dblp_graph_structure_only(cf)
                 g_info = SN(n_nodes=g.num_nodes())
+            elif d.md['type'] == 'good':
+                g = load_dblp_graph_structure_only(cf)
+                g_info = SN(n_nodes=g.num_nodes())
             else:
                 raise NotImplementedError  #
             d.save_g_info(g_info)
