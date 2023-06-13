@@ -150,6 +150,7 @@ DATA_INFO = {
     'Good': {
         'type': 'good',
         'train_ratio': 0,  # Default (public) split
+        'n_labels': 0,
         'n_nodes': 676084,
         'data_name': 'GoodReads',
         'max_length': 24,  # Place to save raw data

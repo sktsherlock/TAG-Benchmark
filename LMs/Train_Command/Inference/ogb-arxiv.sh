@@ -114,3 +114,4 @@ CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7  python Train_Command/inference_LM.py --mod
 
 #! Goodreads
 CUDA_VISIBLE_DEVICES=0,1 python Train_Command/inference_LM.py --model TinyBert --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Goodreads/TinyBert/' --dataset Good_T --inf_batch_size 5000
+CUDA_VISIBLE_DEVICES=0,1,2,3 python Train_Command/inference_LM.py --model Bert --inference_dir '/mnt/v-wzhuang/TAG/Finetune/Goodreads/Bert/Base/' --dataset Good_T --inf_batch_size 2000

@@ -190,7 +190,10 @@ class Sequence():
             train_g = train_g.to_symmetric()
             list(train_g.adjacency_matrix_scipy().tolil().rows)
         elif self.md['data_name']  == 'GoodReads':
-            raise ValueError('Please implement!!')
+            edge_split = th.load('/mnt/v-wzhuang/TAG/Link_Predction/GoodReads/edge_split.pt')
+            edge_index = edge_split['train']['edge'].t()
+            train_g = SparseTensor.from_edge_index(edge_index).t()
+            train_g = train_g.to_symmetric()
         else:
             raise ValueError('Not implement!!')
 
