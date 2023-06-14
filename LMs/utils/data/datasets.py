@@ -195,7 +195,12 @@ class Sequence():
             train_g = SparseTensor.from_edge_index(edge_index).t()
             train_g = train_g.to_symmetric()
             train_g = dgl.graph((train_g.coo()[0], train_g.coo()[1]))
-
+        elif self.md['data_name'] == 'Electronics-Photo':
+            edge_split = th.load('/mnt/v-wzhuang/TAG/Link_Predction/Photo/20000/edge_split.pt')
+            edge_index = edge_split['train']['edge'].t()
+            train_g = SparseTensor.from_edge_index(edge_index).t()
+            train_g = train_g.to_symmetric()
+            train_g = dgl.graph((train_g.coo()[0], train_g.coo()[1]))
         else:
             raise ValueError('Not implement!!')
 
