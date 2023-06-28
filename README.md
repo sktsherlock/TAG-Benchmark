@@ -1,16 +1,39 @@
 # CS-TAG 
-Text-attributed Graph Datasets and Benchmark
-## Datasets
-If you want to process the data from scratch, you can see the data_process.py to do it.
-If you just want to download the datasets we process, you can open the https://drive.google.com/drive/folders/1rArc3kIDaJlIhOLj_pTaWxACbM6H_iE1?usp=sharing and then download from it.
+Text-attributed Graph Datasets and Benchmark 
 
-For example, you can use such code to download the file:
-gdown -c https://drive.google.com/uc?id= 
-## Baseline
+## Datasets and tasks
+In our CS-TAG benchmark, we collect and make 8 text-attributed graph datasets from ogbn-arxiv, amazon, dblp and goodreads.
+Except for ogbn-arxiv related datasets(Arxiv-TA), the rest of the datasets are constructed by us and uploaded to [google drive](https://drive.google.com/drive/folders/1bdBWkaIzRfbREN7dSndLcL-sKmQd4IqK).
+You can download the datasets we process through the [google drive](https://drive.google.com/drive/folders/1bdBWkaIzRfbREN7dSndLcL-sKmQd4IqK) link. (You can use **gdown** to download the file you wanted in Linux.)
+
+In CS-TAG, we perform the supervised node classification and link prediction tasks common on graphs on these datasets. 
+However, depending on the characteristics of the different datasets, many other types of tasks can be continued to be mined in TAG. 
+Here are some of the tasks we will be focusing on
+- [] Self-supervised learning on TAGs
+- [] Study of Robustness on TAGs
+- [] Graph structure learning on TAGs
+
+## Environments
+You can quickly install the corresponding dependencies
+```shell
+conda env create -f environment.yml
+```
+
+## Main experiments in CS-TAG
 Representation learning on the TAGs often depend on the two type models: Graph Neural Networks and Language Models.
-For the latter, we often use the Pretrained Language Models(PLMs) to encode the text.
-
-For the GNNs, we follow the DGL toolkit and implement them in the GNN library.
-For the PLMs, we follow the huggingface trainer to implement the PLMs in a same pipeline.
+For the latter, we often use the Pretrained Language Models (PLMs) to encode the text.
+For the GNNs, we follow the [DGL](https://www.dgl.ai/) toolkit and implement them in the GNN library.
+For the PLMs, we follow the [huggingface](https://huggingface.co/) trainer to implement the PLMs in a same pipeline.
 We know that there are no absolute fair between the two type baselines.
 
+We use the [wandb](https://wandb.ai/site) to log the results of our experiments.
+We make public the logs of some of our experiments done and organized to promote more researchers to study TAG.
+- [x] [Node classification from GNN](https://wandb.ai/csu_tag/OGB-Arxiv-GNN/reports/GNN-Accuracy--Vmlldzo0MjcyMzk4)
+- [x] [LM related in Ele-computers](https://wandb.ai//csu_tag/Computers/reports/Ele-Computers--Vmlldzo0NjMxNTA4)
+
+### Future work
+In the CS-TAG, we mainly explore the form of classification tasks on TAGs, so we mainly use the mask language models.
+But in recent years, the autoregressive language models have recently evolved rapidly, with models with increasingly larger and 
+models that work increasingly well on the generative tasks.
+![LLM](LLM.png)
+To this end, in the future we will explore some suitable forms of generative tasks on TAGs to analyze the performance performance of different large language models(ChatGPT, GPT-4, LLaMA, and so on.).

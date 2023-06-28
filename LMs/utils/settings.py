@@ -127,6 +127,8 @@ DATA_INFO = {
         'n_nodes': 48362,
         'data_name': 'Electronics-Photo',
         'max_length': 512,  # Place to save raw data
+        'train_year': 2015,
+        'val_year': 2016,
         'data_root': f'{AMAZON_ROOT}Electronics/Photo/',
     },
     'Music': {

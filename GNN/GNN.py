@@ -293,6 +293,9 @@ def main():
     train_idx = train_idx.to(device)
     val_idx = val_idx.to(device)
     test_idx = test_idx.to(device)
+    print(f'Train_idx: {len(train_idx)}')
+    print(f'Valid_idx: {len(val_idx)}')
+    print(f'Test_idx: {len(test_idx)}')
     labels = labels.to(device)
     graph = graph.to(device)
 
