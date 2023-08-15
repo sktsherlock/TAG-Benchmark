@@ -15,7 +15,7 @@ def args_init():
     )
     argparser.add_argument("--gpu", type=int, default=0, help="GPU device ID.")
     argparser.add_argument(
-        "--n-runs", type=int, default=10, help="running times"
+        "--n-runs", type=int, default=3, help="running times"
     )
     argparser.add_argument(
         "--n-epochs", type=int, default=1000, help="number of epochs"
@@ -57,6 +57,7 @@ def args_init():
     argparser.add_argument(
         "--edge-drop", type=float, default=0.0, help="edge drop rate"
     )
+    # ! RevGAT
     # ! SAGE
     argparser.add_argument("--aggregator-type", type=str, default="mean",
                            help="Aggregator type: mean/gcn/pool/lstm")
@@ -92,7 +93,7 @@ def args_init():
         "--use_PLM", type=str, default=None, help="Use LM embedding as feature"
     )
     argparser.add_argument(
-        "--model_name", type=str, default='GCN', help="Which GNN be implemented"
+        "--model_name", type=str, default='RevGAT', help="Which GNN be implemented"
     )
     argparser.add_argument(
         "--dropout", type=float, default=0.5, help="dropout rate"
@@ -101,7 +102,7 @@ def args_init():
         "--data_name", type=str, default='ogbn-arxiv', help="The datasets to be implemented."
     )
     argparser.add_argument(
-        "--metric", type=str, default='f1', help="The datasets to be implemented."
+        "--metric", type=str, default='acc', help="The datasets to be implemented."
     )
     # ! Split datasets
     argparser.add_argument(

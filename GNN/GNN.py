@@ -12,6 +12,7 @@ import torch.optim as optim
 from matplotlib import pyplot as plt
 from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 from model.GNN_library import GIN, GCN, GAT, GIN, GraphSAGE, JKNet, MLP, APPNP
+from RevGAT.model import RevGAT
 from model.GNN_arg import args_init
 from model.Dataloader import load_data
 from ogb.nodeproppred import DglNodePropPredDataset
@@ -99,6 +100,20 @@ def gen_model(args):
             args.alpha,
             args.k,
         )
+    elif args.model_name == 'RevGAT':
+        model = RevGAT(
+                      in_feats,
+                      n_classes,
+                      n_hidden=args.n_hidden,
+                      n_layers=args.n_layers,
+                      n_heads=args.n_heads,
+                      activation=F.relu,
+                      dropout=args.dropout,
+                      input_drop=args.input_drop,
+                      attn_drop=args.attn_drop,
+                      edge_drop=args.edge_drop,
+                      use_attn_dst=False,
+                      use_symmetric_norm=True)
     else:
         raise ValueError('Not implement!')
     return model

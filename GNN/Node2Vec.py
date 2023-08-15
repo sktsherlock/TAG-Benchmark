@@ -1,6 +1,6 @@
 import time
 
-from model.models import Node2vecModel
+from model.GNN_library import Node2vecModel
 from model.utils import load_graph, parse_arguments
 import wandb
 from dgl.sampling import node2vec_random_walk

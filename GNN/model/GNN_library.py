@@ -9,6 +9,7 @@ import torch.nn.functional as F
 from dgl.sampling import node2vec_random_walk
 from torch.utils.data import DataLoader
 
+
 class ElementWiseLinear(nn.Module):
     def __init__(self, size, weight=True, bias=True, inplace=False):
         super().__init__()
