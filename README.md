@@ -63,6 +63,19 @@ Here are some of the tasks we will be focusing on
 |---- dist_runner.py  # Parallel way to training the model
 ```
 
+## Create Your Model
+If you want to add your own model to this code base, you can follow the steps below:
+
+Add your GNN model:
+1. In GNN/model/GNN_library, define your model (you can refer to the code for models like GCN, GAT, etc.)
+2. In the args_init() function in GNN/model/GNN_arg.py, check to see if it contains all the parameters involved in your model. If there are deficiencies, you can easily add new parameters to this function.
+3. Import the model you defined in GNN/GNN.py and add your corresponding model to the gen_model() function. You can then run the corresponding code to perform the node classification task.
+
+Add your PLM model:
+1. Go to the LM/Model/ path and create a folder named after your model name. Define __init__.py and config.py in it (see how these two files are defined in other folders).
+2. Add the parameters you need to the parser() function in lm_utils.
+3. If your model can't be loaded from huggingface, please pass in the path to the folder your model corresponds to via the parameter 'pretrain_path'.
+
 
 ## Environments
 You can quickly install the corresponding dependencies
