@@ -6,6 +6,16 @@ In our CS-TAG benchmark, we collect and make 8 text-attributed graph datasets fr
 Except for ogbn-arxiv related datasets(Arxiv-TA), the rest of the datasets are constructed by us and uploaded to [google drive](https://drive.google.com/drive/folders/1bdBWkaIzRfbREN7dSndLcL-sKmQd4IqK).
 You can download the datasets we process through the [google drive](https://drive.google.com/drive/folders/1bdBWkaIzRfbREN7dSndLcL-sKmQd4IqK) link. (You can use **gdown** to download the file you wanted in Linux.)
 
+Note that we do not directly add the node features from the graph to the graph data we provided. 
+This is mainly because the different PLMs' features may have different effects on different downstream GNNs. 
+You can get the node features from the PLM you are interested in with the following simple code
+```bash
+CUDA_VISIBLE_DEVICES=0 python LMs/Train_Command/inference_LM.py --model ''  --inference_dir '' --dataset arxiv_TA --inf_batch_size 800
+```
+where '--model' can be filled with 'TinyBert, Distilbert, Electra, Electra-base, Electra-large, Bert, Bert-large, Roberta, Roberta-large, Deberta, Deberta-large'.
+In '--inference_dir' fill in the location where you want to store the features.
+'--dataset' can be filled with 'arxiv_TA, Children_DT, History_DT, Computers_RW, Photo_RW, Fitness_T, DBLP_TA, GOOD_DT'.
+
 In CS-TAG, we perform the supervised node classification and link prediction tasks common on graphs on these datasets. 
 However, depending on the characteristics of the different datasets, many other types of tasks can be continued to be mined in TAG. 
 Here are some of the tasks we will be focusing on
