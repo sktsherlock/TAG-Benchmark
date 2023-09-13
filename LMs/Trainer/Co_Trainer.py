@@ -101,7 +101,6 @@ class CoT_Trainer():
         self.g = dgl.to_bidirected(self.g)
         self.g = self.g.to(self.device)
         # ! Pick fanouts and the dataloader
-        # ! Pick fanouts and the dataloader
         init_random_state(cf.seed)
         dgl.random.seed(cf.seed)
         fanouts = [cf.fanouts] * cf.n_layers
@@ -129,14 +128,14 @@ class CoT_Trainer():
                                                          self.val_x,
                                                          sampler,
                                                          batch_size=cf.per_eval_bsz,
-                                                         shuffle=True,
+                                                         shuffle=False,
                                                          drop_last=False)
 
         self.test_dataloader = dgl.dataloading.DataLoader(self.g,
                                                           self.test_x,
                                                           sampler,
                                                           batch_size=cf.per_eval_bsz,
-                                                          shuffle=True,
+                                                          shuffle=False,
                                                           drop_last=False)
 
         # ! Load Model for NP with no trainer
@@ -148,8 +147,6 @@ class CoT_Trainer():
         elif cf.gnn_name == 'GCN':
             GNN = GCN(in_feats=PLM.config.hidden_size, n_hidden=cf.n_hidden, n_classes=cf.n_hidden,
                       n_layers=cf.n_layers, activation=F.relu, dropout=cf.dropout, input_drop=0.1)
-        elif cf.gnn_name == 'JKNet':
-            pass
         else:
             raise NotImplementedError
 
