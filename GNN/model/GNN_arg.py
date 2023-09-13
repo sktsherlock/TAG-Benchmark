@@ -57,7 +57,6 @@ def args_init():
     argparser.add_argument(
         "--edge-drop", type=float, default=0.0, help="edge drop rate"
     )
-    # ! RevGAT
     # ! SAGE
     argparser.add_argument("--aggregator-type", type=str, default="mean",
                            help="Aggregator type: mean/gcn/pool/lstm")

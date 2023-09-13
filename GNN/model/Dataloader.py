@@ -68,42 +68,42 @@ def load_data(name, train_ratio=0.6, val_ratio=0.2):
         graph, labels = data[0]
         labels = labels[:, 0]
     elif name == 'amazon-children':
-        graph = dgl.load_graphs('/mnt/v-wzhuang/Amazon/Books/Amazon-Books-Children.pt')[0][0]
+        graph = dgl.load_graphs('Dataset/Amazon/Books/Amazon-Books-Children.pt')[0][0]
         labels = graph.ndata['label']
         train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), 0.6, 0.2)
         train_idx = th.tensor(train_idx)
         val_idx = th.tensor(val_idx)
         test_idx = th.tensor(test_idx)
     elif name == 'amazon-history':
-        graph = dgl.load_graphs('/mnt/v-wzhuang/Amazon/Books/Amazon-Books-History.pt')[0][0]
+        graph = dgl.load_graphs('Dataset/Amazon/Books/Amazon-Books-History.pt')[0][0]
         labels = graph.ndata['label']
         train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), 0.6, 0.2)
         train_idx = th.tensor(train_idx)
         val_idx = th.tensor(val_idx)
         test_idx = th.tensor(test_idx)
     elif name == 'amazon-fitness':
-        graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Sports/Fit/Sports-Fitness.pt')[0][0]
+        graph = dgl.load_graphs('Dataset/Amazon/Sports/Fit/Sports-Fitness.pt')[0][0]
         labels = graph.ndata['label']
         train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), train_ratio, val_ratio)
         train_idx = th.tensor(train_idx)
         val_idx = th.tensor(val_idx)
         test_idx = th.tensor(test_idx)
     elif name == 'amazon-photo':
-        graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Electronics/Photo/Electronics-Photo.pt')[0][0]
+        graph = dgl.load_graphs('Dataset/Amazon/Electronics/Photo/Electronics-Photo.pt')[0][0]
         labels = graph.ndata['label']
         train_idx, val_idx, test_idx = split_time(graph, 2015, 2016)
         train_idx = th.tensor(train_idx)
         val_idx = th.tensor(val_idx)
         test_idx = th.tensor(test_idx)
     elif name == 'amazon-computers':
-        graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Electronics/Computers/Electronics-Computers.pt')[0][0]
+        graph = dgl.load_graphs('Dataset/Amazon/Electronics/Computers/Electronics-Computers.pt')[0][0]
         labels = graph.ndata['label']
         train_idx, val_idx, test_idx = split_time(graph, 2017, 2018)
         train_idx = th.tensor(train_idx)
         val_idx = th.tensor(val_idx)
         test_idx = th.tensor(test_idx)
     elif name == 'dblp':
-        graph = dgl.load_graphs('/mnt/v-wzhuang/DBLP/Citation-V8.pt')[0][0]
+        graph = dgl.load_graphs('Dataset/DBLP/Citation-V8.pt')[0][0]
         labels = graph.ndata['label']
         train_idx, val_idx, test_idx = split_time(graph, 2010, 2011)
         train_idx = th.tensor(train_idx)

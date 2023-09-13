@@ -22,7 +22,6 @@ device = None
 in_feats, n_classes = None, None
 epsilon = 1 - math.log(2)
 
-
 def gen_model(args):
     if args.model_name == 'GIN':
         model = GIN(
@@ -118,12 +117,10 @@ def gen_model(args):
         raise ValueError('Not implement!')
     return model
 
-
 def cross_entropy(x, labels):
     y = F.cross_entropy(x, labels, reduction="mean", label_smoothing=0.1)
     y = th.log(epsilon + y) - math.log(epsilon)
     return th.mean(y)
-
 
 def compute_acc(pred, labels):
     """
@@ -181,7 +178,6 @@ def evaluate(
         val_loss,
         test_loss,
     )
-
 
 
 def run(
@@ -263,7 +259,6 @@ def run(
 
     return best_val_acc, final_test_acc
 
-
 def count_parameters(args):
     model = gen_model(args)
     return sum(
@@ -333,7 +328,6 @@ def main():
     print(f"Average test accuracy: {np.mean(test_accs)} ± {np.std(test_accs)}")
     print(f"Number of params: {count_parameters(args)}")
     wandb.log({f'Mean_Val_{args.metric}': np.mean(val_accs), f'Mean_Test_{args.metric}': np.mean(test_accs)})
-
 
 if __name__ == "__main__":
     main()
