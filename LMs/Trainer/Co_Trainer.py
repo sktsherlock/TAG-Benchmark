@@ -113,10 +113,6 @@ class CoT_Trainer():
         else:
             raise NotImplementedError
 
-        # ! Prepare your Dataloader
-        per_device_eval_batch_size = cf.per_device_bsz * 6 if cf.hf_model in {'distilbert-base-uncased',
-                                                                              'google/electra-base-discriminator'} else cf.per_eval_bsz
-
         self.train_dataloader = dgl.dataloading.DataLoader(self.g,
                                                            self.train_x,
                                                            sampler,
