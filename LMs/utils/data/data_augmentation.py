@@ -74,7 +74,7 @@ def main():
 
     graph.remove_self_loop()
     graph = dgl.to_bidirected(graph)
-    neighbours = list(graph.adjacency_matrix_scipy().tolil().rows)  # 一阶邻居 获得
+    neighbours = list(graph.adjacency_matrix_scipy().tolil().rows)  # 获得 一阶邻居
     if args.dataset == 'ogbn-arxiv':
         text = pd.read_csv('/TAG-Benchmark/data/ogb/ogbn_arxiv/ogbn-arxiv.txt', sep='\t', header=None)
         text = text[0]
