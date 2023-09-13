@@ -115,36 +115,6 @@ def load_data(name, train_ratio=0.6, val_ratio=0.2):
 
 
 def from_dgl(g):
-    r"""Converts a :obj:`dgl` graph object to a
-    :class:`torch_geometric.data.Data` or
-    :class:`torch_geometric.data.HeteroData` instance.
-
-    Args:
-        g (dgl.DGLGraph): The :obj:`dgl` graph object.
-
-    Example:
-
-        >>> g = dgl.graph(([0, 0, 1, 5], [1, 2, 2, 0]))
-        >>> g.ndata['x'] = torch.randn(g.num_nodes(), 3)
-        >>> g.edata['edge_attr'] = torch.randn(g.num_edges(), 2)
-        >>> data = from_dgl(g)
-        >>> data
-        Data(x=[6, 3], edge_attr=[4, 2], edge_index=[2, 4])
-
-        >>> g = dgl.heterograph({
-        >>> g = dgl.heterograph({
-        ...     ('author', 'writes', 'paper'): ([0, 1, 1, 2, 3, 3, 4],
-        ...                                     [0, 0, 1, 1, 1, 2, 2])})
-        >>> g.nodes['author'].data['x'] = torch.randn(5, 3)
-        >>> g.nodes['paper'].data['x'] = torch.randn(5, 3)
-        >>> data = from_dgl(g)
-        >>> data
-        HeteroData(
-        author={ x=[5, 3] },
-        paper={ x=[3, 3] },
-        (author, writes, paper)={ edge_index=[2, 7] }
-        )
-    """
     import dgl
 
     from torch_geometric.data import Data, HeteroData
