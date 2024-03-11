@@ -71,6 +71,7 @@ OGB_ROOT = f'{MNT_DIR}data/ogb/'
 AMAZON_ROOT = f'{MNT_DIR}data/amazon/'
 DBLP_ROOT = f'{MNT_DIR}data/dblp/'
 GOOD_ROOT = f'{MNT_DIR}data/good/'
+WEBKB_ROOT = f'{MNT_DIR}data/webkb/'
 
 DATA_INFO = {
     'arxiv': {
@@ -158,6 +159,42 @@ DATA_INFO = {
         'max_length': 24,  # Place to save raw data
         'data_root': f'{GOOD_ROOT}Goodreads/',
     },
+    'Cornell': {
+        'type': 'webkb',
+        'train_ratio': 0,  # Default (public) split
+        'n_labels': 5,
+        'n_nodes': 191,
+        'data_name': 'Cornell',
+        'max_length': 256, # Place to save raw data
+        'data_root': f'{WEBKB_ROOT}Cornell/',
+    },
+    'Texas': {
+        'type': 'webkb',
+        'train_ratio': 0,  # Default (public) split
+        'n_labels': 5,
+        'n_nodes': 187,
+        'data_name': 'Texas',
+        'max_length': 256, # Place to save raw data
+        'data_root': f'{WEBKB_ROOT}Texas/',
+    },
+    'Washington': {
+        'type': 'webkb',
+        'train_ratio': 0,  # Default (public) split
+        'n_labels': 5,
+        'n_nodes': 229,
+        'data_name': 'Washington',
+        'max_length': 256, # Place to save raw data
+        'data_root': f'{WEBKB_ROOT}Washington/',
+    },
+    'Wisconsin': {
+        'type': 'webkb',
+        'train_ratio': 0,  # Default (public) split
+        'n_labels': 5,
+        'n_nodes': 265,
+        'data_name': 'Wisconsin',
+        'max_length': 256, # Place to save raw data
+        'data_root': f'{WEBKB_ROOT}Wisconsin/',
+    }
 }
 
 get_d_info = lambda x: DATA_INFO[x.split('_')[0]]

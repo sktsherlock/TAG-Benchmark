@@ -62,6 +62,18 @@ def load_data(name):
     elif name == 'amazon-computer':
         graph = dgl.load_graphs('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Electronics/Computers/Electronics-Computers.pt')[0][0]
         labels = graph.ndata['label']
+    elif name == 'webkb-cornell':
+        graph = dgl.load_graphs('data/WebKB/Cornell/Cornell.pt')[0][0]
+        labels = graph.ndata['label']
+    elif name == 'webkb-texas':
+        graph = dgl.load_graphs('data/WebKB/Texas/Texas.pt')[0][0]
+        labels = graph.ndata['label']
+    elif name == 'webkb-washington':
+        graph = dgl.load_graphs('data/WebKB/Washington/Washington.pt')[0][0]
+        labels = graph.ndata['label']
+    elif name == 'webkb-wisconsin':
+        graph = dgl.load_graphs('data/WebKB/Wisconsin/Wisconsin.pt')[0][0]
+        labels = graph.ndata['label']
     else:
         raise ValueError('Not implemetned')
     return graph, labels
@@ -92,6 +104,18 @@ def main():
         text = text[0]
     elif args.dataset == 'amazon-computer':
         text = pd.read_csv('/mnt/v-wzhuang/TAG-Benchmark/data/amazon/Electronics/Computers/Electronics-Computers.txt', sep='\t', header=None)
+        text = text[0]
+    elif args.dataset == 'webkb-cornell':
+        text = pd.read_csv('data/WebKB/Cornell/Cornell.txt', sep='\t', header=None)
+        text = text[0]
+    elif args.dataset == 'webkb-texas':
+        text = pd.read_csv('data/WebKB/Texas/Texas.txt', sep='\t', header=None)
+        text = text[0]
+    elif args.dataset == 'webkb-washington':
+        text = pd.read_csv('data/WebKB/Washington/Washington.txt', sep='\t', header=None)
+        text = text[0]
+    elif args.dataset == 'webkb-wisconsin':
+        text = pd.read_csv('data/WebKB/Wisconsin/Wisconsin.txt', sep='\t', header=None)
         text = text[0]
     else:
         raise ValueError('Not implemented.')

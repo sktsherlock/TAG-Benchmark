@@ -17,7 +17,7 @@ from torch_sparse import SparseTensor
 from torch_geometric.utils import to_undirected, dropout_adj
 from utils.data.OGB.arxiv import _tokenize_ogb_arxiv_datasets
 from utils.data.Amazon.Amazon_data import _tokenize_amazon_datasets
-
+from utils.data.WebKB.WebKB_data import _tokenize_webkb_datasets
 
 
 def plot_length_distribution(node_text, tokenizer, g):
@@ -48,6 +48,8 @@ def tokenize_graph(cf):
                     raise NotImplementedError
             elif d.md['type'] in {'amazon', 'dblp', 'good'}:
                 _tokenize_amazon_datasets(d)
+            elif d.md['type'] in {'webkb'}:
+                _tokenize_webkb_datasets(d)
             else:
                 raise NotImplementedError
             print(f'Tokenization finished on LOCAL_RANK #{cf.local_rank}')
@@ -123,6 +125,14 @@ def load_amazon_graph_structure_only(cf):
 
     return g, labels, split_idx
 
+def load_webkb_graph_structure_only(cf):
+    import dgl
+    g = dgl.load_graphs(f"{cf.data.data_root}{cf.data.data_name}.pt")[0][0]
+    labels = g.ndata['label'].numpy()
+    # random split
+    split_idx = split_graph(g.num_nodes(), cf.train_ratio, cf.val_ratio)
+
+    return g, labels, split_idx
 
 def load_dblp_graph_structure_only(cf):
     import dgl
@@ -152,6 +162,10 @@ def load_TAG_info(cf):
             elif d.md['type'] == 'good':
                 g = load_dblp_graph_structure_only(cf)
                 g_info = SN(n_nodes=g.num_nodes())
+            elif d.md['type'] == 'webkb':
+                g, labels, split_idx = load_webkb_graph_structure_only(cf)
+                splits = {'train_x': split_idx[0], 'valid_x': split_idx[1], 'test_x': split_idx[2]}
+                g_info = SN(splits=splits, labels=labels, n_nodes=g.num_nodes())
             else:
                 raise NotImplementedError  #
             d.save_g_info(g_info)

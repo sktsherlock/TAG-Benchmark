@@ -8,7 +8,7 @@ from utils.data.datasets import *
 import torch as th
 from dgl.nn.pytorch import SAGEConv
 import torch.nn as nn
-from utils.data.preprocess import load_ogb_graph_structure_only, load_amazon_graph_structure_only
+from utils.data.preprocess import load_ogb_graph_structure_only, load_amazon_graph_structure_only, load_webkb_graph_structure_only
 import dgl.nn.pytorch as dglnn
 from sklearn.metrics import f1_score, precision_score, recall_score
 
@@ -93,6 +93,9 @@ class CoT_Trainer():
             self.labels = th.from_numpy(self.labels).to(th.int64).to(self.device)
         elif d.md['type'] == 'amazon':
             self.g, self.labels, _ = load_amazon_graph_structure_only(cf)
+            self.labels = th.from_numpy(self.labels).to(th.int64).to(self.device)
+        elif d.md['type'] == 'webkb':
+            self.g, self.labels, _ = load_webkb_graph_structure_only(cf)
             self.labels = th.from_numpy(self.labels).to(th.int64).to(self.device)
 
         print(f"Total edges before adding self-loop {self.g.number_of_edges()}")
