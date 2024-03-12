@@ -109,6 +109,34 @@ def load_data(name, train_ratio=0.6, val_ratio=0.2):
         train_idx = th.tensor(train_idx)
         val_idx = th.tensor(val_idx)
         test_idx = th.tensor(test_idx)
+    elif name == 'webkb-cornell':
+        graph = dgl.load_graphs('data/webkb/Cornell/Cornell.pt')[0][0]
+        labels = graph.ndata['label']
+        train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), train_ratio, val_ratio)
+        train_idx = th.tensor(train_idx)
+        val_idx = th.tensor(val_idx)
+        test_idx = th.tensor(test_idx)
+    elif name == 'webkb-texas':
+        graph = dgl.load_graphs('data/webkb/Texas/Texas.pt')[0][0]
+        labels = graph.ndata['label']
+        train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), train_ratio, val_ratio)
+        train_idx = th.tensor(train_idx)
+        val_idx = th.tensor(val_idx)
+        test_idx = th.tensor(test_idx)
+    elif name == 'webkb-washington':
+        graph = dgl.load_graphs('data/webkb/Washington/Washington.pt')[0][0]
+        labels = graph.ndata['label']
+        train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), train_ratio, val_ratio)
+        train_idx = th.tensor(train_idx)
+        val_idx = th.tensor(val_idx)
+        test_idx = th.tensor(test_idx)
+    elif name == 'webkb-wisconsin':
+        graph = dgl.load_graphs('data/webkb/Wisconsin/Wisconsin.pt')[0][0]
+        labels = graph.ndata['label']
+        train_idx, val_idx, test_idx = split_graph(graph.num_nodes(), train_ratio, val_ratio)
+        train_idx = th.tensor(train_idx)
+        val_idx = th.tensor(val_idx)
+        test_idx = th.tensor(test_idx)
     else:
         raise ValueError('Not implemetned')
     return graph, labels, train_idx, val_idx, test_idx
