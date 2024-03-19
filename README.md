@@ -1,77 +1,133 @@
-# CS-TAG 
-Text-attributed Graph Datasets and Benchmark 
+# CS-TAG  ![](https://img.shields.io/badge/license-MIT-blue)
+CS-TAG is a project to share the public text-attributed graph (TAG) datasets and benchmark the performance of the different baseline methods.
+We welcome more to share datasets that are valuable for TAGs research.
 
-## Datasets and tasks
-In our CS-TAG benchmark, we collect and make 8 text-attributed graph datasets from ogbn-arxiv, amazon, dblp and goodreads.
+
+## Datasets 🔔
+We collect and construct 8 TAG datasets from ogbn-arxiv, amazon, dblp and goodreads.
 Except for ogbn-arxiv related datasets(Arxiv-TA), the rest of the datasets are constructed by us and uploaded to [google drive](https://drive.google.com/drive/folders/1bdBWkaIzRfbREN7dSndLcL-sKmQd4IqK).
-You can download the datasets we process through the [google drive](https://drive.google.com/drive/folders/1bdBWkaIzRfbREN7dSndLcL-sKmQd4IqK) link. (You can use **gdown** to download the file you wanted in Linux.)
 
-Note that we do not directly add the node features from the graph to the graph data we provided. 
-This is mainly because the different PLMs' features may have different effects on different downstream GNNs. 
-You can get the node features from the PLM you are interested in with the following simple code
+And now we upload these datasets to huggingface too 🥳.
+
+You can use the node initial feature we created, and you also can extract the node feature from our code. You can get the node features from the PLM you are interested in with the following simple code.
+
+
 ```bash
-CUDA_VISIBLE_DEVICES=0 python LMs/Train_Command/inference_LM.py --model ''  --inference_dir '' --dataset arxiv_TA --inf_batch_size 800
+CUDA_VISIBLE_DEVICES=0 python TextAttributeExtract.py --csv_file 'Data/Movies/Movies.csv' --model_name 'bert-base-uncased' --name 'Movies' --path 'Data/Movies/Feature/' --max_length 512 --batch_size 1000 
 ```
-where '--model' can be filled with 'TinyBert, Distilbert, Electra, Electra-base, Electra-large, Bert, Bert-large, Roberta, Roberta-large, Deberta, Deberta-large'.
-In '--inference_dir' fill in the location where you want to store the features.
-'--dataset' can be filled with 'arxiv_TA, Children_DT, History_DT, Computers_RW, Photo_RW, Fitness_T, DBLP_TA, GOOD_DT'.
 
-In CS-TAG, we perform the supervised node classification and link prediction tasks common on graphs on these datasets. 
-However, depending on the characteristics of the different datasets, many other types of tasks can be continued to be mined in TAG. 
-Here are some of the tasks we will be focusing on
-- [] Self-supervised learning on TAGs
-- [] Study of Robustness on TAGs
-- [] Graph structure learning on TAGs
+[//]: # (```bash)
+
+[//]: # (CUDA_VISIBLE_DEVICES=0 python LMs/Train_Command/inference_LM.py --model ''  --inference_dir '' --dataset arxiv_TA --inf_batch_size 800 )
+
+[//]: # (```)
+
+[//]: # (where '--model' can be filled with 'TinyBert, Distilbert, Electra, Electra-base, Electra-large, Bert, Bert-large, Roberta, Roberta-large, Deberta, Deberta-large'.)
+
+[//]: # (In '--inference_dir' fill in the location where you want to store the features.)
+
+[//]: # ('--dataset' can be filled with 'arxiv_TA, Children_DT, History_DT, Computers_RW, Photo_RW, Fitness_T, DBLP_TA, GOOD_DT'.)
+
+
+
 
 ## Directory Layout
-```bash
-./GNN                
-|---- model/                
-|        |---- Dataloader.py    # Load the data from CS-TAG     	
-|        |---- GNN_arg.py       # GNN settings (e.g. dropout, n-layers, n-hidden)
-|        |---- GNN_library.py   # CS-TAG GNN baselines(e.g., mlp, GCN, GAT)
-|---- GNN.py                    # .py for node classification task
-|---- GNN_Link.py                    # .py for link prediction task
-./LMs
-|---- Model/
-|        |---- Bert    # Save the config for the TinyBert, Bert-base and Bert-large
-|        |---- Deberta    # Save the config for the Deberta-base and Deberta-large
-|        |---- Distilbert    # Save the config for the Distilbert
-|        |---- Electra    # Save the config for the Electra-small, Electra-base and Electra-large
-|---- Train_Command/
-|        |---- Pretrain/    # Save the scripts for the topological pretraining 
-|                |---- Scripts/    # Save the scripts for the topological pretraining 
-|                       |---- TCL.sh   #  Scripts for the TCL
-|                       |---- TMLM.sh   #  Scripts for the TMLM
-|                       |---- TDK.sh   #  Scripts for the TDK
-|                       |---- TMDC.sh   #  Scripts for the TMDC
-|        |---- Co-Train.py    # .py for the Co-Training strategy
-|        |---- Toplogical_Pretrain.py    # .py for the toplogical pretraining strategy (e.g., TCL,TDK,TMLM, TCL+TDK)
-|---- Trainer/
-|        |---- Inf_trainer.py            # .py for getting node embedding from the PLMs
-|        |---- TCL_trainer.py            # Trainer (following the huggingface) for the TCL strategy
-|        |---- TDK_trainer.py            # Trainer (following the huggingface) for the TDK strategy
-|        |---- TMDC_trainer.py            # Trainer (following the huggingface) for the TMDC strategy
-|        |---- TLink_trainer.py            # Trainer (following the huggingface) for the TCL in the Link prediction tasks 
-|        |---- lm_trainer.py                 # Trainer for node classification tasks
-|        |---- train_MLM.py                 #  .py for the TMLM tasks (following the huggingface)
-|---- utils/
-|        |---- data/    # Save the scripts for the topological pretraining 
-|                |---- data_augmentation.py # the .py for generating the corpus for the TMLM tasks
-|                |---- datasets.py #  The defined dataset class for different tasks
-|                |---- preprocess.py #  Some commands for preprocessing the data (e.g. tokenize_graph, split_graph)
-|        |---- function 
-|                |---- dgl_utils.py   # Some commands from dgl 
-|                |---- hf_metric.py   # Some metric used in this benchmark (e.g. accuracy, f1)
-|        |---- modules
-|                |---- conf_utils.py
-|                |---- logger.py
-|        |---- settings.py    # Some config for the datasets. You can creat your dataset in this file!  
-|---- model.py       # Define the model for the donstream tasks
-|---- lm_utils.py    # Define the config for the PLM pipeline
-|---- trainLM.py     # Running for the node classification tasks
-|---- dist_runner.py  # Parallel way to training the model
-```
+
+[//]: # (```bash)
+
+[//]: # (./GNN                )
+
+[//]: # (|---- model/                )
+
+[//]: # (|        |---- Dataloader.py    # Load the data from CS-TAG     	)
+
+[//]: # (|        |---- GNN_arg.py       # GNN settings &#40;e.g. dropout, n-layers, n-hidden&#41;)
+
+[//]: # (|        |---- GNN_library.py   # CS-TAG GNN baselines&#40;e.g., mlp, GCN, GAT&#41;)
+
+[//]: # (|---- GNN.py                    # .py for node classification task)
+
+[//]: # (|---- GNN_Link.py                    # .py for link prediction task)
+
+[//]: # (./LMs)
+
+[//]: # (|---- Model/)
+
+[//]: # (|        |---- Bert    # Save the config for the TinyBert, Bert-base and Bert-large)
+
+[//]: # (|        |---- Deberta    # Save the config for the Deberta-base and Deberta-large)
+
+[//]: # (|        |---- Distilbert    # Save the config for the Distilbert)
+
+[//]: # (|        |---- Electra    # Save the config for the Electra-small, Electra-base and Electra-large)
+
+[//]: # (|---- Train_Command/)
+
+[//]: # (|        |---- Pretrain/    # Save the scripts for the topological pretraining )
+
+[//]: # (|                |---- Scripts/    # Save the scripts for the topological pretraining )
+
+[//]: # (|                       |---- TCL.sh   #  Scripts for the TCL)
+
+[//]: # (|                       |---- TMLM.sh   #  Scripts for the TMLM)
+
+[//]: # (|                       |---- TDK.sh   #  Scripts for the TDK)
+
+[//]: # (|                       |---- TMDC.sh   #  Scripts for the TMDC)
+
+[//]: # (|        |---- Co-Train.py    # .py for the Co-Training strategy)
+
+[//]: # (|        |---- Toplogical_Pretrain.py    # .py for the toplogical pretraining strategy &#40;e.g., TCL,TDK,TMLM, TCL+TDK&#41;)
+
+[//]: # (|---- Trainer/)
+
+[//]: # (|        |---- Inf_trainer.py            # .py for getting node embedding from the PLMs)
+
+[//]: # (|        |---- TCL_trainer.py            # Trainer &#40;following the huggingface&#41; for the TCL strategy)
+
+[//]: # (|        |---- TDK_trainer.py            # Trainer &#40;following the huggingface&#41; for the TDK strategy)
+
+[//]: # (|        |---- TMDC_trainer.py            # Trainer &#40;following the huggingface&#41; for the TMDC strategy)
+
+[//]: # (|        |---- TLink_trainer.py            # Trainer &#40;following the huggingface&#41; for the TCL in the Link prediction tasks )
+
+[//]: # (|        |---- lm_trainer.py                 # Trainer for node classification tasks)
+
+[//]: # (|        |---- train_MLM.py                 #  .py for the TMLM tasks &#40;following the huggingface&#41;)
+
+[//]: # (|---- utils/)
+
+[//]: # (|        |---- data/    # Save the scripts for the topological pretraining )
+
+[//]: # (|                |---- data_augmentation.py # the .py for generating the corpus for the TMLM tasks)
+
+[//]: # (|                |---- datasets.py #  The defined dataset class for different tasks)
+
+[//]: # (|                |---- preprocess.py #  Some commands for preprocessing the data &#40;e.g. tokenize_graph, split_graph&#41;)
+
+[//]: # (|        |---- function )
+
+[//]: # (|                |---- dgl_utils.py   # Some commands from dgl )
+
+[//]: # (|                |---- hf_metric.py   # Some metric used in this benchmark &#40;e.g. accuracy, f1&#41;)
+
+[//]: # (|        |---- modules)
+
+[//]: # (|                |---- conf_utils.py)
+
+[//]: # (|                |---- logger.py)
+
+[//]: # (|        |---- settings.py    # Some config for the datasets. You can creat your dataset in this file!  )
+
+[//]: # (|---- model.py       # Define the model for the donstream tasks)
+
+[//]: # (|---- lm_utils.py    # Define the config for the PLM pipeline)
+
+[//]: # (|---- trainLM.py     # Running for the node classification tasks)
+
+[//]: # (|---- dist_runner.py  # Parallel way to training the model)
+
+[//]: # (```)
 
 ## Create Your Model
 If you want to add your own model to this code base, you can follow the steps below:
