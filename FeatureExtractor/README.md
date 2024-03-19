@@ -18,13 +18,13 @@ Now, you can see the **Arxiv**, **Children**, **CitationV8**, **Computers**, **F
 cd ../../FeatureExtractor/
 ```
 
+Extract features by LM4Feature.py 
 ```python
-# Extract features by LM4Feature.py 
 CUDA_VISIBLE_DEVICES=0 python LM4Feature.py --csv_file 'data/CSTAG/Arxiv/Arxiv.csv' --model_name 'bert-base-uncased' --name 'Arxiv' --path 'data/CSTAG/Arxiv/Feature/' --max_length 512 --batch_size 1000 --cls
 ```
 
+If you have multiple GPUs, you can simply execute this code in parallel.If you have multiple GPUs, you can simply execute this code in parallel.
 ```python
-# If you have multiple GPUs, you can simply execute this code in parallel.If you have multiple GPUs, you can simply execute this code in parallel.
 CUDA_VISIBLE_DEVICES=0,1,2,3 python LM4Feature.py --csv_file 'data/CSTAG/Arxiv/Arxiv.csv' --model_name 'bert-base-uncased' --name 'Arxiv' --path 'data/CSTAG/Arxiv/Feature/' --max_length 512 --batch_size 1000 --cls
 ```
 
