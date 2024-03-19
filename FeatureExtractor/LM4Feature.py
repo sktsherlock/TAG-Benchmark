@@ -40,6 +40,7 @@ def main():
     parser.add_argument('--max_length', type=int, default=128, help='Maximum length of the text for language models')
     parser.add_argument('--batch_size', type=int, default=1000, help='Number of batch size for inference')
     parser.add_argument('--fp16', type=bool, default=True, help='if fp16')
+    parser.add_argument('--cls', action='store_true', help='whether use cls token  to represent the whole text')
     parser.add_argument('--mean', action='store_true', help='whether use mean pooling to represent the whole text')
     parser.add_argument('--nomask', action='store_true', help='whether do not use mask to claculate the mean pooling')
     parser.add_argument('--norm', type=bool, default=False, help='nomic use True')
@@ -153,14 +154,15 @@ def main():
     )
 
     # CLS representatoin
-    if not os.path.exists(output_file + "_cls.npy"):
-        trainer = Trainer(model=CLS_Feateres_Extractor, args=inference_args)
-        cls_emb = trainer.predict(dataset)
-        np.save(output_file + "_cls.npy", cls_emb.predictions)
-        print('Existing saved to the {}'.format(output_file))
+    if args.cls:
+        if not os.path.exists(output_file + "_cls.npy"):
+            trainer = Trainer(model=CLS_Feateres_Extractor, args=inference_args)
+            cls_emb = trainer.predict(dataset)
+            np.save(output_file + "_cls.npy", cls_emb.predictions)
+            print('Existing saved to the {}'.format(output_file))
 
-    else:
-        print('Existing saved CLS')
+        else:
+            print('Existing saved CLS')
 
     if args.mean:
         if not os.path.exists(output_file + "_mean.npy"):
