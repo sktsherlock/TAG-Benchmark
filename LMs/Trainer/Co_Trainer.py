@@ -153,6 +153,7 @@ class CoT_Trainer():
             dropout=cf.cla_dropout,
             cla_bias=cf.cla_bias == 'T',
         ).to(self.device)
+
         self.model_path = os.path.dirname(
             f'{cf.out_dir}{cf.gnn_name}/{cf.n_hidden}/{cf.n_layers}/{cf.sampler_way}/{cf.fanouts}/')
         # ! Prepare the optimizer

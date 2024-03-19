@@ -112,7 +112,6 @@ def args_init():
     )
     return argparser
 
-
 class Logger(object):
     def __init__(self, runs, info=None):
         self.info = info
@@ -162,4 +161,5 @@ class Logger(object):
             print(f'{key} Final Test: {r.mean():.2f} ± {r.std():.2f}')
             wandb.log(
                 {f'{key} Final Test Acc': float(f'{r.mean():.2f}'), f'{key} Final Test Std': float(f'{r.std():.2f}')})
+
 

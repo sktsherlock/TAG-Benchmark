@@ -91,7 +91,6 @@ class APPNP(nn.Module):
         return h
 
 
-
 class GraphSAGE(nn.Module):
     def __init__(self,
                  in_feats,

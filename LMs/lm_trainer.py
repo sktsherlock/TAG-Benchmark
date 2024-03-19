@@ -14,7 +14,6 @@ METRICS = {  # metric -> metric_path
     'recall': 'hf_recall.py',
     'spearmanr': 'hf_spearmanr.py',
     'pearsonr': 'hf_pearsonr.py',
-
 }
 
 
