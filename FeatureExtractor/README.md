@@ -21,6 +21,9 @@ cd ../../FeatureExtractor/
 ```python
 # Extract features by LM4Feature.py 
 CUDA_VISIBLE_DEVICES=0 python LM4Feature.py --csv_file 'data/CSTAG/Arxiv/Arxiv.csv' --model_name 'bert-base-uncased' --name 'Arxiv' --path 'data/CSTAG/Arxiv/Feature/' --max_length 512 --batch_size 1000 --cls
+```
+
+```python
 # If you have multiple GPUs, you can simply execute this code in parallel.If you have multiple GPUs, you can simply execute this code in parallel.
 CUDA_VISIBLE_DEVICES=0,1,2,3 python LM4Feature.py --csv_file 'data/CSTAG/Arxiv/Arxiv.csv' --model_name 'bert-base-uncased' --name 'Arxiv' --path 'data/CSTAG/Arxiv/Feature/' --max_length 512 --batch_size 1000 --cls
 ```
@@ -34,9 +37,12 @@ If you follow the example code above, then you can see the feature file named <f
 
 ### 3. Other ways of representing text.🤗
 In addition to the common use of **[CLS]** tokens in last hidden layer to represent the global representation of a sentence/document, we can also use Mean_Pooling to obtain textual representations.
-```bash
+```python
 # Ensure that you are in FeatureExtractor/
 CUDA_VISIBLE_DEVICES=0 python LM4Feature.py --csv_file 'data/CSTAG/Arxiv/Arxiv.csv' --model_name 'bert-base-uncased' --name 'Arxiv' --path 'data/CSTAG/Arxiv/Feature/' --max_length 512 --batch_size 500 --mean
+```
+
+```bash
 cd ../data/CSTAG/Arxiv/Feature/ && ls
 ```
 Then you can see the feature file named <font color=#00ffff>"Arxiv_bert_base_uncased_512_mean.npy"</font>.
