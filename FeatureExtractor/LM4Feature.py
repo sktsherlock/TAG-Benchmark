@@ -60,6 +60,7 @@ def main():
 
     root_dir = os.path.dirname(os.path.abspath(__file__))
     base_dir = os.path.dirname(root_dir.rstrip('/'))
+    print(base_dir)
     Feature_path = os.path.join(base_dir, args.path)
     cache_path = f"{Feature_path}cache/"
     print(Feature_path)
