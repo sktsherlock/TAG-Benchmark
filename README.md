@@ -8,6 +8,8 @@ We collect and construct 8 TAG datasets from ogbn-arxiv, amazon, dblp and goodre
 Except for ogbn-arxiv related datasets(Arxiv-TA), the rest of the datasets are constructed by us and uploaded to [google drive](https://drive.google.com/drive/folders/1bdBWkaIzRfbREN7dSndLcL-sKmQd4IqK).
 
 And now we upload these datasets to huggingface too 🥳.
+You can go to the 'Files and version' in [CSTAG](https://huggingface.co/datasets/Sherirto/CSTAG/tree/main) to find the datasets we upload.
+In each dataset folder, you can find the **csv** file (which save the text attribute of the dataset), **pt** file (which represent the dgl graph file), and the **Feature** folder (which save the text embedding we extract from the different PLMs).
 
 You can use the node initial feature we created, and you also can extract the node feature from our code. You can get the node features from the PLM you are interested in with the following simple code.
 
