@@ -30,7 +30,7 @@ python GNN/GNN_Link.py --use_PLM=data/CSTAG/Photo/Feature/Photo_roberta_base_512
 
 ### 2. PLM for Classification Tasks
 ```python
-CUDA_VISIBLE_DEVICES=0 python LMs/trainLM.py --att_dropout=0.1 --cla_dropout=0.1 --dataset=Computers_RS --dropout=0.1 --epochs=4 --eq_batch_size=180 --eval_patience=20000 --grad_steps=1 --label_smoothing_factor=0.1 --lr=4e-05 --model=Deberta --per_device_bsz=60 --per_eval_bsz=1000 --train_ratio=0.2 --val_ratio=0.1 --warmup_epochs=1 --gpus=0 --wandb_name OFF --wandb_id OFF 
+CUDA_VISIBLE_DEVICES=0,1 /usr/bin/env python sweep/dist_runner.py LMs/trainLM.py --att_dropout=0.1 --cla_dropout=0.1 --dataset=Computers_RS --dropout=0.1 --epochs=4 --eq_batch_size=180 --eval_patience=20000 --grad_steps=1 --label_smoothing_factor=0.1 --lr=4e-05 --model=Deberta --per_device_bsz=60 --per_eval_bsz=1000 --train_ratio=0.2 --val_ratio=0.1 --warmup_epochs=1 --gpus=0,1 --wandb_name OFF --wandb_id OFF 
 ```
 
 ### 3. TMLM for PreTraining
@@ -38,7 +38,9 @@ CUDA_VISIBLE_DEVICES=0 python LMs/trainLM.py --att_dropout=0.1 --cla_dropout=0.1
 ### 4. TDK for PreTraining 
 
 ### 5. TCL for PreTraining 
-
+```python
+CUDA_VISIBLE_DEVICES=0,1 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL.py --PrtMode=TCL --att_dropout=0.1 --cla_dropout=0.1 --dataset=Photo_RS --dropout=0.1 --epochs=5 --eq_batch_size=60 --per_device_bsz=15 --grad_steps=2 --lr=5e-05 --model=Bert --warmup_epochs=1 --gpus=0,1 --cache_dir=exp/TCL/Photo/Bert_base/
+```
 ### 6. TMDC for Training 
 
 
