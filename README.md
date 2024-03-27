@@ -20,6 +20,7 @@ conda env create -f environment.yml
 We describe below how to use our repository to perform the experiments reported in the paper. We are also adjusting the style of the repository to make it easier to use.
 (Please complete the ['Datasets and Feature part'](FeatureExtractor/README.md) above first)
 ### 1. GNN for Node Classification/Link Prediction
+You can use 'ogbn-arxiv', 'Children', 'History', 'Fitness', 'Photo', 'Computers', 'webkb-cornell', 'webkb-texas', 'webkb-washington' and 'webkb-wisconsin' for the '**--data_name**'.
 ```python
 python GNN/GNN.py --data_name=Photo --dropout=0.2 --lr=0.005 --model_name=SAGE --n-epochs=1000 --n-hidden=256 --n-layers=3 --n-runs=5 --use_PLM=data/CSTAG/Photo/Feature/Photo_roberta_base_512_cls.npy
 ```
@@ -32,11 +33,11 @@ python GNN/GNN_Link.py --use_PLM=data/CSTAG/Photo/Feature/Photo_roberta_base_512
 CUDA_VISIBLE_DEVICES=0 python LMs/trainLM.py --att_dropout=0.1 --cla_dropout=0.1 --dataset=Computers_RS --dropout=0.1 --epochs=4 --eq_batch_size=180 --eval_patience=20000 --grad_steps=1 --label_smoothing_factor=0.1 --lr=4e-05 --model=Deberta --per_device_bsz=60 --per_eval_bsz=1000 --train_ratio=0.2 --val_ratio=0.1 --warmup_epochs=1 --gpus=0 --wandb_name OFF --wandb_id OFF 
 ```
 
-### 3. TMLM for Training
+### 3. TMLM for PreTraining
 
-### 4. TDK for Training 
+### 4. TDK for PreTraining 
 
-### 5. TCL for Training 
+### 5. TCL for PreTraining 
 
 ### 6. TMDC for Training 
 
