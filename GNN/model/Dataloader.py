@@ -102,13 +102,6 @@ def load_data(name, train_ratio=0.6, val_ratio=0.2):
         train_idx = th.tensor(train_idx)
         val_idx = th.tensor(val_idx)
         test_idx = th.tensor(test_idx)
-    elif name == 'DBLP':
-        graph = dgl.load_graphs('data/CSTAG/CitationV8/Citation-2015.pt')[0][0]
-        labels = graph.ndata['label']
-        train_idx, val_idx, test_idx = split_time(graph, 2010, 2011)
-        train_idx = th.tensor(train_idx)
-        val_idx = th.tensor(val_idx)
-        test_idx = th.tensor(test_idx)
     elif name == 'webkb-cornell':
         graph = dgl.load_graphs('data/webkb/Cornell/Cornell.pt')[0][0]
         labels = graph.ndata['label']
