@@ -41,7 +41,7 @@ class ModelConfig(metaclass=ABCMeta):
         # Turn off Wandb gradients loggings
         os.environ["WANDB_WATCH"] = "false"
 
-        wandb_settings_given = self.wandb_name != 'OFF' or self.wandb_id != ''
+        wandb_settings_given = self.wandb_name != 'OFF' or self.wandb_id != 'OFF'
         not_parallel = self.local_rank <= 0
 
         if wandb_settings_given and not_parallel:
