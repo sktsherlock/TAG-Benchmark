@@ -244,11 +244,11 @@ def main():
     parser.add_argument('--test_ratio', type=float, default=0.08)
     parser.add_argument('--val_ratio', type=float, default=0.02)
     parser.add_argument('--neg_len', type=str, default='10000')
-    parser.add_argument("--use_PLM", type=str, default="/mnt/v-wzhuang/TAG/Finetune/Amazon/History/Bert/Base/emb.npy",
+    parser.add_argument("--use_PLM", type=str, default="data/CSTAG/Photo/Feature/Photo_roberta_base_512_cls.npy",
                         help="Use LM embedding as feature")
-    parser.add_argument("--path", type=str, default="/mnt/v-wzhuang/TAG/Link_Predction/History/",
+    parser.add_argument("--path", type=str, default="data/CSTAG/Photo/LinkPrediction/",
                         help="Path to save splitting")
-    parser.add_argument("--graph_path", type=str, default="/mnt/v-wzhuang/Amazon/Books/Amazon-Books-History.pt",
+    parser.add_argument("--graph_path", type=str, default="data/CSTAG/Photo/Photo.pt",
                         help="Path to load the graph")
     args = parser.parse_args()
     wandb.config = args
