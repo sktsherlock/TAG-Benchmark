@@ -42,7 +42,7 @@ class LMConfig(ModelConfig):
         self.epochs = 4
         self.verbose = 1
         self.device = None
-        self.wandb_on = True
+        self.wandb_on = False
         self.birth_time = uf.get_cur_time(t_format='%m_%d-%H_%M_%S')
         self._wandb = None
 
