@@ -34,15 +34,21 @@ CUDA_VISIBLE_DEVICES=0,1 /usr/bin/env python sweep/dist_runner.py LMs/trainLM.py
 ```
 
 ### 3. TMLM for PreTraining
-
+```python
+for update and debug
+```
 ### 4. TDK for PreTraining 
-
+```python
+for update and debug
+```
 ### 5. TCL for PreTraining 
 ```python
 CUDA_VISIBLE_DEVICES=0,1 /usr/bin/env python sweep/dist_runner.py LMs/Train_Command/train_CL.py --PrtMode=TCL --att_dropout=0.1 --cla_dropout=0.1 --dataset=Photo_RS --dropout=0.1 --epochs=5 --eq_batch_size=60 --per_device_bsz=15 --grad_steps=2 --lr=5e-05 --model=Bert --warmup_epochs=1 --gpus=0,1 --cache_dir=exp/TCL/Photo/Bert_base/
 ```
 ### 6. TMDC for Training 
-
+```python
+for update and debug
+```
 
 ## Create Your Model
 If you want to add your own model to this code base, you can follow the steps below:
