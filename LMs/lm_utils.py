@@ -36,7 +36,6 @@ class LMConfig(ModelConfig):
 
         # ! Experiments Settings
         self.seed = 0
-        self.wandb_name = ''
         self.wandb_id = ''
         self.dataset = (d := DEFAULT_DATASET)
         self.epochs = 4
