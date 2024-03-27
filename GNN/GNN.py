@@ -9,13 +9,10 @@ import numpy as np
 import torch as th
 import torch.nn.functional as F
 import torch.optim as optim
-from matplotlib import pyplot as plt
-from matplotlib.ticker import AutoMinorLocator, MultipleLocator
 from model.GNN_library import GIN, GCN, GAT, GIN, GraphSAGE, JKNet, MLP, APPNP
 from RevGAT.model import RevGAT
 from model.GNN_arg import args_init
 from model.Dataloader import load_data
-from ogb.nodeproppred import DglNodePropPredDataset
 from sklearn.metrics import f1_score
 
 device = None

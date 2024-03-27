@@ -19,10 +19,12 @@ conda env create -f environment.yml
 ## Pipeline 🎮
 We describe below how to use our repository to perform the experiments reported in the paper. We are also adjusting the style of the repository to make it easier to use.
 ### 1. GNN for Node Classification Tasks
-
+```python
+python GNN/GNN.py --data_name=amazon-children --dropout=0.2 --lr=0.005 --model_name=SAGE --n-epochs=1000 --n-hidden=256 --n-layers=3 --n-runs=5 --use_PLM=/mnt/v-wzhuang/TAG/TMLM_TCL_TDK_Finetune/Amazon/Children/RoBert/Large/emb.npy
+```
 ### 2. PLM for Classification Tasks
 ```python
-CUDA_VISIBLE_DEVICES=0,1 python LMs/trainLM.py --att_dropout=0.1 --cla_dropout=0.1 --dataset=Computers_RS --dropout=0.1 --epochs=4 --eq_batch_size=180 --eval_patience=20000 --grad_steps=1 --label_smoothing_factor=0.1 --lr=4e-05 --model=Deberta --per_device_bsz=90 --per_eval_bsz=1000 --train_ratio=0.2 --val_ratio=0.1 --warmup_epochs=1 --gpus=0,1 --wandb_name OFF
+CUDA_VISIBLE_DEVICES=0 python LMs/trainLM.py --att_dropout=0.1 --cla_dropout=0.1 --dataset=Computers_RS --dropout=0.1 --epochs=4 --eq_batch_size=180 --eval_patience=20000 --grad_steps=1 --label_smoothing_factor=0.1 --lr=4e-05 --model=Deberta --per_device_bsz=60 --per_eval_bsz=1000 --train_ratio=0.2 --val_ratio=0.1 --warmup_epochs=1 --gpus=0 --wandb_name OFF --wandb_id OFF
 ```
 
 ### 3. TMLM for Training
