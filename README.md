@@ -5,35 +5,71 @@ We welcome more to share datasets that are valuable for TAGs research.
 
 ## Datasets 🔔
 We collect and construct 8 TAG datasets from ogbn-arxiv, amazon, dblp and goodreads.
-Except for ogbn-arxiv related datasets(Arxiv-TA), the rest of the datasets are constructed by us and uploaded to [google drive](https://drive.google.com/drive/folders/1bdBWkaIzRfbREN7dSndLcL-sKmQd4IqK).
+Now you can go to the 'Files and version' in [CSTAG](https://huggingface.co/datasets/Sherirto/CSTAG/tree/main) to find the datasets we upload!
+In each dataset folder, you can find the **csv** file (which save the text attribute of the dataset), **pt** file (which represent the dgl graph file), and the **Feature** folder (which save the text embedding we extract from the PLM).
+You can use the node initial feature we created, and you also can extract the node feature from our code. 
+For a more detailed and clear process, please [clik there.😎](FeatureExtractor/README.md)
 
-And now we upload these datasets to huggingface too 🥳.
-You can go to the 'Files and version' in [CSTAG](https://huggingface.co/datasets/Sherirto/CSTAG/tree/main) to find the datasets we upload.
-In each dataset folder, you can find the **csv** file (which save the text attribute of the dataset), **pt** file (which represent the dgl graph file), and the **Feature** folder (which save the text embedding we extract from the different PLMs).
-
-You can use the node initial feature we created, and you also can extract the node feature from our code. You can get the node features from the PLM you are interested in with the following simple code.
-
-
-```bash
-CUDA_VISIBLE_DEVICES=0 python TextAttributeExtract.py --csv_file 'Data/Movies/Movies.csv' --model_name 'bert-base-uncased' --name 'Movies' --path 'Data/Movies/Feature/' --max_length 512 --batch_size 1000 
+## Environments
+You can quickly install the corresponding dependencies
+```shell
+conda env create -f environment.yml
 ```
 
-[//]: # (```bash)
+## Pipeline 🎮
+We describe below how to use our repository to perform the experiments reported in the paper. We are also adjusting the style of the repository to make it easier to use.
+### 1. GNN for Node Classification Tasks
 
-[//]: # (CUDA_VISIBLE_DEVICES=0 python LMs/Train_Command/inference_LM.py --model ''  --inference_dir '' --dataset arxiv_TA --inf_batch_size 800 )
+### 2. PLM for Classification Tasks
+```python
+CUDA_VISIBLE_DEVICES=0,1 python LMs/trainLM.py --att_dropout=0.1 --cla_dropout=0.1 --dataset=Computers_RS --dropout=0.1 --epochs=4 --eq_batch_size=180 --eval_patience=20000 --grad_steps=1 --label_smoothing_factor=0.1 --lr=4e-05 --model=Deberta --per_device_bsz=90 --per_eval_bsz=1000 --train_ratio=0.2 --val_ratio=0.1 --warmup_epochs=1 --gpus=0,1
+```
 
-[//]: # (```)
+### 3. TMLM for Training
 
-[//]: # (where '--model' can be filled with 'TinyBert, Distilbert, Electra, Electra-base, Electra-large, Bert, Bert-large, Roberta, Roberta-large, Deberta, Deberta-large'.)
+### 4. TDK for Training 
 
-[//]: # (In '--inference_dir' fill in the location where you want to store the features.)
+### 5. TCL for Training 
 
-[//]: # ('--dataset' can be filled with 'arxiv_TA, Children_DT, History_DT, Computers_RW, Photo_RW, Fitness_T, DBLP_TA, GOOD_DT'.)
-
-
+### 6. TMDC for Training 
 
 
-## Directory Layout
+## Create Your Model
+If you want to add your own model to this code base, you can follow the steps below:
+
+Add your GNN model:
+1. In GNN/model/GNN_library, define your model (you can refer to the code for models like GCN, GAT, etc.)
+2. In the args_init() function in GNN/model/GNN_arg.py, check to see if it contains all the parameters involved in your model. If there are deficiencies, you can easily add new parameters to this function.
+3. Import the model you defined in GNN/GNN.py and add your corresponding model to the gen_model() function. You can then run the corresponding code to perform the node classification task.
+
+Add your PLM model:
+1. Go to the LM/Model/ path and create a folder named after your model name. Define __init__.py and config.py in it (see how these two files are defined in other folders).
+2. Add the parameters you need to the parser() function in lm_utils.
+3. If your model can't be loaded from huggingface, please pass in the path to the folder your model corresponds to via the parameter 'pretrain_path'.
+
+
+
+## Main experiments in CS-TAG
+Representation learning on the TAGs often depend on the two type models: Graph Neural Networks and Language Models.
+For the latter, we often use the Pretrained Language Models (PLMs) to encode the text.
+For the GNNs, we follow the [DGL](https://www.dgl.ai/) toolkit and implement them in the GNN library.
+For the PLMs, we follow the [huggingface](https://huggingface.co/) trainer to implement the PLMs in a same pipeline.
+We know that there are no absolute fair between the two type baselines.
+
+[//]: # (We use the [wandb]&#40;https://wandb.ai/site&#41; to log the results of our experiments.)
+
+[//]: # (We make public the logs of some of our experiments done and organized to promote more researchers to study TAG.)
+
+[//]: # (- [x] [Node classification from GNN]&#40;https://wandb.ai/csu_tag/OGB-Arxiv-GNN/reports/GNN-Accuracy--Vmlldzo0MjcyMzk4&#41;)
+
+[//]: # (- [x] [LM related in Ele-computers]&#40;https://wandb.ai//csu_tag/Computers/reports/Ele-Computers--Vmlldzo0NjMxNTA4&#41;)
+
+### Future work
+In the CS-TAG, we mainly explore the form of classification tasks on TAGs, so we mainly use the mask language models.
+But in recent years, the autoregressive language models have recently evolved rapidly, with models with increasingly larger and models that work increasingly well on the generative tasks.
+![LLM](LLM.png)
+To this end, in the future we will explore some suitable forms of generative tasks on TAGs to analyze the performance performance of different large language models(ChatGPT, GPT-4, LLaMA, and so on.).
+
 
 [//]: # (```bash)
 
@@ -130,43 +166,4 @@ CUDA_VISIBLE_DEVICES=0 python TextAttributeExtract.py --csv_file 'Data/Movies/Mo
 [//]: # (|---- dist_runner.py  # Parallel way to training the model)
 
 [//]: # (```)
-
-## Create Your Model
-If you want to add your own model to this code base, you can follow the steps below:
-
-Add your GNN model:
-1. In GNN/model/GNN_library, define your model (you can refer to the code for models like GCN, GAT, etc.)
-2. In the args_init() function in GNN/model/GNN_arg.py, check to see if it contains all the parameters involved in your model. If there are deficiencies, you can easily add new parameters to this function.
-3. Import the model you defined in GNN/GNN.py and add your corresponding model to the gen_model() function. You can then run the corresponding code to perform the node classification task.
-
-Add your PLM model:
-1. Go to the LM/Model/ path and create a folder named after your model name. Define __init__.py and config.py in it (see how these two files are defined in other folders).
-2. Add the parameters you need to the parser() function in lm_utils.
-3. If your model can't be loaded from huggingface, please pass in the path to the folder your model corresponds to via the parameter 'pretrain_path'.
-
-
-## Environments
-You can quickly install the corresponding dependencies
-```shell
-conda env create -f environment.yml
-```
-
-## Main experiments in CS-TAG
-Representation learning on the TAGs often depend on the two type models: Graph Neural Networks and Language Models.
-For the latter, we often use the Pretrained Language Models (PLMs) to encode the text.
-For the GNNs, we follow the [DGL](https://www.dgl.ai/) toolkit and implement them in the GNN library.
-For the PLMs, we follow the [huggingface](https://huggingface.co/) trainer to implement the PLMs in a same pipeline.
-We know that there are no absolute fair between the two type baselines.
-
-We use the [wandb](https://wandb.ai/site) to log the results of our experiments.
-We make public the logs of some of our experiments done and organized to promote more researchers to study TAG.
-- [x] [Node classification from GNN](https://wandb.ai/csu_tag/OGB-Arxiv-GNN/reports/GNN-Accuracy--Vmlldzo0MjcyMzk4)
-- [x] [LM related in Ele-computers](https://wandb.ai//csu_tag/Computers/reports/Ele-Computers--Vmlldzo0NjMxNTA4)
-
-### Future work
-In the CS-TAG, we mainly explore the form of classification tasks on TAGs, so we mainly use the mask language models.
-But in recent years, the autoregressive language models have recently evolved rapidly, with models with increasingly larger and 
-models that work increasingly well on the generative tasks.
-![LLM](LLM.png)
-To this end, in the future we will explore some suitable forms of generative tasks on TAGs to analyze the performance performance of different large language models(ChatGPT, GPT-4, LLaMA, and so on.).
 

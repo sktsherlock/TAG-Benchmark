@@ -49,12 +49,8 @@ import os.path as osp
 PROJ_DIR = osp.abspath(osp.dirname(__file__)).split('LMs')[0]
 LM_PROJ_DIR = osp.join(PROJ_DIR, 'LMs/')
 
-# Mount paths: kept in cloud and shared cross containers
-MS_USER = 'v-wzhuang'
-MNT_ROOT = f'/mnt/{MS_USER}/'
-# Mount path: to be shared
-MOUNTED = osp.exists(MNT_ROOT)
-MNT_DIR = f'{MNT_ROOT}{PROJ_NAME}/' if MOUNTED else PROJ_DIR
+
+MNT_DIR = PROJ_DIR
 # Temp paths: discarded when container is destroyed
 TEMP_DIR = LM_PROJ_DIR
 TEMP_PATH = f'{LM_PROJ_DIR}temp/'
@@ -68,7 +64,7 @@ DB_PATH = f'{LM_PROJ_DIR}exp_db/'
 # ! Data Settings
 DATA_PATH = f'{MNT_DIR}data/'
 OGB_ROOT = f'{MNT_DIR}data/ogb/'
-AMAZON_ROOT = f'{MNT_DIR}data/amazon/'
+AMAZON_ROOT = f'{MNT_DIR}CSTAG/'
 DBLP_ROOT = f'{MNT_DIR}data/dblp/'
 GOOD_ROOT = f'{MNT_DIR}data/good/'
 WEBKB_ROOT = f'{MNT_DIR}data/webkb/'
@@ -108,9 +104,9 @@ DATA_INFO = {
         'train_ratio': 0,  # Default (public) split
         'n_labels': 10,
         'n_nodes': 87229,
-        'data_name': 'Electronics-Computers',
+        'data_name': 'Computers',
         'max_length': 256,  # Place to save raw data
-        'data_root': f'{AMAZON_ROOT}Electronics/Computers/',  # Default ogb download target path
+        'data_root': f'{AMAZON_ROOT}Computers/',
     },
     'Fitness': {
         'type': 'amazon',
