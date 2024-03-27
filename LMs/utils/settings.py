@@ -64,7 +64,7 @@ DB_PATH = f'{LM_PROJ_DIR}exp_db/'
 # ! Data Settings
 DATA_PATH = f'{MNT_DIR}data/'
 OGB_ROOT = f'{MNT_DIR}data/ogb/'
-AMAZON_ROOT = f'{MNT_DIR}CSTAG/'
+AMAZON_ROOT = f'{MNT_DIR}data/CSTAG/'
 DBLP_ROOT = f'{MNT_DIR}data/dblp/'
 GOOD_ROOT = f'{MNT_DIR}data/good/'
 WEBKB_ROOT = f'{MNT_DIR}data/webkb/'
