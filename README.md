@@ -80,11 +80,22 @@ We know that there are no absolute fair between the two type baselines.
 
 [//]: # (- [x] [LM related in Ele-computers]&#40;https://wandb.ai//csu_tag/Computers/reports/Ele-Computers--Vmlldzo0NjMxNTA4&#41;)
 
-### Future work
-In the CS-TAG, we mainly explore the form of classification tasks on TAGs, so we mainly use the mask language models.
-But in recent years, the autoregressive language models have recently evolved rapidly, with models with increasingly larger and models that work increasingly well on the generative tasks.
-![LLM](LLM.png)
-To this end, in the future we will explore some suitable forms of generative tasks on TAGs to analyze the performance performance of different large language models(ChatGPT, GPT-4, LLaMA, and so on.).
+
+## Citation
+If you use our datasets, please consider citing our work:
+
+```
+@article{yan2023comprehensive,
+  title={A Comprehensive Study on Text-attributed Graphs: Benchmarking and Rethinking},
+  author={Yan, Hao and Li, Chaozhuo and Long, Ruosong and Yan, Chao and Zhao, Jianan and Zhuang, Wenwen and Yin, Jun and Zhang, Peiyan and Han, Weihao and Sun, Hao and others},
+  journal={Advances in Neural Information Processing Systems},
+  volume={36},
+  pages={17238--17264},
+  year={2023}
+}
+```
+
+
 
 
 [//]: # (```bash)
